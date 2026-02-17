@@ -5,6 +5,7 @@
 Thumbs.db
 
 # 微信开发者工具
+project.config.json
 project.private.config.json
 
 # 日志文件
