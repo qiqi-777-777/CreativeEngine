@@ -1,0 +1,56 @@
+<!--pages/policy/policy.wxml-->
+<view class="container">
+  <!-- 顶部区域 -->
+  <view class="header-section">
+    <view class="title-bar">
+      <view class="page-title">政策速配</view>
+      <view class="filter-btn">
+        <view class="icon-filter"></view>
+      </view>
+    </view>
+
+    <view class="search-box">
+      <icon type="search" size="20" color="#9CA3AF"></icon>
+      <input 
+        class="search-input" 
+        placeholder="输入关键词匹配..." 
+        placeholder-class="placeholder-style"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+      />
+      <view class="match-btn" bindtap="onSearch">匹配</view>
+    </view>
+  </view>
+
+  <!-- 列表区域 -->
+  <scroll-view class="policy-list" scroll-y enable-back-to-top>
+    <block wx:for="{{filteredPolicyList}}" wx:key="id">
+      <view class="policy-card" bindtap="onSelectPolicy" data-id="{{item.id}}">
+        <view class="card-header">
+          <view class="card-title">{{item.policyName}}</view>
+          <view class="icon-file">📄</view>
+        </view>
+        
+        <view class="card-content">
+          {{item.content || '暂无摘要'}}
+        </view>
+
+        <view class="card-footer">
+          <view class="tags">
+            <view class="tag" wx:if="{{item.keywords}}">{{item.keywords}}</view>
+          </view>
+          <view class="detail-link">
+            详情 >
+          </view>
+        </view>
+      </view>
+    </block>
+    
+    <view wx:if="{{filteredPolicyList.length === 0}}" class="empty-state">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">{{searchKeyword ? '未找到相关政策' : '暂无政策数据'}}</text>
+    </view>
+    <view class="bottom-spacer"></view>
+  </scroll-view>
+</view>

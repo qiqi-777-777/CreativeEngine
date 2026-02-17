@@ -1,0 +1,97 @@
+<view class="container">
+  <!-- 头部背景区域 -->
+  <view class="header-bg">
+    <!-- 状态栏占位 (safe-area) -->
+    <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+    <!-- 导航栏内容 (Title or Empty) -->
+    <view class="nav-bar">
+      <!-- 可以在这里放标题，或者保持为空让背景透出来 -->
+    </view>
+    
+    <view class="user-section">
+      <!-- 个人信息卡片 -->
+      <view class="user-card" bindtap="handleLogin">
+        <view class="avatar-container">
+          <view class="avatar-wrapper">
+            <!-- 使用默认头像或图标 -->
+            <image class="avatar-img" src="/images/default-avatar.png" mode="aspectFill"></image>
+          </view>
+        </view>
+        <view class="user-info">
+          <text class="user-name">点击登录/注册</text>
+          <view class="user-desc-bg">
+            <text class="user-desc">开启您的创业之旅</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="header-actions">
+        <!-- 简单的图标占位，实际项目中需替换为 image 或 iconfont -->
+        <view class="action-icon">
+             <image src="/images/icon/scan.png" mode="aspectFit" style="width: 24px; height: 24px; opacity: 0.8;" wx:if="{{false}}"></image> <!-- 假设没有扫码图标，先隐藏或用文字/CSS绘制 -->
+             <!-- 这里的图标暂时不放，或者用 view 模拟 -->
+        </view>
+         <view class="action-icon">
+             <!-- Set icon -->
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据概览 (悬浮卡片) -->
+    <view class="stats-card">
+      <block wx:for="{{stats}}" wx:key="label">
+        <view class="stat-item" bindtap="handleStatClick" data-index="{{index}}">
+          <text class="stat-value">{{item.value}}</text>
+          <text class="stat-label">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 主体内容 -->
+  <view class="main-content">
+    
+    <!-- 常用服务 -->
+    <view class="section-card">
+      <view class="section-header">
+        <view class="section-indicator"></view>
+        <text class="section-title">常用服务</text>
+      </view>
+      
+      <view class="service-grid">
+        <block wx:for="{{services}}" wx:key="label">
+          <view class="service-item" bindtap="handleServiceClick" data-item="{{item}}">
+            <view class="service-icon-box" style="background-color: {{item.bg}}; color: {{item.color}};">
+               <!-- 由于没有 lucide-react，这里用简单的 text 首字或 block 颜色代替，或者 text -->
+               <!-- 实际请替换为 image -->
+               <text style="font-size: 14px; font-weight: bold;">{{item.iconChar}}</text>
+            </view>
+            <text class="service-label">{{item.label}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 列表菜单 -->
+    <view class="section-card menu-list">
+      <block wx:for="{{menuItems}}" wx:key="label">
+        <view class="menu-item" bindtap="handleMenuClick" data-item="{{item}}">
+          <view class="menu-left">
+            <view class="menu-icon-placeholder">
+               <!-- Icon placeholder -->
+               <view class="dot"></view>
+            </view>
+            <text class="menu-label">{{item.label}}</text>
+          </view>
+          <view class="menu-right">
+            <text class="menu-text" wx:if="{{item.text}}">{{item.text}}</text>
+            <text class="arrow">></text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 底部留白 -->
+    <view style="height: 100px;"></view>
+  </view>
+</view>

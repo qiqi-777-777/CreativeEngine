@@ -1,0 +1,92 @@
+<!--pages/resource/resource.wxml-->
+<view class="container">
+  
+  <!-- 顶部 Header -->
+  <view class="page-header">
+    <view class="header-left">
+      <text class="header-subtitle">RESOURCE HUB</text>
+      <text class="header-title">资源对接</text>
+    </view>
+    <view class="search-btn">
+      <text class="search-icon-img">🔍</text>
+    </view>
+  </view>
+
+  <!-- 分类标签 -->
+  <view class="category-tabs">
+    <scroll-view scroll-x class="tabs-scroll" enable-flex>
+      <view class="tab-item {{currentTab === index ? 'active' : ''}}" 
+            wx:for="{{tabs}}" 
+            wx:key="id" 
+            data-index="{{index}}"
+            bindtap="onTabChange">
+        {{item.name}}
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 列表内容 -->
+  <view class="page-body">
+    <view class="job-item" wx:for="{{displayList}}" wx:key="id">
+      <!-- 顶部信息：胶囊标签 + 薪资 -->
+      <view class="job-top-row">
+        <view class="job-category-tag">{{item.categoryName}}</view>
+        <view class="job-salary-box">
+          <text class="job-salary">{{item.salary}}</text>
+          <text class="job-unit">{{item.unit}}</text>
+        </view>
+      </view>
+
+      <!-- 标题与描述 -->
+      <view class="job-title">{{item.title}}</view>
+      <view class="job-desc">{{item.description}}</view>
+
+      <!-- 底部信息：地点、时间 & 箭头 -->
+      <view class="job-footer">
+        <view class="job-info-row">
+          <view class="job-info-item">
+            <text class="info-icon">📍</text>
+            <text>{{item.location}}</text>
+          </view>
+          <!-- <view class="job-info-item">
+            <text class="info-icon">🕒</text>
+            <text>{{item.time}}</text>
+          </view> --> 
+          <!-- Only hiding time if space is tight, but we have space -->
+        </view>
+        <view class="arrow-btn">
+          <text>›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{displayList.length === 0}}">
+      <text>暂无相关机会</text>
+    </view>
+  </view>
+
+  <!-- 底部导航 (Homepage Style) -->
+  <view class="tab-bar">
+    <view class="tab-bar-border"></view>
+    <view wx:for="{{tabBarList}}" wx:key="index" class="tab-bar-item {{item.isSpecial ? 'special-item' : ''}}" data-path="{{item.pagePath}}" bindtap="switchTab">
+      
+      <!-- 普通图标 -->
+      <block wx:if="{{!item.isSpecial}}">
+        <image class="tab-icon" src="{{item.iconPath}}"></image>
+        <view class="tab-text">{{item.text}}</view>
+      </block>
+
+      <!-- 中间特殊图标 -->
+      <block wx:else>
+        <view class="special-icon-wrapper">
+          <image class="special-icon" src="{{item.iconPath}}"></image>
+        </view>
+        <view class="tab-text special-text">{{item.text}}</view>
+      </block>
+      
+    </view>
+  </view>
+
+</view>
+

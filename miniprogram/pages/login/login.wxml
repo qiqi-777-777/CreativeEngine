@@ -1,0 +1,78 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <!-- 顶部装饰 -->
+  <view class="header">
+    <view class="logo-box shadow-md">
+      <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    </view>
+    <view class="title text-main">创享引擎</view>
+    <view class="subtitle text-secondary">青年新质生产力平台</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-container card shadow-lg">
+    <view class="form-title text-xl font-bold mb-4 text-center">欢迎回来</view>
+    
+    <view class="form-item">
+      <view class="label text-secondary">用户名</view>
+      <input 
+        class="input-field" 
+        type="text" 
+        placeholder="请输入用户名" 
+        placeholder-class="input-placeholder"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+        maxlength="20"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="label text-secondary">密码</view>
+      <input 
+        class="input-field" 
+        type="password" 
+        placeholder="请输入密码" 
+        placeholder-class="input-placeholder"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+        maxlength="50"
+      />
+    </view>
+
+    <button class="btn-primary w-full mt-4" bindtap="login" disabled="{{!agreed || username.length < 3 || password.length < 6}}">
+      登录
+    </button>
+
+    <view class="register-link mt-4 text-center">
+      <text class="text-muted text-sm">还没有账号？</text>
+      <text class="text-primary text-sm font-medium ml-2" bindtap="goToRegister">立即注册</text>
+    </view>
+  </view>
+
+  <!-- 微信登录 -->
+  <view class="wechat-login mt-4">
+    <view class="divider-text text-muted text-xs text-center mb-4">或者</view>
+    
+    <button 
+      class="wechat-btn shadow-sm" 
+      open-type="getUserProfile"
+      bindgetuserprofile="wechatLogin"
+    >
+      <image class="wechat-icon" src="/images/wechat-icon.png"></image>
+      微信快速登录
+    </button>
+  </view>
+
+  <!-- 协议 -->
+  <view class="agreement mt-4 flex justify-center">
+    <checkbox-group bindchange="onAgreementChange" class="flex items-center">
+      <checkbox class="checkbox" checked="{{agreed}}" color="var(--primary-color)"/>
+      <view class="agreement-text text-xs text-muted ml-2">
+        我已阅读并同意
+        <text class="text-primary" bindtap="showUserAgreement">《用户协议》</text>
+        和
+        <text class="text-primary" bindtap="showPrivacyPolicy">《隐私政策》</text>
+      </view>
+    </checkbox-group>
+  </view>
+</view>

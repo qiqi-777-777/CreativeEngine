@@ -1,0 +1,805 @@
+import React, { useState } from 'react';
+import { 
+  Settings, 
+  MessageSquare, 
+  ChevronRight, 
+  Home, 
+  Sparkles, 
+  User, 
+  FileText,
+  Briefcase,
+  Award,
+  Clock,
+  LogOut,
+  Shield,
+  HelpCircle,
+  Bell,
+  Wallet,
+  Building2,
+  PieChart,
+  ScanLine,
+  ChevronDown,
+  Edit,
+  Grid,
+  ZoomIn,
+  ZoomOut,
+  Maximize
+} from 'lucide-react';
+
+export default function App() {
+  const [currentDesign, setCurrentDesign] = useState(0);
+  const [scale, setScale] = useState(0.85); // 默认稍微缩小以适应多数屏幕，用户可调
+
+  const designs = [
+    { id: 0, name: '01. 官方标准版 (1:1还原首页风格)', theme: 'standard' },
+    { id: 1, name: '02. 悬浮卡片式', theme: 'floating' },
+    { id: 2, name: '03. 宫格功能版 (呼应核心服务)', theme: 'grid' },
+    { id: 3, name: '04. 数据看板版 (侧重数据)', theme: 'dashboard' },
+    { id: 4, name: '05. 极简白底版', theme: 'minimal_white' },
+    { id: 5, name: '06. 企业/创业者版', theme: 'enterprise' },
+    { id: 6, name: '07. 沉浸大图版', theme: 'immersive' },
+    { id: 7, name: '08. 列表高效版', theme: 'list_heavy' },
+    { id: 8, name: '09. 活力渐变版', theme: 'vibrant' },
+    { id: 9, name: '10. 夜间深色模式', theme: 'dark_mode' },
+  ];
+
+  return (
+    <div className="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+      {/* 侧边控制栏 */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full z-20 shadow-xl overflow-y-auto hidden md:flex shrink-0">
+        <div className="p-6 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-800">UI 设计方案库</h1>
+          <p className="text-sm text-gray-500 mt-2">Project: 创享引擎 (Youth Engine)</p>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-xs text-blue-800 font-medium">设计目标：严格遵循430x932尺寸，高保真还原首页风格。</p>
+          </div>
+        </div>
+        <div className="flex-1 p-4 space-y-3">
+          {designs.map((d, idx) => (
+            <button
+              key={d.id}
+              onClick={() => setCurrentDesign(d.id)}
+              className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-between group ${
+                currentDesign === idx 
+                  ? 'bg-blue-500 text-white shadow-blue-200 shadow-lg transform scale-105' 
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-102'
+              }`}
+            >
+              <span className="font-medium text-sm">{d.name}</span>
+              <div className={`w-2 h-2 rounded-full ${currentDesign === idx ? 'bg-white' : 'bg-gray-300 group-hover:bg-gray-400'}`}></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 移动端菜单 */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white p-2 flex overflow-x-auto gap-2 shadow-sm">
+         {designs.map((d, idx) => (
+            <button
+              key={d.id}
+              onClick={() => setCurrentDesign(d.id)}
+              className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium ${
+                 currentDesign === idx ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {idx + 1}
+            </button>
+         ))}
+      </div>
+
+      {/* 展示区域 - 允许滚动 */}
+      <div className="flex-1 flex flex-col bg-gray-200 relative overflow-hidden">
+        
+        {/* 顶部工具栏 */}
+        <div className="h-12 bg-white/80 backdrop-blur border-b border-gray-200 flex items-center justify-between px-4 z-10">
+          <span className="text-xs text-gray-500 font-mono">Viewport: 430 x 932 px</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setScale(s => Math.max(0.5, s - 0.1))} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Zoom Out">
+              <ZoomOut size={16}/>
+            </button>
+            <span className="text-xs font-medium w-12 text-center">{(scale * 100).toFixed(0)}%</span>
+            <button onClick={() => setScale(s => Math.min(1.5, s + 0.1))} className="p-1.5 hover:bg-gray-100 rounded text-gray-600" title="Zoom In">
+              <ZoomIn size={16}/>
+            </button>
+            <div className="w-px h-4 bg-gray-300 mx-2"></div>
+            <button onClick={() => setScale(1)} className="p-1.5 hover:bg-gray-100 rounded text-gray-600 flex gap-1 items-center text-xs" title="Reset">
+              <Maximize size={14}/> 100%
+            </button>
+          </div>
+        </div>
+
+        {/* 滚动区域 */}
+        <div className="flex-1 overflow-auto flex justify-center p-8 bg-[#e5e7eb]">
+          <div className="relative transition-transform duration-200 ease-out origin-top" style={{ transform: `scale(${scale})`, marginBottom: `${(932 * scale) - 932}px` }}> {/* Fix margin for scale */}
+             <PhoneFrame>
+                <DesignRenderer type={designs[currentDesign].theme} />
+             </PhoneFrame>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const DesignRenderer = ({ type }) => {
+  // 数据与首页风格匹配
+  const stats = [
+    { label: '我的收藏', value: '12' },
+    { label: '浏览足迹', value: '86' },
+    { label: '订阅政策', value: '5' },
+  ];
+
+  const commonMenuItems = [
+    { icon: FileText, label: '我的申请', badge: '2' },
+    { icon: Briefcase, label: '企业档案' },
+    { icon: Award, label: '资质认证', text: '去认证' },
+    { icon: MessageSquare, label: '消息通知' },
+    { icon: HelpCircle, label: '帮助与客服' },
+    { icon: Settings, label: '设置' },
+  ];
+
+  // 状态栏
+  const StatusBar = ({ theme = 'light' }) => (
+    <div className={`w-full h-[44px] px-6 flex justify-between items-end pb-2 text-[15px] font-semibold z-50 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      <span>17:56</span>
+      <div className="flex gap-1.5 items-center">
+        <div className="h-[10px] w-[16px] bg-current rounded-[2px] opacity-100 flex items-center justify-center border border-current">
+            <div className="h-full w-[80%] bg-current"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SectionTitle = ({ title, showAll = false }) => (
+    <div className="flex items-center justify-between mb-3 pl-1">
+      <div className="flex items-center gap-2">
+        <div className="w-[4px] h-[16px] bg-[#3B82F6] rounded-full"></div>
+        <span className="font-bold text-gray-800 text-[17px]">{title}</span>
+      </div>
+      {showAll && <span className="text-[13px] text-gray-400 flex items-center">全部 <ChevronRight size={14}/></span>}
+    </div>
+  );
+
+  // 1. 官方标准版 (Standard) - 严格复刻首页风格
+  if (type === 'standard') {
+    return (
+      <div className="h-full w-full bg-[#F5F7FA] flex flex-col font-sans">
+        {/* 头部背景：参考首页蓝色渐变 */}
+        <div className="bg-gradient-to-b from-[#5FA5F9] to-[#EFF6FF] pb-4">
+           <StatusBar theme="white" />
+           <div className="px-5 pt-2 pb-6 flex items-center justify-between">
+              {/* 个人信息卡片区域 */}
+              <div className="flex items-center gap-4 text-gray-800">
+                 <div className="w-[64px] h-[64px] bg-white rounded-full p-[2px] shadow-sm">
+                    <div className="w-full h-full bg-[#F3F4F6] rounded-full flex items-center justify-center overflow-hidden">
+                       <User className="text-[#9CA3AF]" size={36} fill="#D1D5DB" />
+                    </div>
+                 </div>
+                 <div>
+                    <h2 className="text-[20px] font-bold text-gray-900">点击登录/注册</h2>
+                    <p className="text-[#3B82F6] text-[13px] mt-1 bg-white/60 px-2 py-0.5 rounded-full inline-block backdrop-blur-sm">开启您的创业之旅</p>
+                 </div>
+              </div>
+              <div className="flex gap-3">
+                 <ScanLine className="text-gray-600 opacity-80" size={24} />
+                 <Settings className="text-gray-600 opacity-80" size={24} />
+              </div>
+           </div>
+           
+           {/* 数据概览 - 悬浮卡片风格 */}
+           <div className="mx-4 bg-white rounded-[16px] p-5 shadow-sm flex justify-around items-center">
+              {stats.map((s, i) => (
+                 <div key={i} className="flex flex-col items-center gap-1 cursor-pointer group">
+                    <span className="text-[22px] font-bold text-[#1F2937] font-sans">{s.value}</span>
+                    <span className="text-[12px] text-[#6B7280]">{s.label}</span>
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        {/* 主体内容 */}
+        <div className="px-4 flex-1 overflow-y-auto pb-24 no-scrollbar space-y-4 mt-2">
+           
+           {/* 核心服务 - 呼应首页图标风格 */}
+           <div className="bg-white rounded-[16px] p-5 shadow-sm">
+              <SectionTitle title="常用服务" />
+              <div className="grid grid-cols-4 gap-2 mt-4">
+                 {[
+                   {icon: FileText, label: '政策申报', color: 'text-[#6366F1]', bg: 'bg-[#EEF2FF]'}, // Indigo
+                   {icon: Briefcase, label: '职业匹配', color: 'text-[#0EA5E9]', bg: 'bg-[#E0F2FE]'}, // Sky
+                   {icon: Building2, label: '找场地', color: 'text-[#10B981]', bg: 'bg-[#ECFDF5]'}, // Emerald
+                   {icon: Wallet, label: '找资金', color: 'text-[#F59E0B]', bg: 'bg-[#FFFBEB]'}, // Amber
+                 ].map((item, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2">
+                       <div className={`w-[48px] h-[48px] ${item.bg} ${item.color} rounded-[14px] flex items-center justify-center shadow-sm`}>
+                          <item.icon size={24} strokeWidth={2} />
+                       </div>
+                       <span className="text-[12px] text-[#374151] font-medium">{item.label}</span>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+           {/* 列表菜单 */}
+           <div className="bg-white rounded-[16px] shadow-sm py-1">
+              {commonMenuItems.slice(2).map((item, i) => (
+                 <div key={i} className="flex items-center justify-between px-5 py-[18px] border-b border-gray-50 last:border-0 active:bg-gray-50">
+                    <div className="flex items-center gap-3">
+                       <item.icon size={20} className="text-[#6B7280]" strokeWidth={1.8} />
+                       <span className="text-[#1F2937] text-[15px] font-medium">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {item.text && <span className="text-[12px] text-gray-400">{item.text}</span>}
+                        <ChevronRight size={16} className="text-gray-300" />
+                    </div>
+                 </div>
+              ))}
+           </div>
+
+           {/* 广告/活动 Banner */}
+           <div className="w-full h-[100px] bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B] rounded-[16px] flex items-center justify-between px-6 text-white shadow-sm relative overflow-hidden">
+                <div className="absolute right-0 bottom-0 opacity-20 transform translate-x-4 translate-y-4">
+                    <Sparkles size={100} fill="white" />
+                </div>
+                <div>
+                    <div className="font-bold text-lg">VIP 会员服务</div>
+                    <div className="text-xs opacity-90 mt-1">专属政策顾问 / 极速审批通道</div>
+                </div>
+                <button className="bg-white text-[#FF7E5F] text-xs px-3 py-1.5 rounded-full font-bold shadow-sm z-10">立即开通</button>
+           </div>
+        </div>
+
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 2. 悬浮卡片式 (Floating)
+  if (type === 'floating') {
+    return (
+      <div className="h-full w-full bg-[#F0F4F8] flex flex-col font-sans">
+        <div className="h-[320px] bg-[#3B82F6] relative overflow-hidden rounded-b-[40px]">
+           <div className="absolute top-[-50px] right-[-50px] w-[200px] h-[200px] bg-white opacity-10 rounded-full blur-2xl"></div>
+           <div className="absolute bottom-[50px] left-[-50px] w-[150px] h-[150px] bg-white opacity-10 rounded-full blur-xl"></div>
+           <StatusBar theme="dark" />
+           <div className="px-6 mt-6 text-white">
+              <h1 className="text-[28px] font-bold">你好，<br/>创业伙伴</h1>
+           </div>
+        </div>
+
+        <div className="px-5 -mt-32 flex-1 overflow-y-auto pb-24 no-scrollbar relative z-10">
+           {/* 个人信息悬浮卡片 */}
+           <div className="bg-white rounded-[24px] p-6 shadow-lg shadow-blue-900/5 mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                 <div className="w-[60px] h-[60px] bg-gray-100 rounded-full border border-gray-100 flex items-center justify-center text-gray-300">
+                    <User size={30} fill="currentColor"/>
+                 </div>
+                 <div>
+                    <h3 className="text-[18px] font-bold text-gray-800">点击登录</h3>
+                    <div className="mt-1 flex gap-2">
+                       <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[11px] rounded-full">未认证企业</span>
+                    </div>
+                 </div>
+              </div>
+              <ChevronRight className="text-gray-300" />
+           </div>
+
+           {/* 功能列表 */}
+           <div className="space-y-4">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="bg-white rounded-[20px] p-4 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-[12px] flex items-center justify-center">
+                          <item.icon size={20} />
+                       </div>
+                       <span className="text-gray-700 font-bold text-[15px]">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       {item.badge && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span>}
+                       <ChevronRight size={18} className="text-gray-300" />
+                    </div>
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 3. 宫格功能版 (Grid)
+  if (type === 'grid') {
+    return (
+      <div className="h-full w-full bg-[#F8F9FA] flex flex-col font-sans">
+        <StatusBar />
+        
+        {/* 头部极简 */}
+        <div className="bg-white px-6 pt-4 pb-6 mb-3 shadow-sm">
+           <div className="flex justify-between items-start">
+              <div className="mt-2">
+                 <h1 className="text-[26px] font-bold text-gray-900">个人中心</h1>
+                 <p className="text-gray-500 text-sm mt-1">管理你的资源与服务</p>
+              </div>
+              <div className="w-[60px] h-[60px] rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500">
+                  <User size={30} />
+              </div>
+           </div>
+           
+           {/* 数据展示 */}
+           <div className="flex mt-8 gap-3">
+              {stats.map((s, i) => (
+                 <div key={i} className="flex-1 bg-[#F9FAFB] rounded-[12px] p-3 text-center border border-gray-100">
+                    <div className="font-bold text-[18px] text-gray-900">{s.value}</div>
+                    <div className="text-[11px] text-gray-500 mt-1">{s.label}</div>
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        {/* 宫格导航 */}
+        <div className="flex-1 overflow-y-auto p-4 pb-24">
+           <SectionTitle title="我的服务" />
+           <div className="grid grid-cols-2 gap-3">
+              {[...commonMenuItems, {icon: Grid, label: '更多功能'}].map((item, i) => (
+                 <div key={i} className="bg-white p-4 rounded-[16px] shadow-sm flex flex-col justify-between h-[100px] relative hover:shadow-md transition-shadow border border-gray-50">
+                    <div className={`w-[36px] h-[36px] rounded-[10px] flex items-center justify-center ${i % 4 === 0 ? 'bg-blue-50 text-blue-600' : i % 4 === 1 ? 'bg-purple-50 text-purple-600' : i % 4 === 2 ? 'bg-teal-50 text-teal-600' : 'bg-orange-50 text-orange-600'}`}>
+                       <item.icon size={18} />
+                    </div>
+                    <div className="flex justify-between items-end">
+                       <span className="font-bold text-gray-700 text-[14px]">{item.label}</span>
+                    </div>
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 4. 数据看板版 (Dashboard)
+  if (type === 'dashboard') {
+    return (
+      <div className="h-full w-full bg-[#F1F5F9] flex flex-col font-sans">
+        <div className="bg-[#1E293B] h-[160px] rounded-b-[30px]">
+           <StatusBar theme="dark" />
+           <div className="px-6 flex items-center gap-4 mt-2 text-white">
+              <div className="w-[50px] h-[50px] rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                 <User size={24} />
+              </div>
+              <div className="flex-1">
+                 <div className="font-bold text-[16px]">立即登录</div>
+                 <div className="text-[12px] text-slate-300 opacity-80 mt-0.5">完善信息，精准匹配政策</div>
+              </div>
+              <Bell className="text-white opacity-80" size={20} />
+           </div>
+        </div>
+
+        <div className="px-4 -mt-12 flex-1 overflow-y-auto pb-24 no-scrollbar">
+           {/* 核心指标卡片 */}
+           <div className="bg-white rounded-[20px] p-5 shadow-sm mb-4">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-50 pb-3">
+                 <span className="font-bold text-gray-800 text-[15px]">申报进度</span>
+                 <span className="text-[12px] text-blue-600 flex items-center">查看详情 <ChevronRight size={12}/></span>
+              </div>
+              <div className="flex justify-between items-center px-2">
+                 {['提交', '审核', '公示'].map((step, idx) => (
+                    <React.Fragment key={idx}>
+                        <div className="flex flex-col items-center gap-2">
+                            <div className={`w-[32px] h-[32px] rounded-full flex items-center justify-center text-[14px] font-bold ${idx===0 ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>{idx+1}</div>
+                            <span className={`text-[12px] ${idx===0 ? 'text-blue-600' : 'text-gray-400'}`}>{step}</span>
+                        </div>
+                        {idx !== 2 && <div className="h-[2px] w-[30px] bg-gray-100"></div>}
+                    </React.Fragment>
+                 ))}
+              </div>
+           </div>
+
+           {/* 统计概览 */}
+           <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white p-4 rounded-[16px] shadow-sm">
+                 <div className="text-gray-500 text-[12px] mb-2 flex items-center gap-1"><PieChart size={14}/> 政策匹配度</div>
+                 <div className="text-[24px] font-bold text-gray-900 font-mono">--%</div>
+                 <div className="text-[10px] text-gray-400 mt-2">完善资料后查看</div>
+              </div>
+              <div className="bg-white p-4 rounded-[16px] shadow-sm">
+                 <div className="text-gray-500 text-[12px] mb-2 flex items-center gap-1"><Wallet size={14}/> 扶持资金</div>
+                 <div className="text-[24px] font-bold text-gray-900 font-mono">¥0</div>
+                 <div className="text-[10px] text-orange-400 mt-2">去申请补贴</div>
+              </div>
+           </div>
+
+           {/* 列表 */}
+           <div className="bg-white rounded-[16px] shadow-sm overflow-hidden">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="flex items-center gap-4 p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                    <item.icon className="text-gray-400" size={18} />
+                    <span className="text-[14px] font-medium text-gray-700">{item.label}</span>
+                    <ChevronRight className="ml-auto text-gray-300" size={16}/>
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 5. 极简白底版 (Minimal White)
+  if (type === 'minimal_white') {
+    return (
+      <div className="h-full w-full bg-white flex flex-col font-sans">
+        <StatusBar />
+        <div className="px-6 pt-6 pb-2">
+           <div className="flex justify-end gap-5 mb-6 text-gray-800">
+              <ScanLine size={24} strokeWidth={1.5} />
+              <Settings size={24} strokeWidth={1.5} />
+           </div>
+           
+           <h1 className="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">Hi,</h1>
+           <h1 className="text-[32px] font-bold text-gray-900 mb-8 tracking-tight">欢迎来到创享引擎</h1>
+
+           {/* 登录卡片 */}
+           <div className="bg-[#F9FAFB] rounded-[24px] p-6 flex items-center gap-5 mb-8 border border-gray-100">
+               <div className="w-[60px] h-[60px] rounded-full bg-white shadow-sm flex items-center justify-center border border-gray-100">
+                  <User size={28} className="text-gray-800" fill="currentColor"/>
+               </div>
+               <div>
+                  <div className="font-bold text-[18px] text-gray-900">登录 / 注册</div>
+                  <div className="text-[12px] text-gray-500 mt-1">登录同步你的政策与数据</div>
+               </div>
+           </div>
+        </div>
+
+        <div className="flex-1 px-6 pb-24 overflow-y-auto">
+           <SectionTitle title="我的服务" />
+           <div className="grid grid-cols-4 gap-y-8 mt-6">
+              {[...commonMenuItems, {icon: LogOut, label: '退出登录'}].map((item, i) => (
+                 <div key={i} className="flex flex-col items-center gap-3">
+                    <div className="w-[50px] h-[50px] rounded-[18px] bg-gray-50 hover:bg-black hover:text-white transition-colors flex items-center justify-center text-gray-800">
+                       <item.icon size={22} strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[12px] text-gray-600 font-medium">{item.label}</span>
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 6. 企业/创业者版 (Enterprise)
+  if (type === 'enterprise') {
+    return (
+      <div className="h-full w-full bg-gray-50 flex flex-col font-sans">
+        <div className="bg-[#1E293B] pb-16 rounded-b-[24px]">
+           <StatusBar theme="dark" />
+           <div className="px-6 pt-6 flex items-start gap-4">
+              <div className="w-[60px] h-[60px] rounded-[16px] bg-gradient-to-br from-[#F59E0B] to-[#D97706] p-[2px]">
+                 <div className="w-full h-full bg-[#1E293B] rounded-[14px] flex items-center justify-center">
+                    <Building2 className="text-[#F59E0B]" size={28} />
+                 </div>
+              </div>
+              <div className="flex-1 text-white mt-1">
+                 <h2 className="text-[18px] font-bold text-[#F59E0B]">企业未认证</h2>
+                 <p className="text-[12px] text-slate-400 mt-1">认证后解锁：政策速配、融资对接</p>
+                 <button className="mt-3 bg-[#F59E0B] text-black text-[12px] font-bold px-4 py-1.5 rounded-full">立即认证</button>
+              </div>
+           </div>
+        </div>
+
+        <div className="px-4 -mt-10 flex-1 pb-24 overflow-y-auto">
+           {/* VIP Card */}
+           <div className="bg-[#2C3544] rounded-[16px] p-5 text-[#F59E0B] shadow-xl mb-6 flex justify-between items-center border border-[#F59E0B]/20 relative overflow-hidden">
+              <div className="relative z-10">
+                 <div className="font-bold text-[15px]">企业会员服务</div>
+                 <div className="text-[11px] opacity-80 mt-1">专属政策顾问 / 融资绿色通道</div>
+              </div>
+              <Award size={32} strokeWidth={1.5} className="relative z-10"/>
+              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-[#F59E0B] opacity-10 rounded-full blur-xl"></div>
+           </div>
+
+           <SectionTitle title="企业管理" />
+           <div className="bg-white rounded-[16px] shadow-sm mb-6">
+              <div className="grid grid-cols-3 divide-x divide-gray-100">
+                 <div className="p-4 flex flex-col items-center gap-1">
+                    <span className="text-[20px] font-bold text-gray-800">0</span>
+                    <span className="text-[12px] text-gray-500">发布岗位</span>
+                 </div>
+                 <div className="p-4 flex flex-col items-center gap-1">
+                    <span className="text-[20px] font-bold text-gray-800">0</span>
+                    <span className="text-[12px] text-gray-500">收到简历</span>
+                 </div>
+                 <div className="p-4 flex flex-col items-center gap-1">
+                    <span className="text-[20px] font-bold text-gray-800">0</span>
+                    <span className="text-[12px] text-gray-500">面试安排</span>
+                 </div>
+              </div>
+           </div>
+
+           <SectionTitle title="更多工具" />
+           <div className="bg-white rounded-[16px] shadow-sm overflow-hidden">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="flex items-center justify-between p-[18px] hover:bg-gray-50 border-b border-gray-50 last:border-0">
+                    <div className="flex items-center gap-3">
+                       <item.icon size={18} className="text-slate-500" />
+                       <span className="text-[14px] font-medium text-slate-700">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300" />
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 7. 沉浸大图版 (Immersive)
+  if (type === 'immersive') {
+    return (
+      <div className="h-full w-full bg-white flex flex-col font-sans">
+        {/* 背景图 */}
+        <div className="h-[260px] relative w-full">
+           <div className="absolute inset-0 bg-[#3B82F6]">
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent"></div>
+              {/* 装饰 */}
+              <div className="absolute -right-10 -top-10 w-48 h-48 border-[30px] border-white/10 rounded-full"></div>
+              <div className="absolute left-10 top-20 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl"></div>
+           </div>
+           <StatusBar theme="dark" />
+           
+           <div className="absolute bottom-0 left-0 w-full h-8 bg-white rounded-t-[30px] z-10"></div>
+           
+           <div className="absolute bottom-4 px-6 w-full z-20 flex items-end justify-between">
+              <div className="flex items-end gap-4">
+                 <div className="w-[72px] h-[72px] rounded-full border-[4px] border-white bg-gray-200 shadow-lg flex items-center justify-center overflow-hidden">
+                    <User size={40} className="text-gray-400" fill="#9CA3AF" />
+                 </div>
+                 <div className="mb-3">
+                    <div className="text-[20px] font-bold text-gray-900">用户名称</div>
+                    <div className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full inline-block mt-1 font-mono">ID: 8839201</div>
+                 </div>
+              </div>
+              <div className="mb-3 flex gap-2">
+                 <div className="w-[36px] h-[36px] rounded-full bg-gray-50 flex items-center justify-center text-gray-600"><Edit size={16}/></div>
+                 <div className="w-[36px] h-[36px] rounded-full bg-gray-50 flex items-center justify-center text-gray-600"><ScanLine size={16}/></div>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex-1 px-6 pt-2 pb-24 overflow-y-auto">
+           {/* 数据概览 */}
+           <div className="flex justify-between py-6 border-b border-gray-100">
+              {stats.map((s, i) => (
+                 <div key={i} className="text-center px-4">
+                    <div className="text-[20px] font-bold text-gray-800 font-sans">{s.value}</div>
+                    <div className="text-[12px] text-gray-400 mt-1">{s.label}</div>
+                 </div>
+              ))}
+           </div>
+
+           {/* 菜单列表 */}
+           <div className="mt-4 space-y-2.5">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-[16px] hover:bg-blue-50 group transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 group-hover:text-blue-600 shadow-sm">
+                          <item.icon size={16} />
+                       </div>
+                       <span className="font-medium text-[15px] text-gray-700 group-hover:text-blue-700">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300" />
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 8. 列表高效版 (List Heavy)
+  if (type === 'list_heavy') {
+    return (
+      <div className="h-full w-full bg-[#F2F2F7] flex flex-col font-sans">
+        <StatusBar />
+        <div className="bg-white px-6 py-6 flex items-center gap-4 mb-3">
+           <div className="w-[64px] h-[64px] bg-gray-100 rounded-lg flex items-center justify-center">
+              <User size={32} className="text-gray-300" fill="currentColor"/>
+           </div>
+           <div className="flex-1">
+              <h2 className="text-[20px] font-bold text-gray-900">登录/注册</h2>
+              <p className="text-[13px] text-gray-500 mt-1">登录后享受更多权益</p>
+           </div>
+           <ChevronRight className="text-gray-300" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto pb-24">
+           <div className="bg-white mb-3">
+              <div className="flex py-4">
+                 {stats.map((s, i) => (
+                    <div key={i} className="flex-1 text-center border-r border-gray-100 last:border-0">
+                       <div className="text-[18px] font-bold text-[#3B82F6]">{s.value}</div>
+                       <div className="text-[12px] text-gray-500 mt-1">{s.label}</div>
+                    </div>
+                 ))}
+              </div>
+           </div>
+
+           <div className="bg-white mb-3 pl-5 border-y border-gray-200">
+              {commonMenuItems.slice(0, 3).map((item, i) => (
+                 <div key={i} className="flex items-center justify-between py-4 pr-5 border-b border-gray-100 last:border-0">
+                    <div className="flex items-center gap-3">
+                       <item.icon size={22} className="text-[#3B82F6]" />
+                       <span className="text-[16px] text-gray-900">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {item.text && <span className="text-[13px] text-gray-400">{item.text}</span>}
+                        <ChevronRight size={16} className="text-[#C7C7CC]" />
+                    </div>
+                 </div>
+              ))}
+           </div>
+
+           <div className="bg-white mb-3 pl-5 border-y border-gray-200">
+              {commonMenuItems.slice(3).map((item, i) => (
+                 <div key={i} className="flex items-center justify-between py-4 pr-5 border-b border-gray-100 last:border-0">
+                    <div className="flex items-center gap-3">
+                       <item.icon size={22} className="text-gray-600" />
+                       <span className="text-[16px] text-gray-900">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-[#C7C7CC]" />
+                 </div>
+              ))}
+           </div>
+           
+           <div className="text-center mt-6 text-gray-400 text-xs">V1.0.0 Build 20231024</div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 9. 活力渐变版 (Vibrant)
+  if (type === 'vibrant') {
+    return (
+      <div className="h-full w-full bg-gray-50 flex flex-col font-sans">
+        <div className="bg-gradient-to-r from-[#FF512F] to-[#DD2476] h-[280px] relative rounded-b-[40px] overflow-hidden">
+           <div className="absolute top-0 right-0 w-full h-full opacity-20" style={{backgroundImage: 'radial-gradient(circle, white 2px, transparent 2.5px)', backgroundSize: '24px 24px'}}></div>
+           <StatusBar theme="dark" />
+           
+           <div className="flex flex-col items-center justify-center h-full pb-12 text-white">
+              <div className="w-[80px] h-[80px] bg-white p-1 rounded-full mb-4 shadow-xl">
+                 <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="text-gray-300" size={40} fill="currentColor" />
+                 </div>
+              </div>
+              <h2 className="text-[22px] font-bold tracking-wide">未登录</h2>
+              <button className="mt-4 bg-white/20 backdrop-blur-md px-8 py-2 rounded-full border border-white/40 text-[14px] font-medium shadow-lg active:scale-95 transition-transform">点击登录</button>
+           </div>
+        </div>
+
+        <div className="px-5 -mt-12 flex-1 overflow-y-auto pb-24">
+           <div className="bg-white rounded-[20px] shadow-lg p-6 mb-6">
+               <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-gray-800 text-[16px]">我的数据</h3>
+                  <Clock size={16} className="text-gray-400" />
+               </div>
+               <div className="flex justify-between">
+                  {stats.map((s, i) => (
+                     <div key={i} className="text-center px-4">
+                        <div className="text-[24px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF512F] to-[#DD2476]">{s.value}</div>
+                        <div className="text-[12px] text-gray-500 font-medium mt-1">{s.label}</div>
+                     </div>
+                  ))}
+               </div>
+           </div>
+
+           <div className="grid grid-cols-3 gap-4">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="bg-white rounded-[16px] p-4 flex flex-col items-center justify-center gap-3 shadow-sm aspect-square hover:scale-105 transition-transform cursor-pointer">
+                    <item.icon size={28} className="text-[#DD2476]" strokeWidth={1.5} />
+                    <span className="text-[13px] text-gray-700 font-medium">{item.label}</span>
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" />
+      </div>
+    );
+  }
+
+  // 10. 夜间深色模式 (Dark Mode)
+  if (type === 'dark_mode') {
+    return (
+      <div className="h-full w-full bg-[#111827] flex flex-col font-sans text-gray-200">
+        <StatusBar theme="dark" />
+        <div className="px-6 py-8 flex items-center gap-4">
+           <div className="w-[64px] h-[64px] rounded-full bg-[#1F2937] border border-gray-700 flex items-center justify-center">
+              <User size={32} className="text-gray-500" fill="currentColor" />
+           </div>
+           <div>
+              <h2 className="text-[20px] font-bold text-white">登录/注册</h2>
+              <p className="text-[13px] text-gray-500 mt-1">Youth Engine Profile</p>
+           </div>
+           <div className="ml-auto p-2.5 bg-[#1F2937] rounded-full hover:bg-gray-700 transition-colors">
+              <Settings size={20} className="text-gray-400"/>
+           </div>
+        </div>
+
+        <div className="px-6 pb-24 flex-1 overflow-y-auto">
+           {/* 黑色卡片 */}
+           <div className="bg-[#1F2937] rounded-[20px] p-6 mb-6 border border-gray-700/50 shadow-lg">
+               <div className="flex justify-between">
+                   {stats.map((s, i) => (
+                      <div key={i} className="text-center px-4">
+                         <div className="text-[20px] font-bold text-blue-400">{s.value}</div>
+                         <div className="text-[12px] text-gray-400 mt-1">{s.label}</div>
+                      </div>
+                   ))}
+               </div>
+           </div>
+
+           <SectionTitle title="服务中心" />
+           <div className="space-y-3 mt-3">
+              {commonMenuItems.map((item, i) => (
+                 <div key={i} className="flex items-center justify-between p-[18px] bg-[#1F2937] rounded-[16px] border border-gray-700/30 hover:bg-gray-800 transition-colors">
+                    <div className="flex items-center gap-3">
+                       <item.icon size={20} className="text-gray-400" />
+                       <span className="text-[15px] font-medium text-gray-200">{item.label}</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-600" />
+                 </div>
+              ))}
+           </div>
+        </div>
+        <BottomNav active="my" theme="dark" />
+      </div>
+    );
+  }
+
+  return <div>Design not found</div>;
+};
+
+// ----------------------------------------------------------------------
+// 辅助组件
+// ----------------------------------------------------------------------
+
+// 手机外壳 - 严格 430x932
+const PhoneFrame = ({ children }) => (
+  <div className="w-[430px] h-[932px] bg-black rounded-[55px] p-[10px] shadow-[0_0_50px_rgba(0,0,0,0.2)] relative border-[6px] border-[#222] ring-4 ring-[#111] overflow-hidden shrink-0">
+    <div className="absolute top-[20px] left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-[100] flex items-center justify-center">
+      <div className="w-[80px] h-[80px] rounded-full bg-black/50 blur-xl absolute -z-10"></div>
+    </div>
+    <div className="w-full h-full bg-white rounded-[45px] overflow-hidden relative">
+       {children}
+       <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/90 rounded-full z-[100]"></div>
+    </div>
+  </div>
+);
+
+// 底部导航 - 严格复刻首页截图
+const BottomNav = ({ active, theme = 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div className={`absolute bottom-0 w-full h-[88px] flex items-start pt-3 justify-around z-50 ${isDark ? 'bg-[#111827] border-t border-gray-800' : 'bg-white border-t border-gray-100'}`}>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'home' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         {/* 首页 Home 图标 */}
+         <Home size={26} strokeWidth={active === 'home' ? 2.5 : 2} />
+         <span className="text-[10px] font-medium mt-0.5">首页</span>
+      </div>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'ai' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         {/* AI助手 Sparkles 图标 */}
+         <Sparkles size={26} strokeWidth={active === 'ai' ? 2.5 : 2} />
+         <span className="text-[10px] font-medium mt-0.5">AI助手</span>
+      </div>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'my' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         {/* 我的 User 图标 */}
+         <User size={26} strokeWidth={active === 'my' ? 2.5 : 2} fill={active === 'my' ? "currentColor" : "none"} />
+         <span className="text-[10px] font-medium mt-0.5">我的</span>
+      </div>
+    </div>
+  );
+};

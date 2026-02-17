@@ -1,0 +1,129 @@
+<!--pages/image-interpretation/image-interpretation.wxml-->
+<wxs module="wxs">
+  var getCardStyle = function(index, rotation, radius, angleStep, activeIdx) {
+    var itemAngle = index * angleStep;
+    var relAngle = (rotation + itemAngle) % 360;
+    if (relAngle < 0) relAngle += 360;
+    
+    // Determine if front-facing (for style adjustments)
+    var isFront = relAngle < 70 || relAngle > 290;
+    var isActive = activeIdx === index;
+    
+    var style = "transform: rotateY(" + itemAngle + "deg) translateZ(" + radius + "rpx);";
+    
+    if (isFront) {
+      style += " opacity: 1; z-index: 10;";
+      // filter is not fully supported in all MP environments same as web, but we can try opacity
+    } else {
+      style += " opacity: 0.25; z-index: 1;";
+    }
+
+    return style;
+  };
+
+  var getCardInnerClass = function(index, activeIdx) {
+     return activeIdx === index ? "card-inner active" : "card-inner inactive";
+  };
+  
+  var getSpinnerStyle = function(rotation, radius, tiltAngle) {
+    return "transform: translateZ(-" + radius + "rpx) rotateX(" + tiltAngle + "deg) rotateY(" + rotation + "deg);";
+  };
+
+  module.exports = {
+    getCardStyle: getCardStyle,
+    getSpinnerStyle: getSpinnerStyle,
+    getCardInnerClass: getCardInnerClass
+  };
+</wxs>
+
+<view class="scene-container">
+  <!-- 背景装饰 -->
+  <view class="bg-decoration"></view>
+
+  <!-- 顶部导航 -->
+  <view class="page-header">
+    <text class="page-subtitle">GRAPHIC INTERPRETATION</text>
+    <view class="title-row">
+      <view class="back-btn" bindtap="goBack">
+        <text class="icon-back-simple">←</text>
+      </view>
+      <text class="page-title">图说解读</text>
+    </view>
+  </view>
+
+  <!-- 3D 舞台 -->
+  <view 
+    class="stage" 
+    bindtouchstart="handleTouchStart" 
+    bindtouchmove="handleTouchMove"
+    bindtouchend="handleTouchEnd"
+  >
+    <view 
+      class="carousel" 
+      style="{{wxs.getSpinnerStyle(rotation, radius, tiltAngle)}}; transition: transform {{transitionDuration}}s cubic-bezier(0.25, 1, 0.5, 1);"
+    >
+      <block wx:for="{{items}}" wx:key="id">
+        <view 
+          class="card-wrapper"
+          style="{{wxs.getCardStyle(index, rotation, radius, angleStep, activeIdx)}}"
+          bindtap="onCardTap"
+          data-index="{{index}}"
+        >
+          <view class="{{wxs.getCardInnerClass(index, activeIdx)}}">
+            <view class="card-content">
+              <!-- 图标 & 标题 -->
+              <view class="card-top">
+                <view class="card-icon-box" style="background-color: {{activeIdx === index ? item.color : '#F1F5F9'}};">
+                  <image class="card-icon-img" src="{{item.icon}}" mode="aspectFit" style="opacity: {{activeIdx === index ? 1 : 0.6}}; filter: {{activeIdx === index ? 'brightness(10)' : 'brightness(0)'}};"></image>
+                  <!-- Brightness filter approach: if white icon desired on color bg, but gray on gray bg, simpler to use two images or SVG tinting -->
+                  <!-- Actually, my SVG code is stroke="#fff". So on colored bg (active) it works. -->
+                  <!-- On gray bg (inactive), white stroke is invisible if bg is light. -->
+                  <!-- Wait, inactive bg is #F1F5F9 (very light). White stroke will be lost. -->
+                  <!-- I should set the stroke color dynamically or use mask. -->
+                  <!-- But using base64 image, I cannot easily change color via CSS unless I use mask. -->
+                  <!-- Simple fix: The SVGs I generated have stroke="#fff". -->
+                  <!-- Active: Bg is Color (Blue/Red..). White icon looks good. -->
+                  <!-- Inactive: Bg is #F1F5F9. White icon is invisible. -->
+                  <!-- Use CSS filter: invert(1) or brightness(0) to make it black/gray? -->
+                  <!-- If brightness(0), it becomes black. That works for inactive. -->
+                </view>
+                <view class="card-text-group">
+                  <text class="card-name" style="color: {{activeIdx === index ? '#0F172A' : '#CBD5E1'}};">{{item.name}}</text>
+                  <view class="card-indicator" style="background-color: {{activeIdx === index ? item.color : '#F1F5F9'}}; width: {{activeIdx === index ? '64rpx' : '32rpx'}};"></view>
+                </view>
+              </view>
+
+              <!-- 描述 & 底部 -->
+              <view class="card-bottom">
+                 <text class="card-desc" style="color: {{activeIdx === index ? '#64748B' : '#E2E8F0'}};">
+                   {{item.interpretation}}
+                 </text>
+                 <view class="card-footer">
+                    <text class="card-no" style="color: {{activeIdx === index ? item.color : '#E2E8F0'}};">NO.{{item.id < 10 ? '0'+item.id : item.id}}</text>
+                    <view class="card-arrow {{activeIdx === index ? 'show' : ''}}">
+                      <text>→</text>
+                    </view>
+                 </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+    <!-- 底部指示器 -->
+    <view class="indicators">
+      <view class="indicators-row">
+        <block wx:for="{{items}}" wx:key="id">
+          <view class="indicator-dot {{activeIdx === index ? 'active' : ''}}" style="background-color: {{activeIdx === index ? item.color : '#E2E8F0'}};"></view>
+        </block>
+      </view>
+      <text class="indicators-text">EXPLORE SECTORS</text>
+    </view>
+  </view>
+
+  <!-- 两侧遮罩 -->
+  <view class="mask mask-left"></view>
+  <view class="mask mask-right"></view>
+
+</view>

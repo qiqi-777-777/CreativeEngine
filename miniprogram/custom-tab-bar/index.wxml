@@ -1,0 +1,21 @@
+<!--custom-tab-bar/index.wxml-->
+<view class="tab-bar">
+  <view class="tab-bar-border"></view>
+  <view wx:for="{{list}}" wx:key="index" class="tab-bar-item {{item.isSpecial ? 'special-item' : ''}}" data-path="{{item.pagePath}}" data-index="{{index}}" bindtap="switchTab">
+    
+    <!-- 普通图标 -->
+    <block wx:if="{{!item.isSpecial}}">
+      <image class="tab-icon" src="{{selected === index ? item.selectedIconPath : item.iconPath}}"></image>
+      <view class="tab-text" style="color: {{selected === index ? selectedColor : color}}">{{item.text}}</view>
+    </block>
+
+    <!-- 中间凸起的大图标 -->
+    <block wx:else>
+      <view class="special-icon-wrapper">
+        <image class="special-icon" src="{{item.iconPath}}"></image>
+      </view>
+      <view class="tab-text special-text" style="color: {{selected === index ? selectedColor : color}}">{{item.text}}</view>
+    </block>
+    
+  </view>
+</view>

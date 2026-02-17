@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "创享引擎",
+  "navigationBarBackgroundColor": "#3B9FFF",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}
