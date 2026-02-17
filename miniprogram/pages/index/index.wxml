@@ -1,0 +1,129 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部导航与搜索 -->
+  <view class="header-section">
+    <view class="header-greeting">
+      <text class="greeting-text">{{greeting}}，青年创享者</text>
+      <text class="brand-text">创享引擎</text>
+    </view>
+    <view class="search-bar">
+      <view class="search-box">
+        <view class="search-icon"></view>
+        <text class="search-placeholder">搜索政策、职业或资源...</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 轮播图区域 -->
+  <view class="banner-section">
+    <swiper class="banner-swiper" 
+            indicator-dots="{{true}}" 
+            indicator-color="rgba(255,255,255,0.4)" 
+            indicator-active-color="#ffffff"
+            autoplay="{{true}}" 
+            interval="{{4000}}" 
+            duration="{{500}}" 
+            circular="{{true}}">
+      <swiper-item wx:for="{{bannerList}}" wx:key="id" class="banner-item">
+        <view class="banner-image-wrapper">
+          <image class="banner-image" src="{{item.imageUrl}}" mode="aspectFill" />
+          <view class="banner-overlay" wx:if="{{item.title}}">
+            <text class="banner-title">{{item.title}}</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- 核心功能区域 (5个模块，左文右图) -->
+  <view class="nav-section">
+    <view class="nav-header">
+      <text class="section-title">核心服务</text>
+    </view>
+    
+    <view class="service-container">
+      <!-- 移除 AI 助手大卡片，改为 2 列网格布局 -->
+      <view class="service-grid-2col">
+        <!-- 1. 职业匹配 -->
+        <view class="service-card" bindtap="goToCareerMatch">
+          <view class="card-info">
+            <text class="card-title">职业匹配</text>
+            <text class="card-desc">精准定位方向</text>
+          </view>
+          <view class="card-icon-wrapper bg-cyan-light">
+            <view class="service-icon icon-career"></view>
+          </view>
+        </view>
+        
+        <!-- 3. 政策匹配 -->
+        <view class="service-card" bindtap="goToPolicy">
+          <view class="card-info">
+            <text class="card-title">政策匹配</text>
+            <text class="card-desc">获取扶持资金</text>
+          </view>
+          <view class="card-icon-wrapper bg-purple-light">
+            <view class="service-icon icon-policy"></view>
+          </view>
+        </view>
+
+        <!-- 4. 图说解读 -->
+        <view class="service-card" bindtap="goToImageInterpretation">
+          <view class="card-info">
+            <text class="card-title">图说解读</text>
+            <text class="card-desc">AI 智能读图</text>
+          </view>
+          <view class="card-icon-wrapper bg-green-light">
+            <view class="service-icon icon-image"></view>
+          </view>
+        </view>
+
+        <!-- 5. 资源对接 -->
+        <view class="service-card" bindtap="goToResource">
+          <view class="card-info">
+            <text class="card-title">资源对接</text>
+            <text class="card-desc">找专家找场地</text>
+          </view>
+          <view class="card-icon-wrapper bg-orange-light">
+            <view class="service-icon icon-resource"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 推荐内容区域 -->
+  <view class="content-section">
+    <view class="section-header">
+      <text class="section-title">最新政策</text>
+      <view class="more-link" bindtap="goToPolicy">
+        <text>全部</text>
+        <view class="arrow-right"></view>
+      </view>
+    </view>
+
+    <view class="policy-list">
+      <block wx:if="{{policyList.length > 0}}">
+        <view class="policy-card" wx:for="{{policyList}}" wx:key="id" bindtap="goToPolicyDetail" data-id="{{item.id}}">
+          <view class="policy-tag-row">
+            <text class="policy-tag">{{item.city || '全国'}}</text>
+            <text class="policy-date">{{item.publishDate || '近期'}}</text>
+          </view>
+          <view class="policy-title">{{item.policyTitle}}</view>
+          <view class="policy-meta">
+            <text class="policy-dept">{{item.department}}</text>
+            <view class="policy-btn">查看详情</view>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+        <!-- 空状态/骨架屏占位 -->
+        <view class="empty-state">
+          <view class="skeleton-card"></view>
+          <view class="skeleton-card"></view>
+        </view>
+      </block>
+    </view>
+  </view>
+  
+  <view class="footer-spacer"></view>
+</view>

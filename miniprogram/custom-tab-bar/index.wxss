@@ -1,0 +1,73 @@
+/* custom-tab-bar/index.wxss */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96rpx; /* 标准高度 */
+  background: white;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.05);
+  z-index: 9999;
+}
+
+.tab-bar-border {
+  background-color: rgba(0, 0, 0, 0.05);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1px;
+  transform: scaleY(0.5);
+}
+
+.tab-bar-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+}
+
+/* 普通图标 */
+.tab-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 4rpx;
+}
+
+.tab-text {
+  font-size: 20rpx;
+  font-weight: 500;
+}
+
+/* 特殊凸起按钮 - 改为平铺 */
+.special-item {
+  position: relative;
+  top: 0; /* 移除凸起 */
+}
+
+.special-icon-wrapper {
+  width: 56rpx; /* 调整为正常图标大小 */
+  height: 56rpx;
+  border-radius: 0;
+  background: transparent; /* 移除背景 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none; /* 移除阴影 */
+  margin-bottom: 4rpx;
+}
+
+.special-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.special-text {
+  position: relative;
+  top: 0; /* 移除位移 */
+}

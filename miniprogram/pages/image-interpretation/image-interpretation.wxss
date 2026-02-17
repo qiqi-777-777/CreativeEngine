@@ -1,0 +1,293 @@
+/* pages/image-interpretation/image-interpretation.wxss */
+page {
+  background-color: #F8FAFC;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.scene-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 背景装饰 */
+.bg-decoration {
+  position: absolute;
+  top: 10%;
+  left: -10%;
+  width: 120%;
+  height: 40%;
+  background: #EFF6FF; /* blue-50 */
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 顶部导航 (Career Match Style) */
+.page-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 100rpx 40rpx 20rpx; /* Increased top padding for status bar */
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none; /* Let touches pass through, but re-enable for buttons */
+}
+
+.page-subtitle {
+  font-size: 20rpx;
+  color: #94A3B8; /* Slate-400 */
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  text-transform: uppercase;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  pointer-events: auto; /* Enable clicks on back button */
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60rpx;
+  height: 60rpx;
+  margin-left: -10rpx; /* Align visually */
+}
+
+.icon-back-simple {
+  font-size: 48rpx;
+  color: #0F172A;
+  font-weight: 300;
+  padding-bottom: 8rpx; /* Visual fix for arrow alignment */
+}
+
+.page-title {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #0F172A; /* Slate-900 */
+}
+
+/* 3D 舞台 */
+.stage {
+  width: 100%;
+  height: 100%;
+  perspective: 3000rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 1000rpx; /* Container height */
+  transform-style: preserve-3d;
+  transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.card-wrapper {
+  position: absolute;
+  top: 35%; /* Moved up further from 42% */
+  left: 50%;
+  width: 420rpx;
+  height: 640rpx;
+  margin-top: -320rpx;
+  margin-left: -210rpx;
+  transition: opacity 0.7s, filter 0.7s;
+  transform-style: preserve-3d;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 55rpx;
+  padding: 50rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 6rpx solid #E2E8F0; /* Slate-200 */
+  box-shadow: 0 30rpx 80rpx rgba(0,0,0,0.06);
+  transition: all 0.7s ease;
+}
+
+.card-inner.active {
+  background: #fff;
+  /* border-color handled by JS/inline style? Or dynamic class? */
+  /* Fallback border color */
+  border-color: #3B82F6; 
+  box-shadow: 0 60rpx 100rpx -30rpx rgba(0,0,0,0.15);
+  transform: scale(1.1);
+}
+
+.card-inner.inactive {
+  background: #fff;
+  /* inactive style mostly derived from wrapper opacity */
+}
+
+
+/* 卡片内容 */
+.card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.card-icon-box {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s;
+}
+
+.card-icon-img {
+  width: 64rpx;
+  height: 64rpx;
+  display: block;
+}
+
+.card-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.card-name {
+  font-size: 52rpx;
+  font-weight: 900;
+  letter-spacing: -2rpx;
+  transition: color 0.5s;
+}
+
+.card-indicator {
+  height: 12rpx;
+  border-radius: 100rpx;
+  transition: all 0.5s;
+}
+
+.card-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.card-desc {
+  font-size: 26rpx;
+  line-height: 1.6;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  min-height: 120rpx;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30rpx;
+  border-top: 2rpx solid #F8FAFC;
+}
+
+.card-no {
+  font-size: 30rpx;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.card-arrow {
+  width: 60rpx;
+  height: 60rpx;
+  background: #0F172A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.5s;
+}
+
+.card-arrow.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 底部指示器 */
+.indicators {
+  position: absolute;
+  bottom: 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  width: 100%;
+  pointer-events: none;
+}
+
+.indicators-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.indicator-dot {
+  height: 10rpx;
+  border-radius: 10rpx;
+  transition: all 0.7s;
+  width: 10rpx;
+}
+
+.indicator-dot.active {
+  width: 60rpx;
+}
+
+.indicators-text {
+  font-size: 20rpx;
+  font-weight: 900;
+  color: #CBD5E1;
+  letter-spacing: 8rpx;
+}
+
+/* 遮罩 */
+.mask {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80rpx;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.mask-left {
+  left: 0;
+  background: linear-gradient(to right, rgba(255,255,255,0.6), transparent);
+}
+
+.mask-right {
+  right: 0;
+  background: linear-gradient(to left, rgba(255,255,255,0.6), transparent);
+}

@@ -1,0 +1,253 @@
+/* 基础样式 */
+page {
+  background-color: #F5F7FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif;
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 头部背景 */
+.header-bg {
+  background: linear-gradient(to bottom, #5FA5F9, #EFF6FF 80%, #F5F7FA);
+  padding-bottom: 20px;
+  position: relative;
+}
+
+/* 状态栏 & 导航栏 */
+.status-bar {
+  width: 100%;
+}
+.nav-bar {
+  height: 44px; /* 标准导航栏高度 */
+  width: 100%;
+}
+
+/* 用户卡片 */
+.user-section {
+  padding: 10px 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar-container {
+  width: 64px;
+  height: 64px;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.avatar-wrapper {
+  width: 100%;
+  height: 100%;
+  background-color: #F3F4F6;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #111827;
+}
+
+.user-desc-bg {
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 4px;
+  backdrop-filter: blur(4px);
+  align-self: flex-start;
+}
+
+.user-desc {
+  font-size: 13px;
+  color: #3B82F6;
+}
+
+/* 统计卡片 */
+.stats-card {
+  margin: 0 16px;
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #1F2937;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* 主体内容 */
+.main-content {
+  padding: 0 16px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 通用卡片 */
+.section-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.section-indicator {
+  width: 4px;
+  height: 16px;
+  background-color: #3B82F6;
+  border-radius: 999px;
+  margin-right: 8px;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #1F2937;
+}
+
+/* 服务宫格 */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.service-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.service-label {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* 列表菜单 */
+.menu-list {
+  padding: 4px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #F9FAFB;
+}
+
+.menu-item:last-child {
+  border-bottom: none;
+}
+
+.menu-item:active {
+  background-color: #F9FAFB;
+}
+
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-icon-placeholder {
+  width: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background-color: #6B7280;
+    border-radius: 50%;
+}
+
+.menu-label {
+  font-size: 15px;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.menu-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-text {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.arrow {
+  font-size: 16px;
+  color: #D1D5DB;
+}

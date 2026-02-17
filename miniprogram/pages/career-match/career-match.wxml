@@ -1,0 +1,220 @@
+<!--pages/career-match/career-match.wxml-->
+
+<!-- 选中状态判断的WXS脚本 -->
+<wxs module="tools">
+var isSelected = function(category, item, majors, skills, personalities) {
+  if (category === 'major') {
+    return majors.indexOf(item) !== -1;
+  } else if (category === 'skill') {
+    return skills.indexOf(item) !== -1;
+  } else if (category === 'personality') {
+    // Check by type if item is object, or direct equality
+    // Iterate to be safe against reference issues or object structure
+    for (var i = 0; i < personalities.length; i++) {
+        // Handle both string (if changed) and object comparison
+        if (personalities[i] === item) return true;
+        if (typeof personalities[i] === 'string' && typeof item === 'object' && item.type) {
+            if (personalities[i] === item.type) return true;
+        }
+        if (typeof personalities[i] === 'object' && typeof item === 'string' && personalities[i].type) {
+            if (personalities[i].type === item) return true;
+        }
+        if (typeof personalities[i] === 'object' && typeof item === 'object' && personalities[i].type && item.type) {
+            if (personalities[i].type === item.type) return true;
+        }
+    }
+    return false;
+  }
+  return false;
+};
+
+module.exports = {
+  isSelected: isSelected
+};
+</wxs>
+
+<view class="container">
+  <!-- 顶部标题区 -->
+  <view class="page-header">
+    <text class="page-subtitle">CAREER MATCH</text>
+    <view class="title-row">
+      <text class="page-title">职业匹配</text>
+    </view>
+  </view>
+
+  <scroll-view class="main-scroll" scroll-y="true">
+    <view class="cards-container">
+      
+      <!-- 1. 专业卡片 (Blue) -->
+      <view class="dimension-card">
+        <view class="card-header">
+          <view class="icon-bg bg-blue">
+            <image class="card-icon-img" src="{{icons.major}}" mode="aspectFit"></image>
+          </view>
+          <text class="card-title">专业</text>
+        </view>
+        
+        <scroll-view class="options-scroll" scroll-x="true" enable-flex="true">
+          <view class="options-row">
+            <!-- 第一行选项 -->
+            <view class="option-column">
+              <view 
+                wx:for="{{majorOptions}}" 
+                wx:key="*this" 
+                wx:if="{{index % 2 === 0}}"
+                class="option-chip {{tools.isSelected('major', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-blue' : ''}}"
+                bindtap="onOptionTap"
+                data-category="major"
+                data-item="{{item}}"
+              >
+                <text>{{item}}</text>
+              </view>
+            </view>
+            <!-- 第二行选项 -->
+             <view class="option-column">
+              <view 
+                wx:for="{{majorOptions}}" 
+                wx:key="*this" 
+                wx:if="{{index % 2 !== 0}}"
+                class="option-chip {{tools.isSelected('major', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-blue' : ''}}"
+                bindtap="onOptionTap"
+                data-category="major"
+                data-item="{{item}}"
+              >
+                <text>{{item}}</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 2. 技术卡片 (Purple) -->
+      <view class="dimension-card">
+        <view class="card-header">
+          <view class="icon-bg bg-purple">
+            <image class="card-icon-img" src="{{icons.skill}}" mode="aspectFit"></image>
+          </view>
+          <text class="card-title">技术</text>
+        </view>
+        
+        <scroll-view class="options-scroll" scroll-x="true" enable-flex="true">
+          <view class="options-row">
+             <view class="option-column">
+              <view 
+                wx:for="{{skillOptions}}" 
+                wx:key="*this" 
+                wx:if="{{index % 2 === 0}}"
+                class="option-chip {{tools.isSelected('skill', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-purple' : ''}}"
+                bindtap="onOptionTap"
+                data-category="skill"
+                data-item="{{item}}"
+              >
+                <text>{{item}}</text>
+              </view>
+            </view>
+             <view class="option-column">
+              <view 
+                wx:for="{{skillOptions}}" 
+                wx:key="*this" 
+                wx:if="{{index % 2 !== 0}}"
+                class="option-chip {{tools.isSelected('skill', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-purple' : ''}}"
+                bindtap="onOptionTap"
+                data-category="skill"
+                data-item="{{item}}"
+              >
+                <text>{{item}}</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 3. 性格卡片 (Orange) -->
+      <view class="dimension-card">
+        <view class="card-header">
+          <view class="icon-bg bg-orange">
+            <image class="card-icon-img" src="{{icons.personality}}" mode="aspectFit"></image>
+          </view>
+          <text class="card-title">性格</text>
+        </view>
+        
+        <scroll-view class="options-scroll" scroll-x="true" enable-flex="true">
+          <view class="options-row">
+             <view class="option-column">
+              <view 
+                wx:for="{{personalityDetails}}" 
+                wx:key="type" 
+                wx:if="{{index % 2 === 0}}"
+                class="option-chip {{tools.isSelected('personality', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-orange' : ''}}"
+                bindtap="onOptionTap"
+                data-category="personality"
+                data-item="{{item.type}}"
+              >
+                <text>{{item.type}}</text>
+              </view>
+            </view>
+             <view class="option-column">
+              <view 
+                wx:for="{{personalityDetails}}" 
+                wx:key="type" 
+                wx:if="{{index % 2 !== 0}}"
+                class="option-chip {{tools.isSelected('personality', item, selectedMajors, selectedSkills, selectedPersonalities) ? 'selected-orange' : ''}}"
+                bindtap="onOptionTap"
+                data-category="personality"
+                data-item="{{item.type}}"
+              >
+                <text>{{item.type}}</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+
+        <!-- 查看性格详情链接 -->
+        <view class="modal-trigger" bindtap="showPersonalityDetail">
+          <text>查看性格详细说明</text>
+          <text class="arrow-small">›</text>
+        </view>
+      </view>
+      
+      <!-- 底部占位 -->
+      <view class="footer-spacer"></view>
+
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="selected-info">
+      <text class="info-label">已选要素</text>
+      <text class="info-text">期待你的选择</text> 
+      <text class="info-count" wx:if="{{totalSelected > 0}}">{{totalSelected}}</text>
+    </view>
+    <view class="action-btn-wrapper" bindtap="onMatch">
+      <view class="match-btn {{totalSelected > 0 ? '' : 'disabled'}}">
+        <text>开始匹配</text>
+        <text class="arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 性格详情弹窗 -->
+  <view class="modal-overlay" wx:if="{{showPersonalityModal}}" catchtap="hidePersonalityDetail">
+    <view class="personality-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">性格类型说明</text>
+        <view class="close-btn" bindtap="hidePersonalityDetail">✕</view>
+      </view>
+      <scroll-view class="personality-content" scroll-y="true">
+        <view class="personality-detail-item" wx:for="{{personalityDetails}}" wx:key="type">
+          <view class="personality-type">{{item.type}}</view>
+          <view class="personality-desc">{{item.description}}</view>
+          <view class="personality-traits">
+            <text class="trait-label">特征：</text>
+            <text class="trait-text">{{item.traits}}</text>
+          </view>
+        </view>
+        <view style="height: 40rpx;"></view> <!-- Bottom padding -->
+      </scroll-view>
+    </view>
+  </view>
+</view>

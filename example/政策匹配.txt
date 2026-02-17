@@ -1,0 +1,1123 @@
+import React, { useState } from 'react';
+import { 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  FileText, 
+  Tag, 
+  Bot, 
+  Sparkles, 
+  MoreHorizontal, 
+  Send, 
+  Clock, 
+  Building, 
+  Award, 
+  ZoomIn, 
+  ZoomOut, 
+  Maximize,
+  Filter,
+  Share2,
+  Bookmark,
+  Zap,
+  AlignLeft,
+  MessageSquare
+} from 'lucide-react';
+
+export default function App() {
+  const [currentDesign, setCurrentDesign] = useState(0);
+  const [currentView, setCurrentView] = useState('list'); // 'list' or 'detail'
+  const [scale, setScale] = useState(0.85); 
+
+  const designs = [
+    { id: 0, name: '01. 官方标准版 (高度还原首页)', theme: 'standard' },
+    { id: 1, name: '02. 现代苹果风 (留白极简)', theme: 'minimal' },
+    { id: 2, name: '03. 悬浮卡片式 (层级分明)', theme: 'cards' },
+    { id: 3, name: '04. 数据匹配版 (强调契合度)', theme: 'dashboard' },
+    { id: 4, name: '05. 商务金领版 (高端稳重)', theme: 'enterprise' },
+    { id: 5, name: '06. 活力渐变版 (年轻化)', theme: 'vibrant' },
+    { id: 6, name: '07. 毛玻璃幻彩 (潮流科技)', theme: 'glass' },
+    { id: 7, name: '08. 杂志排版风 (阅读体验优先)', theme: 'magazine' },
+    { id: 8, name: '09. 柔和新拟态 (舒适视觉)', theme: 'soft' },
+    { id: 9, name: '10. 暗夜赛博版 (专注模式)', theme: 'dark' },
+  ];
+
+  return (
+    <div className="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+      {/* 侧边控制栏 */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full z-20 shadow-xl shrink-0 hidden md:flex">
+        <div className="p-6 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-800">政策匹配 UI方案</h1>
+          <p className="text-sm text-gray-500 mt-2">包含: 列表页 & 详情页</p>
+          <div className="mt-4 flex bg-gray-100 p-1 rounded-lg">
+             <button 
+                onClick={() => setCurrentView('list')}
+                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${currentView === 'list' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+             >
+                政策列表
+             </button>
+             <button 
+                onClick={() => setCurrentView('detail')}
+                className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${currentView === 'detail' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+             >
+                政策详情
+             </button>
+          </div>
+        </div>
+        <div className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {designs.map((d, idx) => (
+            <button
+              key={d.id}
+              onClick={() => setCurrentDesign(d.id)}
+              className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-between group ${
+                currentDesign === idx 
+                  ? 'bg-blue-500 text-white shadow-md transform scale-[1.02]' 
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className="font-medium text-sm">{d.name}</span>
+              <div className={`w-2 h-2 rounded-full ${currentDesign === idx ? 'bg-white' : 'bg-gray-300'}`}></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 移动端菜单 */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white p-2 flex flex-col gap-2 shadow-sm">
+         <div className="flex bg-gray-100 p-1 rounded-lg mx-2">
+            <button onClick={() => setCurrentView('list')} className={`flex-1 py-1 text-xs font-medium rounded ${currentView === 'list' ? 'bg-white shadow' : 'text-gray-500'}`}>列表</button>
+            <button onClick={() => setCurrentView('detail')} className={`flex-1 py-1 text-xs font-medium rounded ${currentView === 'detail' ? 'bg-white shadow' : 'text-gray-500'}`}>详情</button>
+         </div>
+         <div className="flex overflow-x-auto gap-2 px-2 pb-1">
+            {designs.map((d, idx) => (
+                <button
+                key={d.id}
+                onClick={() => setCurrentDesign(d.id)}
+                className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium ${currentDesign === idx ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                >
+                {idx + 1}
+                </button>
+            ))}
+         </div>
+      </div>
+
+      {/* 展示区域 */}
+      <div className="flex-1 flex flex-col bg-gray-200 relative overflow-hidden">
+        {/* 工具栏 */}
+        <div className="h-12 bg-white/80 backdrop-blur border-b border-gray-200 flex items-center justify-between px-4 z-10">
+          <span className="text-xs text-gray-500 font-mono">Size: 430x932 | View: {currentView.toUpperCase()}</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setScale(s => Math.max(0.4, s - 0.1))} className="p-1.5 hover:bg-gray-100 rounded"><ZoomOut size={16}/></button>
+            <span className="text-xs font-medium w-10 text-center">{(scale * 100).toFixed(0)}%</span>
+            <button onClick={() => setScale(s => Math.min(1.5, s + 0.1))} className="p-1.5 hover:bg-gray-100 rounded"><ZoomIn size={16}/></button>
+            <div className="w-px h-4 bg-gray-300 mx-1"></div>
+            <button onClick={() => setScale(1)} className="p-1.5 hover:bg-gray-100 rounded flex gap-1 items-center text-xs"><Maximize size={14}/> 100%</button>
+          </div>
+        </div>
+
+        {/* 滚动预览区 */}
+        <div className="flex-1 overflow-auto flex justify-center p-4 md:p-8 bg-[#e5e7eb]">
+          <div className="relative transition-transform duration-200 ease-out origin-top" style={{ transform: `scale(${scale})`, marginBottom: `${(932 * scale) - 932}px` }}>
+             <PhoneFrame>
+                <DesignRenderer type={designs[currentDesign].theme} view={currentView} onViewChange={setCurrentView} />
+             </PhoneFrame>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 模拟数据
+const policyData = {
+  list: [
+    {
+      id: 1,
+      title: '《2025年高校毕业生"三支一扶"计划》',
+      tags: ['三支一扶', '2025招募', '中央财政支持'],
+      content: '明确中央财政支持招募34430名高校毕业生到基层从事支教、支农、支医和帮扶乡村振兴服务，要求各地优化招募选拔流程，扩大招募规模并向脱贫地区、西部地区、东北地区、革命老区...',
+      matchScore: 98,
+      date: '2024-05-12'
+    },
+    {
+      id: 2,
+      title: '《关于进一步支持大学生创新创业的指导意见》',
+      tags: ['创新创业', '资金扶持', '场地减免'],
+      content: '落实落细减税降费政策。高校毕业生在毕业年度内从事个体经营，符合规定条件的，在3年内按一定限额依次扣减其当年实际应交纳的增值税、城市维护建设税、教育费附加和个人所得税...',
+      matchScore: 85,
+      date: '2024-04-20'
+    },
+    {
+      id: 3,
+      title: '《省级科技企业孵化器认定管理办法》',
+      tags: ['孵化器', '科技企业', '资质认定'],
+      content: '为引导我国科技企业孵化器高质量发展，支持科技型中小微企业快速成长，构建良好的科技创业生态，制定本办法。申请省级科技企业孵化器需满足场地面积、在孵企业数量等基本条件...',
+      matchScore: 72,
+      date: '2024-03-15'
+    }
+  ],
+  detail: {
+    title: '《2025年高校毕业生"三支一扶"计划》',
+    keywords: ['三支一扶', '2025招募', '中央财政支持', '基层服务', '人才振兴'],
+    content: `明确中央财政支持招募34430名高校毕业生到基层从事支教、支农、支医和帮扶乡村振兴服务，要求各地优化招募选拔流程，扩大招募规模并向脱贫地区、西部地区、东北地区、革命老区、民族地区和边疆地区倾斜。\n\n对口支援省市协助西藏、新疆招募，强化能力提升与管理使用，规范管理使用基层服务单位，落实待遇保障，加强日常管理与联系服务，拓展留用渠道落实机关事业单位考录支持政策。\n\n鼓励服务期满人员留在当地工作并纳入人才工作部署跟踪培养，加强组织领导并严格财经纪律。`,
+    publishDate: '2024-05-12',
+    department: '人力资源社会保障部'
+  }
+};
+
+const DesignRenderer = ({ type, view, onViewChange }) => {
+  const [chatInput, setChatInput] = useState('');
+
+  // 公共组件
+  const StatusBar = ({ theme = 'light' }) => (
+    <div className={`w-full h-[44px] px-6 flex justify-between items-end pb-2 text-[15px] font-semibold z-50 shrink-0 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      <span>16:21</span>
+      <div className="flex gap-1.5 items-center">
+        <div className="h-[10px] w-[16px] bg-current rounded-[2px] opacity-100 flex items-center justify-center border border-current">
+            <div className="h-full w-[80%] bg-current"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // 1. 官方标准版 (Standard) - 高度还原原图，但提升排版精细度
+  // ---------------------------------------------------------------------------
+  if (type === 'standard') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#F5F7FA] flex flex-col font-sans">
+          <div className="bg-[#3B82F6] pb-4 shrink-0">
+             <StatusBar theme="dark" />
+             <div className="px-4 flex items-center justify-between text-white mt-1">
+                <ChevronLeft size={28} className="cursor-pointer" />
+                <span className="text-[18px] font-bold">政策匹配</span>
+                <div className="flex gap-2">
+                   <MoreHorizontal size={24} />
+                </div>
+             </div>
+             
+             <div className="px-5 mt-6 flex justify-between items-end text-white">
+                <h1 className="text-[24px] font-bold">政策匹配</h1>
+                <span className="text-[13px] opacity-80">共20条政策</span>
+             </div>
+
+             <div className="px-4 mt-4">
+                <div className="bg-white h-11 rounded-full flex items-center px-4 shadow-sm">
+                   <Search size={18} className="text-[#3B82F6]" />
+                   <input type="text" placeholder="搜索政策名称或关键词" className="bg-transparent flex-1 ml-2 text-[14px] outline-none text-gray-700" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-white rounded-[12px] p-5 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow">
+                  <div className="flex items-start gap-2 mb-3">
+                     <FileText className="text-[#F59E0B] shrink-0 mt-0.5" size={20} />
+                     <h3 className="text-[16px] font-bold text-gray-900 leading-snug">{item.title}</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[12px] text-[#3B82F6] bg-blue-50 px-2 py-0.5 rounded flex items-center">{t}</span>
+                     ))}
+                  </div>
+                  <p className="text-[14px] text-gray-600 line-clamp-3 leading-relaxed mb-3">
+                     {item.content}
+                  </p>
+                  <div className="flex justify-end border-t border-gray-50 pt-3">
+                     <span className="text-[#3B82F6] text-[13px] flex items-center">查看详情 <ChevronRight size={14}/></span>
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#F5F7FA] flex flex-col font-sans relative">
+          <div className="bg-white pb-3 shrink-0 shadow-sm relative z-20">
+             <StatusBar />
+             <div className="px-4 flex items-center justify-between text-gray-800 mt-1">
+                <div className="flex items-center text-[#3B82F6] cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={28} />
+                   <span className="text-[16px]">返回</span>
+                </div>
+                <span className="text-[18px] font-bold absolute left-1/2 -translate-x-1/2">政策详情</span>
+                <MoreHorizontal size={24} />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 pb-28">
+             {/* 标题卡片 */}
+             <div className="bg-white rounded-[12px] p-5 shadow-sm border border-gray-100 mb-4 flex items-start gap-3">
+                <FileText className="text-[#F59E0B] shrink-0 mt-1" size={24} />
+                <h1 className="text-[18px] font-bold text-gray-900 leading-snug">{policyData.detail.title}</h1>
+             </div>
+
+             {/* 关键词卡片 */}
+             <div className="bg-white rounded-[12px] p-5 shadow-sm border border-gray-100 mb-4">
+                <div className="flex items-center gap-2 mb-3 font-bold text-gray-800">
+                   <Tag className="text-[#F59E0B]" size={18} /> 关键词
+                </div>
+                <div className="flex flex-wrap gap-2">
+                   {policyData.detail.keywords.map(k => (
+                      <span key={k} className="text-[13px] text-[#3B82F6] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">{k}</span>
+                   ))}
+                </div>
+             </div>
+
+             {/* 内容卡片 */}
+             <div className="bg-white rounded-[12px] p-5 shadow-sm border border-gray-100 mb-4">
+                <div className="flex items-center gap-2 mb-4 font-bold text-gray-800 border-b border-gray-100 pb-3">
+                   <AlignLeft className="text-gray-400" size={18} /> 政策内容
+                </div>
+                <div className="text-[15px] text-gray-700 leading-loose whitespace-pre-wrap">
+                   {policyData.detail.content}
+                </div>
+             </div>
+          </div>
+
+          {/* AI问答固定底部 - 优化原版的生硬感，改为吸底模块 */}
+          <div className="absolute bottom-0 w-full bg-white border-t border-gray-200 p-4 pb-8 z-30 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+             <div className="flex items-center gap-2 mb-3">
+                <Bot className="text-[#3B82F6]" size={20} />
+                <span className="font-bold text-[15px] text-gray-800">AI政策问答</span>
+                <span className="text-[12px] text-gray-400 ml-auto">基于当前政策为您解答</span>
+             </div>
+             <div className="flex items-center bg-[#F3F4F6] rounded-xl p-1.5 pl-4 border border-transparent focus-within:border-blue-300 transition-colors">
+                <input type="text" placeholder="对该政策有疑问？问问AI..." className="bg-transparent flex-1 text-[14px] outline-none text-gray-800 py-2" />
+                <button className="bg-[#3B82F6] w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-sm">
+                   <Send size={16} className="ml-0.5" />
+                </button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 2. 现代苹果风 (Minimal) - 去掉大面积色块，大量留白，突出内容
+  // ---------------------------------------------------------------------------
+  if (type === 'minimal') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-white flex flex-col font-sans">
+          <div className="bg-white/90 backdrop-blur-xl shrink-0 sticky top-0 z-20">
+             <StatusBar />
+             <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+                <ChevronLeft size={28} className="text-gray-900 cursor-pointer" />
+                <MoreHorizontal size={24} className="text-gray-900" />
+             </div>
+             <div className="px-6 mt-2 mb-4">
+                <h1 className="text-[32px] font-bold text-gray-900 tracking-tight">政策匹配</h1>
+                <p className="text-gray-500 text-[14px] mt-1">为您找到 20 条相关政策</p>
+             </div>
+             <div className="px-6 pb-4">
+                <div className="bg-gray-100 h-10 rounded-xl flex items-center px-4">
+                   <Search size={16} className="text-gray-500" />
+                   <input type="text" placeholder="搜索..." className="bg-transparent flex-1 ml-2 text-[15px] outline-none text-gray-800 placeholder-gray-500" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-6">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="border-b border-gray-100 pb-6 last:border-0 cursor-pointer group">
+                  <div className="flex gap-2 mb-2 flex-wrap">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] font-medium text-blue-600 bg-blue-50/50 px-2 py-1 rounded-md">{t}</span>
+                     ))}
+                  </div>
+                  <h3 className="text-[18px] font-bold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors">{item.title}</h3>
+                  <p className="text-[14px] text-gray-500 line-clamp-2 leading-relaxed">
+                     {item.content}
+                  </p>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-white flex flex-col font-sans">
+          <div className="bg-white/90 backdrop-blur-xl shrink-0 sticky top-0 z-20 border-b border-gray-100">
+             <StatusBar />
+             <div className="px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center text-blue-600 cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={28} />
+                   <span className="text-[16px] font-medium -ml-1">返回</span>
+                </div>
+                <div className="flex gap-4 text-blue-600">
+                   <Bookmark size={20} />
+                   <Share2 size={20} />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-32">
+             <h1 className="text-[24px] font-bold text-gray-900 leading-snug mb-4">{policyData.detail.title}</h1>
+             
+             <div className="flex items-center gap-4 text-[13px] text-gray-500 mb-6 pb-6 border-b border-gray-100">
+                <span>{policyData.detail.publishDate}</span>
+                <span>{policyData.detail.department}</span>
+             </div>
+
+             <div className="flex flex-wrap gap-2 mb-8">
+                {policyData.detail.keywords.map(k => (
+                   <span key={k} className="text-[13px] text-gray-600 bg-gray-100 px-3 py-1 rounded-full"># {k}</span>
+                ))}
+             </div>
+
+             <div className="text-[16px] text-gray-800 leading-[1.8] whitespace-pre-wrap font-serif">
+                {policyData.detail.content}
+             </div>
+          </div>
+
+          {/* 浮动AI按钮，点击展开（这里简化为常驻吸底栏） */}
+          <div className="absolute bottom-6 left-6 right-6 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 p-2 z-30 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+                 <Sparkles className="text-white" size={20}/>
+              </div>
+              <input type="text" placeholder="向 AI 提问该政策..." className="bg-transparent flex-1 text-[15px] outline-none text-gray-800" />
+              <button className="p-2 text-gray-400 hover:text-blue-600"><Send size={18}/></button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. 悬浮卡片式 (Cards) - 强化层级，背景偏灰，卡片纯白圆角大
+  // ---------------------------------------------------------------------------
+  if (type === 'cards') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#Eef2f6] flex flex-col font-sans">
+          <div className="bg-[#Eef2f6] shrink-0 pt-2 pb-4 px-5">
+             <StatusBar />
+             <div className="flex items-center justify-between mt-2">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={24} className="text-gray-700" />
+                </div>
+                <span className="text-[18px] font-bold text-gray-800">政策速配</span>
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                   <Filter size={20} className="text-gray-700" />
+                </div>
+             </div>
+             <div className="mt-6 bg-white rounded-[16px] p-2 flex items-center shadow-sm">
+                 <Search size={20} className="text-gray-400 ml-2" />
+                 <input type="text" placeholder="输入关键词匹配..." className="bg-transparent flex-1 ml-3 text-[15px] outline-none text-gray-800" />
+                 <button className="bg-blue-600 text-white px-4 py-2 rounded-[12px] text-sm font-medium">匹配</button>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-4">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-white rounded-[24px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] cursor-pointer hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-between items-start mb-3">
+                     <h3 className="text-[16px] font-bold text-gray-900 leading-snug pr-4">{item.title}</h3>
+                     <div className="bg-blue-50 text-blue-600 w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0">
+                        <FileText size={20} />
+                     </div>
+                  </div>
+                  <p className="text-[13px] text-gray-500 line-clamp-2 leading-relaxed mb-4">
+                     {item.content}
+                  </p>
+                  <div className="flex justify-between items-center">
+                     <div className="flex gap-2">
+                        <span className="text-[11px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md">{item.tags[0]}</span>
+                        {item.tags.length > 1 && <span className="text-[11px] text-gray-600 bg-gray-100 px-2 py-1 rounded-md">+{item.tags.length - 1}</span>}
+                     </div>
+                     <span className="text-blue-600 text-[12px] font-bold flex items-center">详情 <ChevronRight size={14}/></span>
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#Eef2f6] flex flex-col font-sans">
+          <div className="shrink-0 pt-2 pb-4 px-5 z-20 sticky top-0 bg-[#Eef2f6]/90 backdrop-blur">
+             <StatusBar />
+             <div className="flex items-center justify-between mt-2">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={24} className="text-gray-700" />
+                </div>
+                <div className="flex gap-2">
+                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm"><Share2 size={18} className="text-gray-700"/></div>
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 pb-32">
+             <div className="bg-white rounded-[30px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] mb-6">
+                <h1 className="text-[20px] font-bold text-gray-900 leading-snug mb-4">{policyData.detail.title}</h1>
+                <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-50 pb-6">
+                   {policyData.detail.keywords.map(k => (
+                      <span key={k} className="text-[12px] font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl">{k}</span>
+                   ))}
+                </div>
+                <div className="text-[15px] text-gray-700 leading-loose whitespace-pre-wrap">
+                   {policyData.detail.content}
+                </div>
+             </div>
+          </div>
+
+          {/* 独立悬浮的AI问答卡片 */}
+          <div className="absolute bottom-6 left-5 right-5 z-30">
+             <div className="bg-gray-900 rounded-[24px] p-4 shadow-2xl flex flex-col gap-3">
+                 <div className="flex items-center gap-2 text-white px-1">
+                    <Sparkles size={16} className="text-blue-400" />
+                    <span className="text-[13px] font-medium">AI 政策助手</span>
+                 </div>
+                 <div className="bg-gray-800 rounded-[16px] flex items-center p-1.5 border border-gray-700">
+                    <input type="text" placeholder="输入你想问的内容..." className="bg-transparent flex-1 px-3 text-[14px] outline-none text-white placeholder-gray-400" />
+                    <button className="bg-blue-600 w-9 h-9 rounded-[12px] flex items-center justify-center text-white">
+                       <Send size={16} />
+                    </button>
+                 </div>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 4. 数据匹配版 (Dashboard) - 强调与用户的契合度，适合精准推送场景
+  // ---------------------------------------------------------------------------
+  if (type === 'dashboard') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#F1F5F9] flex flex-col font-sans">
+          <div className="bg-white pb-4 shrink-0 shadow-sm">
+             <StatusBar />
+             <div className="px-5 pt-2 flex items-center justify-between">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={24} className="text-slate-800" />
+                   <h1 className="text-[20px] font-bold text-slate-800">智能匹配结果</h1>
+                </div>
+             </div>
+             
+             {/* 匹配度概览 */}
+             <div className="px-5 mt-6 flex gap-4">
+                <div className="bg-blue-50 border border-blue-100 rounded-[12px] p-3 flex-1">
+                   <div className="text-[12px] text-blue-600 mb-1">高度契合</div>
+                   <div className="text-[24px] font-bold text-blue-700 font-mono">12<span className="text-sm">条</span></div>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-[12px] p-3 flex-1">
+                   <div className="text-[12px] text-slate-500 mb-1">符合条件</div>
+                   <div className="text-[24px] font-bold text-slate-700 font-mono">8<span className="text-sm">条</span></div>
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-white rounded-[16px] p-4 border border-slate-200 cursor-pointer relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-emerald-50 text-emerald-600 text-[12px] font-bold px-3 py-1 rounded-bl-[16px]">
+                     匹配度 {item.matchScore}%
+                  </div>
+                  <h3 className="text-[16px] font-bold text-slate-900 leading-snug pr-16 mb-3">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded">{t}</span>
+                     ))}
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                     <span className="text-slate-400 text-[12px] font-mono">{item.date}</span>
+                     <button className="text-[13px] font-bold text-blue-600">查阅分析 &rarr;</button>
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#F1F5F9] flex flex-col font-sans">
+          <div className="bg-white pb-3 shrink-0 shadow-sm border-b border-slate-200">
+             <StatusBar />
+             <div className="px-4 pt-2 flex items-center justify-between text-slate-800">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <span className="text-[16px] font-bold">政策解析</span>
+                <MoreHorizontal size={24} />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 pb-24">
+             {/* 匹配度报告卡片 */}
+             <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-[16px] p-5 text-white mb-4 shadow-md">
+                <div className="flex justify-between items-center mb-2">
+                   <div className="text-[14px] font-medium opacity-90">与您的企业契合度</div>
+                   <div className="text-[28px] font-black font-mono">98%</div>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-1.5 mb-3">
+                   <div className="bg-white h-1.5 rounded-full" style={{width: '98%'}}></div>
+                </div>
+                <p className="text-[12px] opacity-80">满足核心条件：成立年限、所属行业、人员规模</p>
+             </div>
+
+             <div className="bg-white rounded-[16px] p-5 border border-slate-200 mb-4">
+                <h1 className="text-[18px] font-bold text-slate-900 leading-snug mb-4">{policyData.detail.title}</h1>
+                <div className="flex flex-wrap gap-2 mb-4">
+                   {policyData.detail.keywords.map(k => (
+                      <span key={k} className="text-[12px] text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md bg-slate-50">{k}</span>
+                   ))}
+                </div>
+             </div>
+
+             <div className="bg-white rounded-[16px] p-5 border border-slate-200 mb-4">
+                <div className="text-[14px] font-bold text-slate-800 mb-3 flex items-center gap-2">
+                   <FileText size={16} className="text-blue-600"/> 原文内容
+                </div>
+                <div className="text-[14px] text-slate-600 leading-relaxed whitespace-pre-wrap">
+                   {policyData.detail.content}
+                </div>
+             </div>
+          </div>
+
+          <div className="absolute bottom-0 w-full bg-white border-t border-slate-200 p-4 pb-6 z-30">
+             <button className="w-full bg-slate-900 text-white font-bold text-[15px] py-3.5 rounded-[12px] flex items-center justify-center gap-2 shadow-lg">
+                <Bot size={18} className="text-emerald-400" />
+                唤起 AI 分析助手
+             </button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 5. 商务金领版 (Enterprise) - 针对B端成熟企业主，深色与金色搭配
+  // ---------------------------------------------------------------------------
+  if (type === 'enterprise') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#0F172A] flex flex-col font-sans text-white">
+          <div className="pb-4 shrink-0 bg-[#0F172A] border-b border-white/10">
+             <StatusBar theme="dark" />
+             <div className="px-5 pt-3 flex items-center justify-between">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <span className="text-[18px] font-bold font-serif text-[#D4AF37]">Policy Match</span>
+                <Filter size={22} className="text-[#D4AF37]" />
+             </div>
+             
+             <div className="px-5 mt-6">
+                <div className="bg-[#1E293B] border border-white/10 h-12 rounded-lg flex items-center px-4">
+                   <Search size={18} className="text-slate-400" />
+                   <input type="text" placeholder="Search policies..." className="bg-transparent flex-1 ml-3 text-[15px] outline-none text-white placeholder-slate-500" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-[#1E293B] rounded-xl p-5 border border-white/5 cursor-pointer relative">
+                  <div className="absolute left-0 top-5 w-1 h-8 bg-[#D4AF37] rounded-r-md"></div>
+                  <h3 className="text-[16px] font-bold text-white leading-snug mb-3 pl-2">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-4 pl-2">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] text-[#D4AF37] border border-[#D4AF37]/30 px-2 py-0.5 rounded-sm uppercase tracking-wider">{t}</span>
+                     ))}
+                  </div>
+                  <div className="flex justify-between items-center border-t border-white/10 pt-3 pl-2">
+                     <span className="text-slate-400 text-[12px]">{item.date}</span>
+                     <ChevronRight size={18} className="text-[#D4AF37]" />
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#F8FAFC] flex flex-col font-sans">
+          <div className="bg-[#1E293B] pb-4 shrink-0">
+             <StatusBar theme="dark" />
+             <div className="px-4 pt-2 flex items-center justify-between text-white">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <span className="text-[16px] font-serif tracking-widest text-[#D4AF37] uppercase">Detail</span>
+                <Share2 size={20} className="text-[#D4AF37]" />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5 pb-28">
+             <h1 className="text-[22px] font-bold text-[#0F172A] leading-snug mb-6 font-serif">{policyData.detail.title}</h1>
+             
+             <div className="flex flex-wrap gap-2 mb-8">
+                {policyData.detail.keywords.map(k => (
+                   <span key={k} className="text-[12px] text-[#0F172A] bg-slate-200 px-3 py-1 rounded-sm">{k}</span>
+                ))}
+             </div>
+
+             <div className="w-8 h-1 bg-[#D4AF37] mb-6"></div>
+
+             <div className="text-[15px] text-slate-700 leading-loose whitespace-pre-wrap font-serif">
+                {policyData.detail.content}
+             </div>
+          </div>
+
+          <div className="absolute bottom-0 w-full bg-[#0F172A] p-4 pb-8 z-30">
+             <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full border border-[#D4AF37] flex items-center justify-center shrink-0">
+                   <Bot size={20} className="text-[#D4AF37]" />
+                </div>
+                <div className="flex-1 bg-[#1E293B] rounded-sm border border-white/10 flex items-center px-3 h-11">
+                   <input type="text" placeholder="Consult AI Advisor..." className="bg-transparent flex-1 text-[14px] outline-none text-white placeholder-slate-500" />
+                </div>
+                <button className="h-11 px-4 bg-[#D4AF37] text-[#0F172A] font-bold text-[14px] rounded-sm">Send</button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 6. 活力渐变版 (Vibrant) - 年轻化，色彩丰富，适合初创青年
+  // ---------------------------------------------------------------------------
+  if (type === 'vibrant') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-gray-50 flex flex-col font-sans">
+          <div className="bg-gradient-to-r from-[#FF512F] to-[#DD2476] pb-6 shrink-0 rounded-b-[40px] shadow-sm relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-full h-full opacity-20" style={{backgroundImage: 'radial-gradient(circle, white 2px, transparent 2.5px)', backgroundSize: '20px 20px'}}></div>
+             <StatusBar theme="dark" />
+             <div className="px-5 pt-2 flex items-center justify-between text-white relative z-10">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center cursor-pointer backdrop-blur-sm" onClick={() => onViewChange('list')}>
+                    <ChevronLeft size={24} />
+                </div>
+                <span className="text-[18px] font-bold">精选政策</span>
+                <div className="w-10"></div>
+             </div>
+             <div className="px-6 mt-4 relative z-10">
+                <div className="bg-white/90 backdrop-blur rounded-[20px] h-12 flex items-center px-4 shadow-lg">
+                   <Search size={18} className="text-[#DD2476]" />
+                   <input type="text" placeholder="搜一搜政策..." className="bg-transparent flex-1 ml-2 text-[15px] outline-none text-gray-800" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 -mt-4 relative z-20">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-white rounded-[24px] p-5 shadow-sm border border-pink-50 cursor-pointer active:scale-95 transition-transform">
+                  <h3 className="text-[17px] font-bold text-gray-900 leading-snug mb-3">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FF512F] to-[#DD2476] bg-pink-50 px-2 py-1 rounded-full">{t}</span>
+                     ))}
+                  </div>
+                  <p className="text-[13px] text-gray-500 line-clamp-2 leading-relaxed mb-3">
+                     {item.content}
+                  </p>
+                  <div className="flex justify-between items-center pt-2">
+                     <span className="text-gray-400 text-[11px]">{item.date}</span>
+                     <div className="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-[#DD2476]">
+                        <ChevronRight size={16}/>
+                     </div>
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-white flex flex-col font-sans">
+          <div className="pb-2 shrink-0 border-b border-gray-100">
+             <StatusBar />
+             <div className="px-4 pt-2 flex items-center justify-between text-gray-800">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <div className="flex gap-4">
+                   <Bookmark size={20} className="text-gray-400" />
+                   <Share2 size={20} className="text-gray-400" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+             <div className="flex flex-wrap gap-2 mb-4">
+                {policyData.detail.keywords.map(k => (
+                   <span key={k} className="text-[11px] font-bold text-[#DD2476] bg-pink-50 px-2.5 py-1 rounded-full">{k}</span>
+                ))}
+             </div>
+             <h1 className="text-[22px] font-black text-gray-900 leading-snug mb-6">{policyData.detail.title}</h1>
+             
+             <div className="text-[16px] text-gray-700 leading-loose whitespace-pre-wrap">
+                {policyData.detail.content}
+             </div>
+          </div>
+
+          <div className="absolute bottom-6 left-6 right-6 z-30">
+             <div className="bg-gradient-to-r from-[#FF512F] to-[#DD2476] rounded-[24px] p-1.5 flex items-center shadow-lg shadow-pink-500/30">
+                <div className="w-10 h-10 rounded-[20px] bg-white/20 flex items-center justify-center text-white shrink-0 ml-1">
+                   <Sparkles size={20} />
+                </div>
+                <input type="text" placeholder="让AI帮你总结..." className="bg-transparent flex-1 px-3 text-[14px] outline-none text-white placeholder-white/70" />
+                <button className="w-10 h-10 bg-white rounded-[20px] flex items-center justify-center text-[#DD2476] mr-1">
+                   <Send size={16} />
+                </button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 7. 毛玻璃幻彩 (Glass) - 潮流、梦幻
+  // ---------------------------------------------------------------------------
+  if (type === 'glass') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#f8fafc] flex flex-col font-sans relative overflow-hidden">
+          {/* 背景弥散光 */}
+          <div className="absolute top-[-10%] left-[-20%] w-[300px] h-[300px] bg-blue-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-50"></div>
+          <div className="absolute top-[30%] right-[-10%] w-[250px] h-[250px] bg-purple-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-40"></div>
+
+          <div className="pb-4 shrink-0 relative z-20">
+             <StatusBar />
+             <div className="px-5 pt-3 flex items-center justify-between text-gray-800">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <span className="text-[18px] font-bold tracking-tight">Policies</span>
+                <Filter size={22} />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-4 relative z-10">
+             <div className="bg-white/40 backdrop-blur-xl border border-white/60 rounded-[20px] p-2 mb-2 flex items-center shadow-[0_8px_32px_rgba(0,0,0,0.05)]">
+                 <Search size={18} className="text-gray-500 ml-2" />
+                 <input type="text" placeholder="Search..." className="bg-transparent flex-1 ml-2 text-[15px] outline-none text-gray-800" />
+             </div>
+
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-white/60 backdrop-blur-md rounded-[24px] p-5 shadow-sm border border-white cursor-pointer hover:bg-white/80 transition-colors">
+                  <h3 className="text-[17px] font-bold text-gray-900 leading-snug mb-3">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] font-medium text-gray-700 bg-white/50 border border-white px-2.5 py-1 rounded-lg">{t}</span>
+                     ))}
+                  </div>
+                  <p className="text-[13px] text-gray-600 line-clamp-2 leading-relaxed">
+                     {item.content}
+                  </p>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#f8fafc] flex flex-col font-sans relative overflow-hidden">
+          <div className="absolute top-[20%] right-[-10%] w-[250px] h-[250px] bg-purple-400 rounded-full mix-blend-multiply filter blur-[80px] opacity-30"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] bg-cyan-300 rounded-full mix-blend-multiply filter blur-[80px] opacity-30"></div>
+
+          <div className="pb-2 shrink-0 relative z-20 border-b border-white/50 bg-white/30 backdrop-blur-md">
+             <StatusBar />
+             <div className="px-4 py-2 flex items-center justify-between text-gray-800">
+                <ChevronLeft size={28} className="cursor-pointer" onClick={() => onViewChange('list')} />
+                <Share2 size={20} />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6 pb-32 relative z-10">
+             <div className="bg-white/50 backdrop-blur-xl rounded-[24px] p-6 border border-white shadow-[0_8px_32px_rgba(0,0,0,0.05)] mb-6">
+                <h1 className="text-[20px] font-bold text-gray-900 leading-snug mb-4">{policyData.detail.title}</h1>
+                <div className="flex flex-wrap gap-2 mb-2">
+                   {policyData.detail.keywords.map(k => (
+                      <span key={k} className="text-[12px] text-purple-700 bg-purple-500/10 px-3 py-1 rounded-full">{k}</span>
+                   ))}
+                </div>
+             </div>
+             
+             <div className="text-[15px] text-gray-800 leading-[1.8] whitespace-pre-wrap bg-white/40 backdrop-blur-md rounded-[24px] p-6 border border-white">
+                {policyData.detail.content}
+             </div>
+          </div>
+
+          <div className="absolute bottom-6 left-6 right-6 z-30">
+             <div className="bg-white/70 backdrop-blur-xl rounded-[20px] shadow-lg border border-white p-2 flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white shrink-0">
+                   <Zap size={18} />
+                </div>
+                <input type="text" placeholder="Chat with document..." className="bg-transparent flex-1 px-2 text-[14px] outline-none text-gray-800" />
+                <button className="p-2 text-gray-800"><Send size={18}/></button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 8. 杂志排版风 (Magazine) - 字体对比强烈，注重阅读体验
+  // ---------------------------------------------------------------------------
+  if (type === 'magazine') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#FAF9F6] flex flex-col font-serif">
+          <div className="pb-4 shrink-0 border-b-2 border-black">
+             <StatusBar />
+             <div className="px-5 pt-4 flex items-center justify-between">
+                <h1 className="text-[28px] font-black uppercase tracking-widest text-black">Policies.</h1>
+                <Search size={24} className="text-black" />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
+             {policyData.list.map((item, idx) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="cursor-pointer group">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2 font-sans border-b border-gray-300 pb-1">{item.date}</div>
+                  <h3 className="text-[20px] font-bold text-black leading-snug mb-3 group-hover:underline underline-offset-4 decoration-2">{item.title}</h3>
+                  <p className="text-[14px] text-gray-700 line-clamp-3 leading-relaxed font-sans mb-3">
+                     {item.content}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[11px] font-bold text-black bg-gray-200 px-2 py-1 uppercase font-sans">{t}</span>
+                     ))}
+                  </div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#FAF9F6] flex flex-col font-serif">
+          <div className="pb-2 shrink-0 border-b border-black/10">
+             <StatusBar />
+             <div className="px-4 py-2 flex items-center justify-between">
+                <span className="text-[14px] font-bold uppercase tracking-wider cursor-pointer" onClick={() => onViewChange('list')}>&larr; Back</span>
+                <span className="text-[12px] font-bold uppercase tracking-widest text-gray-400">Article</span>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-8 pb-32">
+             <h1 className="text-[26px] font-black text-black leading-tight mb-6">{policyData.detail.title}</h1>
+             
+             <div className="flex gap-4 text-[11px] font-bold uppercase tracking-widest text-gray-500 font-sans mb-8 border-y border-black/10 py-3">
+                <span>{policyData.detail.publishDate}</span>
+                <span>/</span>
+                <span>{policyData.detail.department}</span>
+             </div>
+
+             <div className="text-[16px] text-black leading-[2] whitespace-pre-wrap first-letter:text-5xl first-letter:font-black first-letter:float-left first-letter:mr-2 first-letter:mt-1">
+                {policyData.detail.content}
+             </div>
+             
+             <div className="mt-12 pt-6 border-t-2 border-black">
+                <div className="text-[11px] font-bold uppercase tracking-widest mb-3 font-sans">Keywords</div>
+                <div className="flex flex-wrap gap-2">
+                   {policyData.detail.keywords.map(k => (
+                      <span key={k} className="text-[12px] text-black bg-gray-200 px-3 py-1 font-sans">{k}</span>
+                   ))}
+                </div>
+             </div>
+          </div>
+
+          <div className="absolute bottom-0 w-full bg-[#FAF9F6] border-t-2 border-black p-4 z-30 font-sans">
+             <div className="flex items-center gap-3">
+                <div className="flex-1 border-b-2 border-black focus-within:border-blue-600 transition-colors">
+                   <input type="text" placeholder="Ask AI about this article..." className="bg-transparent w-full text-[14px] outline-none text-black py-2 placeholder-gray-400 font-bold" />
+                </div>
+                <button className="text-black font-black uppercase text-[12px] tracking-wider px-2">Submit</button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9. 柔和新拟态 (Soft Neumorphism) - 触感极强
+  // ---------------------------------------------------------------------------
+  if (type === 'soft') {
+    const shadowClass = "shadow-[5px_5px_10px_#d1d5df,-5px_-5px_10px_#ffffff]";
+    const innerShadowClass = "shadow-[inset_5px_5px_10px_#d1d5df,inset_-5px_-5px_10px_#ffffff]";
+
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#E0E5EC] flex flex-col font-sans text-gray-700">
+          <div className="pb-4 shrink-0 px-5">
+             <StatusBar />
+             <div className="pt-3 flex items-center justify-between mb-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer ${shadowClass}`} onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={20} />
+                </div>
+                <span className="text-[18px] font-bold">政策库</span>
+                <div className="w-10"></div>
+             </div>
+             
+             <div className={`h-12 rounded-xl flex items-center px-4 ${innerShadowClass}`}>
+                 <Search size={18} className="text-gray-400" />
+                 <input type="text" placeholder="搜索内容..." className="bg-transparent flex-1 ml-3 text-[14px] outline-none text-gray-700" />
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 py-2 space-y-6">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className={`rounded-[20px] p-5 cursor-pointer ${shadowClass} active:shadow-[inset_5px_5px_10px_#d1d5df,inset_-5px_-5px_10px_#ffffff] transition-shadow`}>
+                  <h3 className="text-[16px] font-bold text-gray-800 leading-snug mb-3">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className={`text-[11px] text-blue-500 px-2.5 py-1 rounded-md ${shadowClass}`}>{t}</span>
+                     ))}
+                  </div>
+                  <p className="text-[13px] text-gray-500 line-clamp-2 leading-relaxed">
+                     {item.content}
+                  </p>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#E0E5EC] flex flex-col font-sans text-gray-700 relative">
+          <div className="pb-2 shrink-0 px-5 sticky top-0 z-20">
+             <StatusBar />
+             <div className="pt-2 flex items-center justify-between mb-2">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer ${shadowClass}`} onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={20} />
+                </div>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${shadowClass}`}>
+                   <Bookmark size={18} />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 py-4 pb-32">
+             <div className={`rounded-[24px] p-6 mb-6 ${shadowClass}`}>
+                <h1 className="text-[20px] font-bold text-gray-800 leading-snug mb-4">{policyData.detail.title}</h1>
+                <div className="flex gap-4 text-[12px] text-gray-500 mb-2">
+                   <span>{policyData.detail.publishDate}</span>
+                </div>
+             </div>
+             
+             <div className={`rounded-[24px] p-6 mb-6 ${shadowClass}`}>
+                <div className="text-[15px] text-gray-600 leading-[1.8] whitespace-pre-wrap">
+                   {policyData.detail.content}
+                </div>
+             </div>
+          </div>
+
+          <div className="absolute bottom-6 left-5 right-5 z-30">
+             <div className={`rounded-[20px] p-2 flex items-center gap-2 ${shadowClass}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-blue-500 ${innerShadowClass}`}>
+                   <Bot size={20} />
+                </div>
+                <input type="text" placeholder="AI 解读..." className={`bg-transparent flex-1 px-3 py-2 text-[14px] outline-none text-gray-700 rounded-xl ${innerShadowClass}`} />
+                <button className={`w-10 h-10 rounded-xl flex items-center justify-center text-blue-500 ${shadowClass} active:shadow-[inset_2px_2px_5px_#d1d5df,inset_-2px_-2px_5px_#ffffff]`}>
+                   <Send size={16} />
+                </button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 10. 暗夜赛博版 (Dark Cyber) - 极客风
+  // ---------------------------------------------------------------------------
+  if (type === 'dark') {
+    if (view === 'list') {
+      return (
+        <div className="h-full w-full bg-[#0F172A] flex flex-col font-sans text-slate-200">
+          <div className="pb-4 shrink-0 border-b border-cyan-500/20 bg-[#0F172A]/90 backdrop-blur sticky top-0 z-20">
+             <StatusBar theme="dark" />
+             <div className="px-5 pt-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <ChevronLeft size={24} className="cursor-pointer text-cyan-400" onClick={() => onViewChange('list')} />
+                   <h1 className="text-[18px] font-bold font-mono tracking-wider text-white">POLICIES_</h1>
+                </div>
+             </div>
+             <div className="px-5 mt-4">
+                <div className="bg-slate-900 border border-cyan-500/30 h-10 rounded flex items-center px-3 shadow-[0_0_10px_rgba(34,211,238,0.05)] focus-within:border-cyan-400 transition-colors">
+                   <span className="text-cyan-500 font-mono text-sm mr-2">&gt;</span>
+                   <input type="text" placeholder="Query DB..." className="bg-transparent flex-1 text-[14px] outline-none text-cyan-50 font-mono placeholder-slate-600" />
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 font-mono">
+             {policyData.list.map((item) => (
+               <div key={item.id} onClick={() => onViewChange('detail')} className="bg-slate-800/50 border border-slate-700 rounded p-4 cursor-pointer hover:border-cyan-500/50 transition-colors group">
+                  <h3 className="text-[14px] font-bold text-white leading-snug mb-3 group-hover:text-cyan-300">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                     {item.tags.map(t => (
+                        <span key={t} className="text-[10px] text-cyan-400 bg-cyan-950/50 px-2 py-0.5 border border-cyan-900/50 uppercase">[{t}]</span>
+                     ))}
+                  </div>
+                  <p className="text-[12px] text-slate-400 line-clamp-2 leading-relaxed mb-3 font-sans">
+                     {item.content}
+                  </p>
+                  <div className="text-[10px] text-slate-500 text-right">ID: {item.id} // {item.date}</div>
+               </div>
+             ))}
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-full w-full bg-[#0F172A] flex flex-col font-sans text-slate-200">
+          <div className="pb-3 shrink-0 border-b border-cyan-500/20 bg-[#0F172A]/90 backdrop-blur sticky top-0 z-20">
+             <StatusBar theme="dark" />
+             <div className="px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center text-cyan-400 cursor-pointer" onClick={() => onViewChange('list')}>
+                   <ChevronLeft size={24} />
+                   <span className="text-[13px] font-mono tracking-widest uppercase">Back</span>
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5 pb-28 font-mono">
+             <div className="text-cyan-500 text-[10px] mb-2">FILE_ACCESS: GRANTED</div>
+             <h1 className="text-[18px] font-bold text-white leading-snug mb-6">{policyData.detail.title}</h1>
+             
+             <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-800 pb-6">
+                {policyData.detail.keywords.map(k => (
+                   <span key={k} className="text-[11px] text-slate-300 border border-slate-600 px-2 py-0.5">#{k}</span>
+                ))}
+             </div>
+
+             <div className="text-[14px] text-slate-400 leading-relaxed whitespace-pre-wrap font-sans">
+                {policyData.detail.content}
+             </div>
+          </div>
+
+          <div className="absolute bottom-0 w-full bg-[#0F172A] border-t border-cyan-500/20 p-4 pb-8 z-30">
+             <div className="bg-slate-900 border border-slate-700 p-1 flex items-center shadow-[0_0_15px_rgba(34,211,238,0.05)] focus-within:border-cyan-500/50 transition-colors">
+                <span className="pl-3 text-cyan-500 font-mono text-sm">&gt;</span>
+                <input type="text" placeholder="Initialize AI sequence..." className="bg-transparent flex-1 px-2 py-2 text-[14px] outline-none text-slate-200 font-mono placeholder-slate-600" />
+                <button className="bg-cyan-500/20 text-cyan-400 px-4 h-9 flex items-center justify-center font-mono text-[12px] uppercase hover:bg-cyan-500/30">
+                   Execute
+                </button>
+             </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  return <div>Design not found</div>;
+};
+
+// ----------------------------------------------------------------------
+// 辅助组件：手机外壳
+// ----------------------------------------------------------------------
+const PhoneFrame = ({ children }) => (
+  <div className="w-[430px] h-[932px] bg-black rounded-[55px] p-[10px] shadow-[0_0_50px_rgba(0,0,0,0.2)] relative border-[6px] border-[#222] ring-4 ring-[#111] overflow-hidden shrink-0">
+    <div className="absolute top-[20px] left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-[100] flex items-center justify-center">
+      <div className="w-[80px] h-[80px] rounded-full bg-black/50 blur-xl absolute -z-10"></div>
+    </div>
+    <div className="w-full h-full bg-white rounded-[45px] overflow-hidden relative">
+       {children}
+       <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/90 rounded-full z-[100]"></div>
+    </div>
+  </div>
+);

@@ -1,0 +1,793 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Settings, 
+  ChevronRight, 
+  Home, 
+  Sparkles, 
+  User, 
+  Send,
+  Mic,
+  Image as ImageIcon,
+  Paperclip,
+  MoreHorizontal,
+  Bot,
+  Zap,
+  BookOpen,
+  Briefcase,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Search,
+  ChevronLeft,
+  Volume2,
+  List,
+  ChevronDown
+} from 'lucide-react';
+
+export default function App() {
+  const [currentDesign, setCurrentDesign] = useState(2); // 默认选中第三套以便测试
+  const [scale, setScale] = useState(0.85); 
+
+  const designs = [
+    { id: 0, name: '01. 官方标准版 (延续首页蓝)', theme: 'standard' },
+    { id: 1, name: '02. 现代对话版 (气泡式)', theme: 'modern_chat' },
+    { id: 2, name: '03. 极简白底版 (类ChatGPT)', theme: 'minimal' },
+    { id: 3, name: '04. 毛玻璃幻彩版', theme: 'glass' },
+    { id: 4, name: '05. 语音主导版', theme: 'voice_first' },
+    { id: 5, name: '06. 卡片引导版 (侧重灵感)', theme: 'cards' },
+    { id: 6, name: '07. 暗夜科技版', theme: 'dark_cyber' },
+    { id: 7, name: '08. 商务顾问版', theme: 'enterprise' },
+    { id: 8, name: '09. 快捷指令版', theme: 'actions' },
+    { id: 9, name: '10. 沉浸弥散光版', theme: 'immersive' },
+  ];
+
+  return (
+    <div className="flex h-screen w-full bg-gray-100 font-sans overflow-hidden">
+      {/* 侧边控制栏 */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full z-20 shadow-xl overflow-y-auto hidden md:flex shrink-0">
+        <div className="p-6 border-b border-gray-100">
+          <h1 className="text-xl font-bold text-gray-800">AI助手 UI方案库</h1>
+          <p className="text-sm text-gray-500 mt-2">Project: 创享引擎 (Youth Engine)</p>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-xs text-blue-800 font-medium">设计目标：修复原版交互逻辑(输入框置底)，增强AI科技感与官方品牌感。</p>
+          </div>
+        </div>
+        <div className="flex-1 p-4 space-y-3">
+          {designs.map((d, idx) => (
+            <button
+              key={d.id}
+              onClick={() => setCurrentDesign(d.id)}
+              className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-between group ${
+                currentDesign === idx 
+                  ? 'bg-blue-500 text-white shadow-blue-200 shadow-lg transform scale-105' 
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-102'
+              }`}
+            >
+              <span className="font-medium text-sm">{d.name}</span>
+              <div className={`w-2 h-2 rounded-full ${currentDesign === idx ? 'bg-white' : 'bg-gray-300 group-hover:bg-gray-400'}`}></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 移动端菜单 */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white p-2 flex overflow-x-auto gap-2 shadow-sm">
+         {designs.map((d, idx) => (
+            <button
+              key={d.id}
+              onClick={() => setCurrentDesign(d.id)}
+              className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium ${
+                 currentDesign === idx ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {idx + 1}
+            </button>
+         ))}
+      </div>
+
+      {/* 展示区域 */}
+      <div className="flex-1 flex flex-col bg-gray-200 relative overflow-hidden">
+        {/* 顶部工具栏 */}
+        <div className="h-12 bg-white/80 backdrop-blur border-b border-gray-200 flex items-center justify-between px-4 z-10">
+          <span className="text-xs text-gray-500 font-mono">Viewport: 430 x 932 px</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setScale(s => Math.max(0.5, s - 0.1))} className="p-1.5 hover:bg-gray-100 rounded text-gray-600">
+              <ZoomOut size={16}/>
+            </button>
+            <span className="text-xs font-medium w-12 text-center">{(scale * 100).toFixed(0)}%</span>
+            <button onClick={() => setScale(s => Math.min(1.5, s + 0.1))} className="p-1.5 hover:bg-gray-100 rounded text-gray-600">
+              <ZoomIn size={16}/>
+            </button>
+            <div className="w-px h-4 bg-gray-300 mx-2"></div>
+            <button onClick={() => setScale(1)} className="p-1.5 hover:bg-gray-100 rounded text-gray-600 flex gap-1 items-center text-xs">
+              <Maximize size={14}/> 100%
+            </button>
+          </div>
+        </div>
+
+        {/* 滚动区域 */}
+        <div className="flex-1 overflow-auto flex justify-center p-8 bg-[#e5e7eb]">
+          <div className="relative transition-transform duration-200 ease-out origin-top" style={{ transform: `scale(${scale})`, marginBottom: `${(932 * scale) - 932}px` }}>
+             <PhoneFrame>
+                <DesignRenderer type={designs[currentDesign].theme} />
+             </PhoneFrame>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const DesignRenderer = ({ type }) => {
+  // 聊天交互状态
+  const [inputText, setInputText] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  // 切换主题时清空聊天记录
+  useEffect(() => {
+    setMessages([]);
+    setInputText('');
+    setIsTyping(false);
+  }, [type]);
+
+  // 自动滚动到底部
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  // 发送消息处理函数
+  const handleSend = (text) => {
+    const query = typeof text === 'string' ? text : inputText;
+    if (!query.trim()) return;
+
+    // 添加用户消息
+    setMessages(prev => [...prev, { role: 'user', content: query }]);
+    setInputText('');
+    setIsTyping(true);
+
+    // 模拟 AI 思考和回复
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `这是关于“${query}”的模拟回复。在实际接入大模型API后，这里将为您展示详细的政策解读、建议或生成的方案。\n\n需要我为您做进一步的拆解吗？` 
+      }]);
+    }, 1500);
+  };
+
+  // 建议提问数据
+  const suggestions = [
+    "如何申请大学生创业补贴政策？",
+    "我想了解最新的科技创新扶持政策",
+    "如何制定一份规范的商业计划书？",
+    "初创企业注册流程和注意事项？"
+  ];
+
+  // 状态栏
+  const StatusBar = ({ theme = 'light' }) => (
+    <div className={`w-full h-[44px] px-6 flex justify-between items-end pb-2 text-[15px] font-semibold z-50 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      <span>14:59</span>
+      <div className="flex gap-1.5 items-center">
+        <div className="h-[10px] w-[16px] bg-current rounded-[2px] opacity-100 flex items-center justify-center border border-current">
+            <div className="h-full w-[80%] bg-current"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 1. 官方标准版 (Standard)
+  if (type === 'standard') {
+    return (
+      <div className="h-full w-full bg-[#F5F7FA] flex flex-col font-sans relative">
+        <div className="bg-[#3B82F6] pb-4 rounded-b-[24px] shrink-0 shadow-sm relative z-10">
+           <StatusBar theme="dark" />
+           <div className="px-5 pt-2 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
+                    <Sparkles size={20} className="text-white" />
+                 </div>
+                 <div>
+                    <h1 className="text-[18px] font-bold">AI政策顾问</h1>
+                    <p className="text-[11px] opacity-80">智能解答创业疑问，精准匹配政策</p>
+                 </div>
+              </div>
+              <MoreHorizontal size={24} className="opacity-80" />
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28">
+           <div className="flex gap-3 mb-6">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                 <Bot size={18} className="text-blue-600" />
+              </div>
+              <div className="bg-white p-4 rounded-[16px] rounded-tl-none shadow-sm max-w-[85%]">
+                 <p className="text-[14px] text-gray-800 leading-relaxed">
+                   您好！我是创享引擎AI助手。您可以向我咨询创业政策、资金申报、商业计划等问题。
+                 </p>
+                 <div className="mt-4 pt-3 border-t border-gray-100">
+                    <p className="text-[12px] text-gray-500 mb-2">您可以试着问我：</p>
+                    <div className="space-y-2">
+                       {suggestions.map((text, i) => (
+                          <div key={i} className="bg-[#F3F4F6] text-[#3B82F6] text-[13px] px-3 py-2 rounded-[8px] cursor-pointer hover:bg-blue-50 transition-colors">
+                             {text}
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full bg-white border-t border-gray-100 p-3 pb-5 z-20">
+           <div className="flex items-center gap-2">
+              <button className="p-2 text-gray-400 hover:text-gray-600"><Mic size={22}/></button>
+              <div className="flex-1 bg-[#F3F4F6] rounded-full flex items-center px-4 h-10">
+                 <input type="text" placeholder="输入您的问题..." className="bg-transparent flex-1 text-[14px] outline-none text-gray-700" />
+              </div>
+              <button className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-md active:scale-95 transition-transform">
+                 <Send size={18} className="ml-1" />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 2. 现代对话版 (Modern Chat)
+  if (type === 'modern_chat') {
+    return (
+      <div className="h-full w-full bg-[#Eef2f6] flex flex-col font-sans relative">
+        <div className="bg-white/80 backdrop-blur-md pb-2 shrink-0 border-b border-gray-200/50 sticky top-0 z-20">
+           <StatusBar />
+           <div className="px-5 pt-2 flex items-center justify-center relative">
+              <h1 className="text-[16px] font-bold text-gray-800">创享AI助手</h1>
+              <div className="absolute right-5 flex gap-3">
+                 <Settings size={20} className="text-gray-500" />
+              </div>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28">
+           <div className="flex justify-center mb-6">
+              <span className="text-[11px] bg-black/5 text-gray-500 px-3 py-1 rounded-full">14:59</span>
+           </div>
+           
+           <div className="flex gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shrink-0 shadow-md">
+                 <Sparkles size={20} className="text-white" />
+              </div>
+              <div className="flex flex-col gap-2 max-w-[80%]">
+                 <div className="bg-white p-3.5 rounded-[20px] rounded-tl-[4px] shadow-sm text-[14px] text-gray-800">
+                    晚上好！👋 创业路上遇到什么难题了吗？
+                 </div>
+                 
+                 <div className="flex flex-wrap gap-2 mt-1">
+                    {suggestions.slice(0, 3).map((text, i) => (
+                       <div key={i} className="bg-blue-50/80 border border-blue-100 text-blue-600 text-[12px] px-3 py-1.5 rounded-full cursor-pointer active:bg-blue-100">
+                          {text}
+                       </div>
+                    ))}
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="absolute bottom-[96px] w-full px-4 z-20">
+           <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 p-2 flex items-center gap-2">
+              <button className="p-2 text-gray-400 bg-gray-50 rounded-full"><ImageIcon size={20}/></button>
+              <input type="text" placeholder="向AI提问..." className="bg-transparent flex-1 text-[15px] outline-none text-gray-700 px-2" />
+              <button className="bg-[#3B82F6] w-9 h-9 rounded-full flex items-center justify-center text-white">
+                 <Sparkles size={16} />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 3. 极简白底版 (Minimal) - 增加真实交互测试
+  if (type === 'minimal') {
+    return (
+      <div className="h-full w-full bg-white flex flex-col font-sans relative">
+        <div className="pb-2 shrink-0 sticky top-0 z-20 bg-white">
+           <StatusBar />
+           <div className="px-5 pt-2 flex items-center justify-between">
+              <List size={24} className="text-gray-800 cursor-pointer" />
+              <div className="font-bold text-[16px] text-gray-900 flex items-center gap-1 cursor-pointer">
+                 Youth Engine AI <ChevronDown size={14} className="text-gray-400"/>
+              </div>
+              <div className="w-6"></div>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 pt-8 pb-28 flex flex-col">
+           {messages.length === 0 ? (
+             // --- 没回答的页面 (空状态) ---
+             <div className="flex flex-col items-center justify-center flex-1 pb-10">
+               <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-6">
+                  <Sparkles size={32} className="text-white" />
+               </div>
+               <h2 className="text-[24px] font-bold text-gray-900 mb-8">今天能帮您什么？</h2>
+               
+               <div className="w-full space-y-3">
+                  {suggestions.map((text, i) => (
+                     <div 
+                        key={i} 
+                        onClick={() => handleSend(text)}
+                        className="w-full border border-gray-200 p-4 rounded-[16px] text-[14px] text-gray-700 font-medium flex justify-between items-center hover:bg-gray-50 cursor-pointer active:scale-[0.98] transition-all"
+                     >
+                        {text}
+                        <ChevronRight size={16} className="text-gray-400" />
+                     </div>
+                  ))}
+               </div>
+             </div>
+           ) : (
+             // --- 回答的页面 (对话状态) ---
+             <div className="flex flex-col gap-6 w-full pb-4">
+               {messages.map((msg, i) => (
+                 <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                   {msg.role === 'assistant' && (
+                     <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles size={16} className="text-white" />
+                     </div>
+                   )}
+                   <div 
+                     className={`max-w-[85%] text-[15px] leading-relaxed whitespace-pre-wrap ${
+                       msg.role === 'user' 
+                        ? 'bg-[#f3f4f6] text-gray-900 px-4 py-2.5 rounded-[20px] rounded-tr-[4px]' 
+                        : 'text-gray-800 pt-1'
+                     }`}
+                   >
+                     {msg.content}
+                   </div>
+                 </div>
+               ))}
+
+               {/* AI 输入中状态动画 */}
+               {isTyping && (
+                 <div className="flex gap-3 justify-start">
+                   <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center shrink-0 mt-1">
+                      <Sparkles size={16} className="text-white" />
+                   </div>
+                   <div className="text-gray-800 pt-3 flex items-center gap-1.5 px-2">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.15s'}}></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                   </div>
+                 </div>
+               )}
+               {/* 用于自动滚动的锚点 */}
+               <div ref={messagesEndRef} />
+             </div>
+           )}
+        </div>
+
+        {/* 底部输入框区域 */}
+        <div className="absolute bottom-[88px] w-full bg-gradient-to-t from-white via-white to-transparent pt-6 pb-2 px-5 z-20">
+           <div className="border border-gray-300 rounded-[20px] bg-white flex items-end p-2 min-h-[50px] focus-within:border-black transition-colors shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <button className="p-2 text-gray-500 mb-0.5 hover:text-black transition-colors">
+                 <Paperclip size={20}/>
+              </button>
+              <textarea 
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend(inputText);
+                  }
+                }}
+                placeholder="Message AI..." 
+                className="bg-transparent flex-1 text-[15px] outline-none text-gray-800 px-2 py-2.5 resize-none h-[40px] max-h-[100px] block" 
+                rows="1"
+              ></textarea>
+              <button 
+                onClick={() => handleSend(inputText)}
+                disabled={!inputText.trim() || isTyping}
+                className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 transition-colors ${
+                  inputText.trim() && !isTyping ? 'bg-black text-white cursor-pointer active:scale-90' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                 <Send size={14} className="ml-0.5" />
+              </button>
+           </div>
+           <div className="text-center mt-2 text-[10px] text-gray-400">AI可以提供创业建议，但请自行核实政策细节。</div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 4. 毛玻璃幻彩版 (Glass)
+  if (type === 'glass') {
+    return (
+      <div className="h-full w-full bg-[#f8fafc] flex flex-col font-sans relative overflow-hidden">
+        <div className="absolute top-[-10%] left-[-20%] w-[300px] h-[300px] bg-blue-400 rounded-full mix-blend-multiply filter blur-[70px] opacity-40"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[250px] h-[250px] bg-purple-400 rounded-full mix-blend-multiply filter blur-[70px] opacity-40"></div>
+        <div className="absolute bottom-[10%] left-[10%] w-[350px] h-[350px] bg-cyan-300 rounded-full mix-blend-multiply filter blur-[70px] opacity-30"></div>
+
+        <div className="pb-2 shrink-0 relative z-20">
+           <StatusBar />
+           <div className="px-5 pt-2 flex items-center justify-between">
+              <h1 className="text-[20px] font-bold text-gray-800 tracking-tight">AI 智能问答</h1>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 pt-4 pb-28 relative z-10">
+           <div className="bg-white/40 backdrop-blur-xl border border-white/60 p-5 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.05)] mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center text-white">
+                    <Sparkles size={20} />
+                 </div>
+                 <div className="font-bold text-gray-800 text-[16px]">Hi, 我是创业导师</div>
+              </div>
+              <p className="text-[14px] text-gray-700 leading-relaxed">
+                 我已经学习了最新的全省创业扶持政策、行业研究报告。您可以随时向我提问。
+              </p>
+           </div>
+
+           <div className="grid grid-cols-2 gap-3">
+              {suggestions.map((text, i) => (
+                 <div key={i} className="bg-white/50 backdrop-blur-md border border-white/50 p-3 rounded-[16px] text-[13px] text-gray-700 hover:bg-white/80 transition-all shadow-sm">
+                    {text}
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full px-5 pb-4 z-20">
+           <div className="bg-white/70 backdrop-blur-xl rounded-[24px] shadow-lg border border-white p-1.5 flex items-center gap-1">
+              <div className="flex-1 flex items-center px-3">
+                 <input type="text" placeholder="输入你想了解的政策..." className="bg-transparent w-full text-[14px] outline-none text-gray-800 py-2.5" />
+              </div>
+              <button className="bg-gradient-to-r from-blue-500 to-purple-500 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md">
+                 <Send size={18} className="ml-1" />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 5. 语音主导版 (Voice First)
+  if (type === 'voice_first') {
+    return (
+      <div className="h-full w-full bg-white flex flex-col font-sans relative">
+        <div className="pb-2 shrink-0">
+           <StatusBar />
+           <div className="px-5 pt-2 flex items-center justify-center relative text-gray-800">
+              <span className="font-bold">AI 语音助手</span>
+           </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pb-40">
+           <div className="text-center mb-12">
+              <h2 className="text-[22px] font-bold text-gray-800 mb-2">有什么我可以帮您？</h2>
+              <p className="text-[14px] text-gray-500">点击下方按钮直接对我说话</p>
+           </div>
+           
+           <div className="w-full space-y-3 mb-8">
+              {suggestions.slice(0, 3).map((text, i) => (
+                 <div key={i} className="bg-gray-50 rounded-full px-4 py-3 text-[14px] text-gray-700 text-center truncate shadow-sm border border-gray-100">
+                    "{text}"
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full bg-gradient-to-t from-white via-white to-transparent pt-10 pb-6 flex flex-col items-center z-20">
+           <div className="relative flex items-center justify-center w-[80px] h-[80px]">
+              <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-70"></div>
+              <div className="absolute inset-2 bg-blue-200 rounded-full animate-pulse"></div>
+              <button className="relative z-10 w-[64px] h-[64px] bg-[#3B82F6] rounded-full flex items-center justify-center text-white shadow-xl hover:bg-blue-600 transition-colors">
+                 <Mic size={32} />
+              </button>
+           </div>
+           <button className="mt-4 text-[13px] text-gray-400 flex items-center gap-1 hover:text-gray-600">
+              <List size={14} /> 切换到键盘输入
+           </button>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 6. 卡片引导版 (Cards)
+  if (type === 'cards') {
+    return (
+      <div className="h-full w-full bg-[#F3F4F6] flex flex-col font-sans relative">
+        <div className="bg-white pb-3 shrink-0 shadow-sm rounded-b-[24px]">
+           <StatusBar />
+           <div className="px-5 pt-2">
+              <h1 className="text-[20px] font-bold text-gray-900">探索 AI 能力</h1>
+              <p className="text-[12px] text-gray-500 mt-1">选择一个主题，快速开启对话</p>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32">
+           <div className="grid grid-cols-2 gap-3 mb-6">
+              {[
+                {icon: BookOpen, title: '政策解读', desc: '补贴/资质申报', color: 'bg-blue-50 text-blue-600'},
+                {icon: Briefcase, title: '商业计划', desc: 'BP框架撰写', color: 'bg-purple-50 text-purple-600'},
+                {icon: Zap, title: '创意头脑风暴', desc: '寻找创业灵感', color: 'bg-orange-50 text-orange-600'},
+                {icon: Search, title: '行业调查', desc: '最新市场数据', color: 'bg-teal-50 text-teal-600'},
+              ].map((item, i) => (
+                 <div key={i} className="bg-white p-4 rounded-[16px] shadow-sm border border-gray-100 cursor-pointer hover:shadow-md">
+                    <div className={`w-10 h-10 rounded-[12px] ${item.color} flex items-center justify-center mb-3`}>
+                       <item.icon size={20} />
+                    </div>
+                    <div className="font-bold text-[14px] text-gray-800">{item.title}</div>
+                    <div className="text-[11px] text-gray-400 mt-1">{item.desc}</div>
+                 </div>
+              ))}
+           </div>
+           
+           <h3 className="font-bold text-gray-800 text-[15px] mb-3 ml-1">热门提问</h3>
+           <div className="space-y-2">
+              {suggestions.map((text, i) => (
+                 <div key={i} className="bg-white px-4 py-3 rounded-[12px] text-[13px] text-gray-700 shadow-sm flex items-center justify-between">
+                    <span className="truncate pr-4">{text}</span>
+                    <Sparkles size={14} className="text-blue-400 shrink-0" />
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full px-4 pb-4 z-20">
+           <div className="bg-white rounded-[16px] shadow-lg border border-gray-100 p-1 flex items-center gap-2">
+              <input type="text" placeholder="直接输入您的问题..." className="bg-transparent flex-1 text-[14px] outline-none text-gray-800 px-3 py-2.5" />
+              <button className="bg-[#1F2937] px-4 h-9 rounded-[12px] flex items-center justify-center text-white text-[13px] font-medium mr-1">
+                 发送
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 7. 暗夜科技版 (Dark Cyber)
+  if (type === 'dark_cyber') {
+    return (
+      <div className="h-full w-full bg-[#0F172A] flex flex-col font-sans relative text-slate-200">
+        <div className="pb-3 shrink-0 border-b border-slate-800 bg-[#0F172A]/90 backdrop-blur sticky top-0 z-20">
+           <StatusBar theme="dark" />
+           <div className="px-5 pt-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                 <h1 className="text-[16px] font-bold text-white font-mono tracking-wider">ENGINE_AI <span className="text-cyan-400">v2.0</span></h1>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28 font-mono">
+           <div className="mb-6">
+              <div className="text-cyan-400 text-[12px] mb-1">SYSTEM &gt; INITIALIZED</div>
+              <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-[12px] text-[13px] text-slate-300">
+                 [AI Agent Online] <br/>
+                 Ready to assist with policy analysis and business strategy. What is your query?
+              </div>
+           </div>
+
+           <div className="space-y-3">
+              <div className="text-slate-500 text-[12px] mb-2">SUGGESTED_QUERIES:</div>
+              {suggestions.map((text, i) => (
+                 <div key={i} className="border border-slate-700 bg-slate-900/50 p-3 rounded-[8px] text-[13px] text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300 transition-colors cursor-pointer flex items-center gap-2">
+                    <span className="text-cyan-600">&gt;</span> {text}
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full px-4 pb-4 z-20 bg-gradient-to-t from-[#0F172A] via-[#0F172A] to-transparent pt-6">
+           <div className="bg-slate-900 rounded-[12px] border border-slate-700 focus-within:border-cyan-500/50 p-1 flex items-center gap-2 shadow-[0_0_15px_rgba(34,211,238,0.05)]">
+              <span className="pl-3 text-cyan-500 font-mono">&gt;</span>
+              <input type="text" placeholder="Type command..." className="bg-transparent flex-1 text-[14px] outline-none text-slate-200 py-2.5 font-mono placeholder-slate-600" />
+              <button className="bg-cyan-500/10 text-cyan-400 w-10 h-10 rounded-[8px] flex items-center justify-center hover:bg-cyan-500/20 mr-0.5">
+                 <Zap size={18} />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" theme="dark" />
+      </div>
+    );
+  }
+
+  // 8. 商务顾问版 (Enterprise)
+  if (type === 'enterprise') {
+    return (
+      <div className="h-full w-full bg-[#F8FAFC] flex flex-col font-sans relative">
+        <div className="bg-[#1E293B] pb-4 shrink-0 rounded-b-[16px] shadow-md relative z-10">
+           <StatusBar theme="dark" />
+           <div className="px-5 pt-3 flex items-center gap-4 text-white">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8860B] rounded-full flex items-center justify-center shadow-lg border-2 border-[#1E293B]">
+                 <Bot size={24} className="text-[#1E293B]" />
+              </div>
+              <div>
+                 <h1 className="text-[18px] font-bold font-serif text-[#D4AF37]">金牌政策顾问</h1>
+                 <p className="text-[11px] text-slate-300">7x24小时 为您的企业护航</p>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 pt-6 pb-28">
+           <div className="bg-white border border-slate-200 p-5 rounded-[12px] shadow-sm mb-6 relative">
+              <div className="absolute -top-3 left-6 bg-[#1E293B] text-[#D4AF37] text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wide">
+                 Expert Mode
+              </div>
+              <p className="text-[14px] text-slate-700 leading-relaxed mt-1">
+                 尊贵的企业主，您好。我是您的专属政策与战略顾问。通过大数据匹配，我可以为您提供精准的补贴申领方案及融资建议。
+              </p>
+           </div>
+
+           <div className="text-[13px] font-bold text-slate-800 mb-3 ml-1">高频咨询领域</div>
+           <div className="space-y-2.5">
+              {suggestions.map((text, i) => (
+                 <div key={i} className="bg-white border border-slate-200 px-4 py-3.5 rounded-[8px] text-[13px] text-slate-700 shadow-sm flex items-center justify-between hover:border-[#D4AF37] cursor-pointer">
+                    <span className="font-medium">{text}</span>
+                    <ChevronRight size={16} className="text-slate-400" />
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full bg-white border-t border-slate-200 p-4 z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+           <div className="flex items-center gap-3">
+              <div className="flex-1 bg-slate-100 rounded-[8px] flex items-center px-4 h-11 border border-slate-200 focus-within:border-[#1E293B] transition-colors">
+                 <input type="text" placeholder="输入企业需求..." className="bg-transparent flex-1 text-[14px] outline-none text-slate-800" />
+              </div>
+              <button className="h-11 px-5 bg-[#1E293B] rounded-[8px] flex items-center justify-center text-[#D4AF37] font-bold text-[14px] shadow-md">
+                 咨询
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 9. 快捷指令版 (Actions)
+  if (type === 'actions') {
+    return (
+      <div className="h-full w-full bg-[#F9FAFB] flex flex-col font-sans relative">
+        <div className="bg-white pb-2 shrink-0 border-b border-gray-200">
+           <StatusBar />
+           <div className="px-5 pt-2 flex items-center justify-center relative">
+              <h1 className="text-[17px] font-bold text-gray-900">工作台助手</h1>
+           </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pt-6 pb-40">
+           <div className="flex justify-center mb-8">
+              <div className="text-center">
+                 <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-[20px] mx-auto flex items-center justify-center mb-3 transform rotate-3">
+                    <Sparkles size={32} className="-rotate-3"/>
+                 </div>
+                 <h2 className="text-[20px] font-bold text-gray-800">Hi, 早上好</h2>
+                 <p className="text-[13px] text-gray-500 mt-1">今天需要处理什么任务？</p>
+              </div>
+           </div>
+           
+           <div className="space-y-2">
+              {suggestions.map((text, i) => (
+                 <div key={i} className="bg-white p-3.5 rounded-[12px] text-[13px] text-gray-700 shadow-sm border border-gray-100 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                    {text}
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full bg-white border-t border-gray-100 pt-3 pb-5 px-4 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+           <div className="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1">
+              {['✨ 写BP大纲', '📊 查政策', '📝 总结文档', '🔍 找案例'].map((action, i) => (
+                 <button key={i} className="shrink-0 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full text-[12px] text-gray-600 font-medium whitespace-nowrap active:bg-gray-100">
+                    {action}
+                 </button>
+              ))}
+           </div>
+           
+           <div className="flex items-center gap-2 bg-[#F3F4F6] rounded-[16px] p-1.5 pl-3">
+              <input type="text" placeholder="输入指令或提问..." className="bg-transparent flex-1 text-[14px] outline-none text-gray-800 py-1.5" />
+              <button className="bg-blue-600 w-8 h-8 rounded-[12px] flex items-center justify-center text-white">
+                 <Send size={14} className="ml-0.5" />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  // 10. 沉浸弥散光版 (Immersive)
+  if (type === 'immersive') {
+    return (
+      <div className="h-full w-full flex flex-col font-sans relative bg-white overflow-hidden">
+        <div className="absolute inset-0 z-0">
+           <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-blue-50 to-white"></div>
+           <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-blue-100 rounded-full mix-blend-multiply filter blur-[80px] opacity-70"></div>
+           <div className="absolute top-[20%] left-[-20%] w-[300px] h-[300px] bg-indigo-100 rounded-full mix-blend-multiply filter blur-[80px] opacity-70"></div>
+        </div>
+
+        <div className="pb-2 shrink-0 relative z-20">
+           <StatusBar />
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 pt-12 pb-32 relative z-10 flex flex-col">
+           <h1 className="text-[32px] font-bold text-gray-900 tracking-tight leading-tight mb-2">
+              开启智能<br/>创业探索
+           </h1>
+           <p className="text-[14px] text-gray-500 mb-10">基于全网数据的政策与商业引擎</p>
+
+           <div className="space-y-4 flex-1">
+              {suggestions.map((text, i) => (
+                 <div key={i} className="group relative bg-white/60 backdrop-blur-sm p-4 rounded-[20px] text-[15px] text-gray-800 font-medium shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white hover:bg-white hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all cursor-pointer flex justify-between items-center">
+                    <span className="relative z-10">{text}</span>
+                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white text-blue-500 transition-colors">
+                       <ChevronRight size={16} />
+                    </div>
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="absolute bottom-[88px] w-full px-6 pb-6 z-20 bg-gradient-to-t from-white via-white to-transparent pt-12">
+           <div className="bg-white rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-gray-100 p-2 flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                 <Sparkles size={20} />
+              </div>
+              <input type="text" placeholder="向引擎提问..." className="bg-transparent flex-1 text-[15px] outline-none text-gray-800 px-2" />
+              <button className="bg-gray-900 w-10 h-10 rounded-full flex items-center justify-center text-white mr-1">
+                 <Send size={16} className="ml-1" />
+              </button>
+           </div>
+        </div>
+        <BottomNav active="ai" />
+      </div>
+    );
+  }
+
+  return <div>Design not found</div>;
+};
+
+// ----------------------------------------------------------------------
+// 辅助组件
+// ----------------------------------------------------------------------
+
+const PhoneFrame = ({ children }) => (
+  <div className="w-[430px] h-[932px] bg-black rounded-[55px] p-[10px] shadow-[0_0_50px_rgba(0,0,0,0.2)] relative border-[6px] border-[#222] ring-4 ring-[#111] overflow-hidden shrink-0">
+    <div className="absolute top-[20px] left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-[100] flex items-center justify-center">
+      <div className="w-[80px] h-[80px] rounded-full bg-black/50 blur-xl absolute -z-10"></div>
+    </div>
+    <div className="w-full h-full bg-white rounded-[45px] overflow-hidden relative">
+       {children}
+       <div className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[130px] h-[5px] bg-black/90 rounded-full z-[100]"></div>
+    </div>
+  </div>
+);
+
+const BottomNav = ({ active, theme = 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div className={`absolute bottom-0 w-full h-[88px] flex items-start pt-3 justify-around z-50 ${isDark ? 'bg-[#111827] border-t border-gray-800' : 'bg-white border-t border-gray-100'}`}>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'home' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         <Home size={26} strokeWidth={active === 'home' ? 2.5 : 2} />
+         <span className="text-[10px] font-medium mt-0.5">首页</span>
+      </div>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'ai' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         <Sparkles size={26} strokeWidth={active === 'ai' ? 2.5 : 2} fill={active === 'ai' ? "currentColor" : "none"} />
+         <span className="text-[10px] font-medium mt-0.5">AI助手</span>
+      </div>
+      <div className={`flex flex-col items-center gap-1 cursor-pointer w-20 ${active === 'my' ? 'text-[#3B82F6]' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+         <User size={26} strokeWidth={active === 'my' ? 2.5 : 2} />
+         <span className="text-[10px] font-medium mt-0.5">我的</span>
+      </div>
+    </div>
+  );
+};

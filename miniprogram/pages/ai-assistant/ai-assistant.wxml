@@ -1,0 +1,115 @@
+<view class="container">
+  <!-- 顶部状态栏及导航 -->
+  <view class="nav-container" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-bar">
+      <!-- <view class="nav-left">
+         <image class="nav-icon" src="/images/icon/list.png" mode="aspectFit" />
+      </view> -->
+      <!-- 临时用 Icon 占位，或者直接显示标题 -->
+      <view class="nav-left">
+          <!-- 汉堡菜单图标 CSS绘制 -->
+          <view class="icon-menu">
+            <view class="line"></view>
+            <view class="line"></view>
+            <view class="line"></view>
+          </view>
+      </view>
+      
+      <view class="nav-title">
+        <text>Youth Engine AI</text>
+        <text class="arrow-down">▼</text>
+      </view>
+      <view class="nav-right"></view>
+    </view>
+  </view>
+
+  <!-- 内容区域：使用 scroll-view 以便自动滚动 -->
+  <view class="content-wrapper">
+    <scroll-view 
+      class="scroll-view" 
+      scroll-y 
+      scroll-with-animation 
+      scroll-into-view="{{scrollToView}}"
+      enable-back-to-top
+      style="height: 100%"
+    >
+      <!-- 空状态：欢迎语 + 建议 -->
+      <view class="empty-state" wx:if="{{messages.length === 0}}">
+        <view class="center-logo">
+          <view class="sparkle-box">
+            <text class="sparkle-icon">✨</text>
+          </view>
+        </view>
+        <view class="welcome-text">今天能帮您什么？</view>
+
+        <view class="suggestions-list">
+          <block wx:for="{{suggestions}}" wx:key="*this">
+            <view class="suggestion-item" bindtap="handleSuggestionClick" data-text="{{item}}">
+              <text class="suggestion-text">{{item}}</text>
+              <text class="arrow-right">></text>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 聊天记录 -->
+      <view class="chat-list" wx:else>
+        <block wx:for="{{messages}}" wx:key="index">
+          <view class="message-item {{item.role === 'user' ? 'message-user' : 'message-ai'}}" id="msg-{{index}}">
+            <!-- AI 头像 -->
+            <view class="avatar-box" wx:if="{{item.role === 'assistant'}}">
+               <view class="sparkle-icon-small">✨</view>
+            </view>
+
+            <!-- 消息内容 -->
+            <view class="message-content">
+              <text user-select>{{item.content}}</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- Loading 思考状态 -->
+        <view class="message-item message-ai" wx:if="{{isTyping}}">
+          <view class="avatar-box">
+               <view class="sparkle-icon-small">✨</view>
+          </view>
+          <view class="message-content loading-dots">
+             <view class="dot"></view>
+             <view class="dot"></view>
+             <view class="dot"></view>
+          </view>
+        </view>
+        
+        <!-- 锚点用于自动滚动 -->
+        <view id="scroll-bottom" style="height: 1px;"></view>
+      </view>
+      
+      <!-- 底部占位，防止内容被输入框遮挡 -->
+      <view class="bottom-spacer"></view>
+    </scroll-view>
+  </view>
+
+  <!-- 底部输入区域 -->
+  <view class="bottom-input-area">
+    <view class="input-box-container">
+      <view class="icon-btn" bindtap="handleAttach">
+         <text class="icon-text">📎</text>
+      </view>
+      <textarea 
+        class="input-textarea" 
+        placeholder="Message AI..." 
+        auto-height 
+        maxlength="500"
+        cursor-spacing="20"
+        value="{{inputValue}}"
+        bindinput="handleInput"
+        bindconfirm="handleSend"
+        confirm-type="send"
+      ></textarea>
+      <view class="send-btn {{inputValue ? 'active' : ''}}" bindtap="handleSend">
+        <text class="send-icon">↑</text>
+      </view>
+    </view>
+    <view class="disclaimer">AI可以提供创业建议，但请自行核实政策细节。</view>
+  </view>
+</view>

@@ -1,0 +1,295 @@
+import React, { useState } from 'react';
+import { 
+  ArrowLeft, 
+  Search, 
+  MapPin, 
+  Clock, 
+  ChevronRight, 
+  Plus, 
+  Heart, 
+  Compass, 
+  User,
+  Zap,
+  Target,
+  Circle,
+  MoreVertical
+} from 'lucide-react';
+
+const App = () => {
+  const [styleType, setStyleType] = useState('Industrial Raw');
+  const [page, setPage] = useState('list');
+  const [selectedJob, setSelectedJob] = useState(null);
+
+  const jobs = [
+    {
+      id: 1,
+      title: '教务处行政助理',
+      category: '行政辅助',
+      salary: '25-30',
+      unit: '元/时',
+      description: '协助整理教务档案、处理系统数据输入，工作环境静谧，适合考研党。',
+      location: '主楼 A204',
+      time: '周一至周五',
+      tags: ['安静环境', '学习机会'],
+      color: 'bg-emerald-400'
+    },
+    {
+      id: 2,
+      title: '艺术馆解说员',
+      category: '文化推广',
+      salary: '200',
+      unit: '元/场',
+      description: '负责校史馆及艺术特展的日常讲解接待工作。',
+      location: '校艺术中心',
+      time: '按需排班',
+      tags: ['锻炼口才', '证书证明'],
+      color: 'bg-purple-400'
+    },
+    {
+      id: 3,
+      title: '计算机中心运维',
+      category: '技术维护',
+      salary: '1200',
+      unit: '元/月',
+      description: '负责公共机房设备的日常巡检和简单的故障排查。',
+      location: '信息中心',
+      time: '长期固定',
+      tags: ['技术实战', '内推机会'],
+      color: 'bg-blue-400'
+    }
+  ];
+
+  const getTheme = () => {
+    switch (styleType) {
+      case 'Industrial Raw':
+        return {
+          bg: 'bg-[#FFFFFF]',
+          card: 'bg-white border-[3px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] rounded-none',
+          text: 'text-black',
+          sub: 'text-gray-500',
+          accent: 'bg-[#FFD600]',
+          font: 'font-mono'
+        };
+      case 'Liquid Gradient':
+        return {
+          bg: 'bg-gradient-to-br from-rose-100 via-indigo-100 to-teal-100',
+          card: 'bg-white/40 backdrop-blur-2xl border border-white/60 shadow-xl rounded-[40px]',
+          text: 'text-slate-800',
+          sub: 'text-slate-500',
+          accent: 'bg-gradient-to-r from-indigo-500 to-purple-500',
+          font: 'font-sans'
+        };
+      case 'Swiss Minimalism':
+        return {
+          bg: 'bg-[#F5F5F7]',
+          card: 'bg-white rounded-lg shadow-sm border-b-2 border-slate-100',
+          text: 'text-black',
+          sub: 'text-slate-400',
+          accent: 'bg-black',
+          font: 'font-sans'
+        };
+      case 'Retro Pixels':
+        return {
+          bg: 'bg-[#9BB7D0]',
+          card: 'bg-[#E7E7E7] border-4 border-white shadow-[inset_-4px_-4px_0px_#888,inset_4px_4px_0px_#fff] rounded-none',
+          text: 'text-[#333]',
+          sub: 'text-[#666]',
+          accent: 'bg-[#FF004D]',
+          font: 'font-serif'
+        };
+      case 'Frosted Darkness':
+        return {
+          bg: 'bg-[#0F172A]',
+          card: 'bg-slate-800/50 backdrop-blur-md border border-slate-700 shadow-2xl rounded-3xl',
+          text: 'text-slate-100',
+          sub: 'text-slate-400',
+          accent: 'bg-cyan-400',
+          font: 'font-sans'
+        };
+      default: return {};
+    }
+  };
+
+  const theme = getTheme();
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-100 p-8">
+      {/* Style Switcher */}
+      <div className="mb-6 flex gap-2 overflow-x-auto max-w-[430px] p-2">
+        {['Industrial Raw', 'Liquid Gradient', 'Swiss Minimalism', 'Retro Pixels', 'Frosted Darkness'].map(s => (
+          <button 
+            key={s} 
+            onClick={() => {setStyleType(s); setPage('list');}}
+            className={`px-4 py-2 text-[10px] font-bold rounded-full transition-all border ${styleType === s ? 'bg-black text-white' : 'bg-white text-black border-neutral-200'}`}
+          >
+            {s.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {/* Device Body */}
+      <div 
+        className={`relative overflow-hidden transition-all duration-700 ${theme.bg} ${theme.font}`}
+        style={{ width: '430px', height: '932px', borderRadius: '54px', border: '12px solid #222', boxShadow: '0 60px 100px -30px rgba(0,0,0,0.5)' }}
+      >
+        {/* Dynamic Island */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[120px] h-[36px] bg-black rounded-[20px] z-50"></div>
+
+        {page === 'list' ? (
+          <div className="h-full flex flex-col p-6 pt-16">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <p className={`text-[10px] font-bold uppercase tracking-widest ${theme.sub}`}>Resource Hub</p>
+                <h1 className={`text-3xl font-black ${theme.text}`}>资源对接</h1>
+              </div>
+              <div className={`w-12 h-12 flex items-center justify-center rounded-full ${styleType === 'Industrial Raw' ? 'border-2 border-black' : 'bg-white shadow-md'}`}>
+                <Search size={20} className={theme.text} />
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto space-y-6 pb-20">
+              {jobs.map((job) => (
+                <div 
+                  key={job.id} 
+                  onClick={() => {setSelectedJob(job); setPage('detail');}}
+                  className={`p-6 transition-transform active:scale-95 cursor-pointer ${theme.card}`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <span className={`px-2 py-0.5 text-[9px] font-black uppercase ${styleType === 'Industrial Raw' ? 'bg-black text-white' : 'bg-white/50 text-slate-500 rounded-full border border-slate-100'}`}>
+                      {job.category}
+                    </span>
+                    <div className={`text-xl font-black ${styleType === 'Frosted Darkness' ? 'text-cyan-400' : 'text-black'}`}>
+                      {job.salary}<span className="text-[10px] ml-1">{job.unit}</span>
+                    </div>
+                  </div>
+                  <h3 className={`text-xl font-black mb-3 ${theme.text}`}>{job.title}</h3>
+                  <div className={`text-xs leading-relaxed mb-6 line-clamp-2 ${theme.sub}`}>{job.description}</div>
+                  
+                  <div className="flex items-center justify-between border-t pt-4 border-dashed border-neutral-300">
+                    <div className="flex items-center gap-3">
+                      <div className={`flex items-center gap-1 text-[10px] font-bold ${theme.sub}`}>
+                        <MapPin size={12} /> {job.location}
+                      </div>
+                    </div>
+                    <div className={`w-8 h-8 flex items-center justify-center ${styleType === 'Industrial Raw' ? 'bg-black text-white' : 'bg-slate-100 rounded-full'}`}>
+                      <ChevronRight size={16} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Floating Tab Bar */}
+            <div className="absolute bottom-10 left-6 right-6 h-16 bg-black/90 backdrop-blur-md rounded-full flex items-center justify-around px-4 shadow-2xl z-40">
+               <Compass className="text-white" size={20} />
+               <Zap className="text-white/40" size={20} />
+               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center -mt-8 shadow-lg">
+                 <Plus size={24} className="text-black" />
+               </div>
+               <Heart className="text-white/40" size={20} />
+               <User className="text-white/40" size={20} />
+            </div>
+          </div>
+        ) : (
+          <div className="h-full flex flex-col">
+            {/* Detail Background Header */}
+            <div className={`h-80 relative flex items-end p-8 ${styleType === 'Industrial Raw' ? 'bg-[#FFD600]' : 'bg-slate-900'}`}>
+               {styleType === 'Liquid Gradient' && (
+                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 animate-pulse"></div>
+               )}
+               <button 
+                onClick={() => setPage('list')}
+                className="absolute top-16 left-6 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
+               >
+                 <ArrowLeft size={20} />
+               </button>
+               
+               <div className="relative z-10 w-full">
+                  <div className={`inline-block px-3 py-1 text-[10px] font-black uppercase mb-3 ${styleType === 'Industrial Raw' ? 'bg-black text-white' : 'bg-white/20 text-white rounded-full'}`}>
+                    {selectedJob.category}
+                  </div>
+                  <h2 className="text-4xl font-black text-white leading-none mb-2">{selectedJob.title}</h2>
+                  <div className="flex items-center gap-2 text-white/80 text-sm font-bold">
+                    <Target size={16} /> 官方直招 · 极速回复
+                  </div>
+               </div>
+            </div>
+
+            {/* Detail Body */}
+            <div className={`flex-1 -mt-6 rounded-t-[40px] p-8 z-20 ${styleType === 'Frosted Darkness' ? 'bg-[#0F172A]' : 'bg-white'}`}>
+              <div className="flex justify-between items-center mb-8 pb-8 border-b border-neutral-100">
+                <div className="flex flex-col">
+                  <span className={`text-[10px] font-bold uppercase ${theme.sub}`}>报酬待遇</span>
+                  <div className={`text-3xl font-black ${styleType === 'Frosted Darkness' ? 'text-cyan-400' : 'text-black'}`}>
+                    {selectedJob.salary} <span className="text-sm">{selectedJob.unit}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400">
+                    <Heart size={20} />
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400">
+                    <MoreVertical size={20} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-8 overflow-y-auto max-h-[400px] pr-2">
+                <section>
+                  <h4 className={`text-xs font-black uppercase tracking-widest mb-4 ${theme.sub}`}>职位概况</h4>
+                  <div className={`grid grid-cols-2 gap-4`}>
+                    <div className={`p-4 ${theme.card}`}>
+                      <div className={`text-[9px] font-bold mb-1 ${theme.sub}`}>地点</div>
+                      <div className={`text-xs font-black ${theme.text}`}>{selectedJob.location}</div>
+                    </div>
+                    <div className={`p-4 ${theme.card}`}>
+                      <div className={`text-[9px] font-bold mb-1 ${theme.sub}`}>排班</div>
+                      <div className={`text-xs font-black ${theme.text}`}>{selectedJob.time}</div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h4 className={`text-xs font-black uppercase tracking-widest mb-4 ${theme.sub}`}>详细描述</h4>
+                  <p className={`text-sm leading-relaxed ${theme.text} opacity-70`}>
+                    {selectedJob.description}
+                  </p>
+                </section>
+
+                <section>
+                  <h4 className={`text-xs font-black uppercase tracking-widest mb-4 ${theme.sub}`}>录用要求</h4>
+                  <div className="space-y-3">
+                    {['具有良好的服务意识', '能够按时到岗，不迟到早退', '在校成绩优良优先'].map((req, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Circle size={6} fill="currentColor" className={theme.accent + " text-transparent"} />
+                        <span className={`text-sm ${theme.text} opacity-70`}>{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            {/* Final Action Button */}
+            <div className={`p-8 pt-4 pb-12 ${styleType === 'Frosted Darkness' ? 'bg-[#0F172A]' : 'bg-white'}`}>
+              <button className={`w-full py-5 text-sm font-black uppercase tracking-widest transition-transform active:scale-95 shadow-xl ${
+                styleType === 'Industrial Raw' ? 'bg-[#FFD600] text-black border-2 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)]' :
+                styleType === 'Frosted Darkness' ? 'bg-cyan-400 text-slate-900 rounded-2xl' :
+                'bg-black text-white rounded-full'
+              }`}>
+                立即申请该职位
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Home Indicator */}
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-black/10 rounded-full"></div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

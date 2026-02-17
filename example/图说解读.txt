@@ -1,0 +1,182 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  ArrowLeft, Share2, ChevronRight, ChevronLeft,
+  Layers, Cpu, Wind, Rocket, Microscope, 
+  Zap, Globe, Activity
+} from 'lucide-react';
+
+const INDUSTRIES = [
+  { id: 1, name: "信息技术", color: "#3B82F6", icon: <Cpu />, desc: "新一代信息技术是数字经济的核心支撑。" },
+  { id: 2, name: "生物科技", color: "#EF4444", icon: <Activity />, desc: "通过生物工程技术解决人类健康与资源问题。" },
+  { id: 3, name: "新能源", color: "#10B981", icon: <Zap />, desc: "绿色能源革命，推动碳中和目标实现。" },
+  { id: 4, name: "航空航天", color: "#8B5CF6", icon: <Rocket />, desc: "探索深空，突破人类空间的物理极限。" },
+  { id: 5, name: "高端装备", color: "#F59E0B", icon: <Layers />, desc: "工业之母，智能制造的基石。" },
+  { id: 6, name: "新材料", color: "#06B6D4", icon: <Microscope />, desc: "性能突破，改变产品形态的基础。" },
+  { id: 7, name: "量子信息", color: "#6366F1", icon: <Globe />, desc: "下一代计算范式，超越经典物理极限。" },
+  { id: 8, name: "数字创意", color: "#EC4899", icon: <Layers />, desc: "文化与科技融合的新型业态。" }
+];
+
+const App = () => {
+  const [rotation, setRotation] = useState(0); 
+  const [activeIdx, setActiveIdx] = useState(0);
+  const total = INDUSTRIES.length;
+  const angleStep = 360 / total;
+  
+  // 触摸交互状态
+  const touchStart = useRef(0);
+  const isDragging = useRef(false);
+
+  // 核心 3D 参数
+  const radius = 350; 
+  // 调整 tiltAngle：从 -18 改为 -12，让视角向上抬起，更接近平视
+  const tiltAngle = -12; 
+
+  const handleNext = () => {
+    setRotation(prev => prev - angleStep);
+    setActiveIdx(prev => (prev + 1) % total);
+  };
+
+  const handlePrev = () => {
+    setRotation(prev => prev + angleStep);
+    setActiveIdx(prev => (prev - 1 + total) % total);
+  };
+
+  // 手势滑动处理
+  const handleTouchStart = (e) => {
+    touchStart.current = e.touches[0].clientX;
+    isDragging.current = true;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!isDragging.current) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStart.current - touchEnd;
+
+    if (Math.abs(distance) > 50) { // 滑动阈值
+      if (distance > 0) handleNext();
+      else handlePrev();
+    }
+    isDragging.current = false;
+  };
+
+  return (
+    <div className="flex flex-col items-center bg-gray-100 min-h-screen py-10 font-sans select-none text-slate-900">
+      <div className="relative w-[375px] h-[812px] bg-white rounded-[55px] shadow-[0_60px_120px_rgba(0,0,0,0.15)] border-[12px] border-slate-950 overflow-hidden">
+        
+        {/* 背景装饰 */}
+        <div className="absolute top-[10%] left-[-10%] w-[120%] h-[40%] bg-blue-50 blur-[120px] rounded-full pointer-events-none"></div>
+
+        {/* 顶部标题栏 */}
+        <div className="h-24 pt-12 px-8 flex items-center justify-between absolute top-0 w-full z-[100]">
+           <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-slate-800"><ArrowLeft size={20}/></div>
+           <span className="font-black tracking-[0.3em] text-[11px] uppercase text-slate-900">图说解读</span>
+           <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-slate-800"><Share2 size={18}/></div>
+        </div>
+
+        {/* 3D 舞台 */}
+        <div 
+          className="h-full w-full flex flex-col items-center justify-center overflow-hidden touch-none" 
+          style={{ perspective: '3000px' }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 旋转容器 */}
+          <div 
+            className="relative w-full h-[500px] transition-transform duration-[1000ms] ease-[cubic-bezier(0.25, 1, 0.5, 1)]"
+            style={{ 
+              transformStyle: 'preserve-3d',
+              // 视角倾斜已调平至 -12deg
+              transform: `translateZ(-${radius}px) rotateX(${tiltAngle}deg) rotateY(${rotation}deg)` 
+            }}
+          >
+            {INDUSTRIES.map((item, index) => {
+              const itemAngle = index * angleStep;
+              let relAngle = (rotation + itemAngle) % 360;
+              if (relAngle < 0) relAngle += 360;
+              const isFront = relAngle < 70 || relAngle > 290;
+              const isActive = activeIdx === index;
+
+              return (
+                <div
+                  key={item.id}
+                  className="absolute top-1/2 left-1/2 w-[230px] h-[340px] -mt-[170px] -ml-[115px] transition-all duration-700"
+                  style={{
+                    transformStyle: 'preserve-3d',
+                    transform: `rotateY(${itemAngle}deg) translateZ(${radius}px)`,
+                    opacity: isFront ? 1 : 0.25, 
+                    filter: isFront ? 'none' : 'grayscale(0.4) blur(0.5px)',
+                    zIndex: isFront ? 10 : 1
+                  }}
+                >
+                  <div 
+                    className={`w-full h-full rounded-[45px] p-8 flex flex-col justify-between border-[3px] transition-all duration-700 ${
+                      isActive 
+                      ? 'bg-white border-blue-600 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] scale-110' 
+                      : 'bg-white border-slate-200 shadow-[0_15px_40px_rgba(0,0,0,0.06)]'
+                    }`}
+                  >
+                    <div className="space-y-6 pointer-events-none">
+                      <div className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-all shadow-sm ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                        {item.icon}
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className={`text-3xl font-black tracking-tighter ${isActive ? 'text-slate-900' : 'text-slate-300'}`}>
+                          {item.name}
+                        </h3>
+                        <div className={`w-12 h-1.5 rounded-full transition-all duration-500 ${isActive ? 'bg-blue-600 w-16' : 'bg-slate-100 w-8'}`}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 pointer-events-none">
+                       <p className={`text-xs leading-relaxed font-medium transition-all ${isActive ? 'text-slate-500' : 'text-slate-200'}`}>
+                         {item.desc}
+                       </p>
+                       <div className="flex items-center justify-between border-t border-gray-50 pt-4">
+                          <span className={`text-sm font-mono font-bold ${isActive ? 'text-blue-600' : 'text-slate-200'}`}>
+                            NO.0{item.id}
+                          </span>
+                          <div className={`w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center transition-all ${isActive ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+                            <ChevronRight size={16} />
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 底部指示器 */}
+          <div className="absolute bottom-16 flex flex-col items-center gap-4 z-10 pointer-events-none">
+             <div className="flex gap-2">
+                {INDUSTRIES.map((_, i) => (
+                  <div key={i} className={`h-1.5 rounded-full transition-all duration-700 ${activeIdx === i ? 'w-10 bg-blue-600' : 'w-1.5 bg-slate-200'}`} />
+                ))}
+             </div>
+             <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">Explore Sectors</p>
+          </div>
+        </div>
+
+        {/* 辅助按钮 */}
+        <button 
+          onClick={handlePrev}
+          className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-24 rounded-full bg-white/40 backdrop-blur-md border border-white flex items-center justify-center text-slate-400 active:scale-90 transition-all z-[120] shadow-sm"
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <button 
+          onClick={handleNext}
+          className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-24 rounded-full bg-white/40 backdrop-blur-md border border-white flex items-center justify-center text-slate-400 active:scale-90 transition-all z-[120] shadow-sm"
+        >
+          <ChevronRight size={24} />
+        </button>
+
+        {/* 侧面遮罩 */}
+        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white/40 to-transparent z-50 pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white/40 to-transparent z-50 pointer-events-none"></div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

@@ -1,0 +1,158 @@
+<!--pages/career-match-result/career-match-result.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <view class="header-back" bindtap="goBack" hover-class="none">
+      <text class="back-icon">‹</text>
+    </view>
+    <view class="header-title">匹配结果</view>
+    <view class="header-placeholder"></view>
+  </view>
+
+  <!-- 匹配结果统计 -->
+  <view class="result-summary">
+    <view class="summary-icon">🎯</view>
+    <view class="summary-title">为您匹配到 {{occupations.length}} 个职业</view>
+    <view class="summary-desc">根据您的专业、技能和性格特质推荐</view>
+  </view>
+
+  <!-- 职业列表 -->
+  <scroll-view class="occupation-list" scroll-y="true">
+    <view 
+      wx:for="{{occupations}}" 
+      wx:key="id"
+      class="occupation-card"
+      bindtap="onOccupationTap"
+      data-id="{{item.id}}"
+    >
+      <view class="card-header">
+        <view class="occupation-name">{{item.name}}</view>
+        <view class="industry-heat heat-{{item.industryHeat}}">
+          {{item.industryHeat}}
+        </view>
+      </view>
+
+      <view class="card-body">
+        <!-- 匹配专业 -->
+        <view class="info-row" wx:if="{{item.majors && item.majors.length > 0}}">
+          <view class="info-label">匹配专业</view>
+          <view class="info-tags">
+            <text 
+              wx:for="{{item.majors}}" 
+              wx:for-item="major"
+              wx:key="*this"
+              class="info-tag tag-major"
+            >{{major}}</text>
+          </view>
+        </view>
+
+        <!-- 技术要求 -->
+        <view class="info-row" wx:if="{{item.skills && item.skills.length > 0}}">
+          <view class="info-label">技术要求</view>
+          <view class="info-tags">
+            <text 
+              wx:for="{{item.skills.slice(0, 4)}}" 
+              wx:for-item="skill"
+              wx:key="*this"
+              class="info-tag tag-skill"
+            >{{skill}}</text>
+            <text wx:if="{{item.skills.length > 4}}" class="info-tag tag-more">
+              +{{item.skills.length - 4}}
+            </text>
+          </view>
+        </view>
+
+        <!-- 性格类型 -->
+        <view class="info-row">
+          <view class="info-label">适合性格</view>
+          <view class="personality-badge">{{item.personalityCode}}型</view>
+        </view>
+
+        <!-- 推荐理由 -->
+        <view class="reason-row">
+          <view class="reason-label">💡 推荐理由</view>
+          <view class="reason-text">{{item.reason}}</view>
+        </view>
+      </view>
+
+      <view class="card-footer">
+        <view class="detail-btn" bindtap="viewOccupationDetail" data-occupation="{{item}}">
+          查看详情 ›
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="list-bottom">
+      <text wx:if="{{occupations.length > 0}}">已显示全部结果</text>
+      <text wx:else>暂无匹配结果</text>
+    </view>
+  </scroll-view>
+</view>
+
+<!-- 职业详情弹窗 -->
+<view wx:if="{{showDetailModal}}" class="modal-overlay" bindtap="hideDetail">
+  <view class="detail-modal" catchtap="stopPropagation">
+    <view class="modal-header">
+      <view class="modal-title">{{selectedOccupation.name}}</view>
+      <text class="close-btn" bindtap="hideDetail">✕</text>
+    </view>
+    <scroll-view class="detail-content" scroll-y="true">
+      <!-- 职业概述 -->
+      <view class="detail-section">
+        <view class="section-title">💼 职业概述</view>
+        <view class="section-text">{{selectedOccupation.description || '该职业在行业中扮演重要角色，需要专业知识和技能。'}}</view>
+      </view>
+
+      <!-- 匹配专业 -->
+      <view class="detail-section" wx:if="{{selectedOccupation.majors && selectedOccupation.majors.length > 0}}">
+        <view class="section-title">🎓 匹配专业</view>
+        <view class="detail-tags">
+          <text wx:for="{{selectedOccupation.majors}}" wx:key="*this" class="detail-tag tag-major">{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 技术要求 -->
+      <view class="detail-section" wx:if="{{selectedOccupation.skills && selectedOccupation.skills.length > 0}}">
+        <view class="section-title">💻 技术要求</view>
+        <view class="detail-tags">
+          <text wx:for="{{selectedOccupation.skills}}" wx:key="*this" class="detail-tag tag-skill">{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 性格特质 -->
+      <view class="detail-section">
+        <view class="section-title">🌟 适合性格</view>
+        <view class="personality-badge-large">{{selectedOccupation.personalityCode}}型</view>
+      </view>
+
+      <!-- 职业发展 -->
+      <view class="detail-section">
+        <view class="section-title">📈 职业发展</view>
+        <view class="section-text">{{selectedOccupation.careerPath || '该职业具有良好的发展前景，可以向高级岗位晋升，薪资待遇随经验增长。'}}</view>
+      </view>
+
+      <!-- 推荐理由 -->
+      <view class="detail-section">
+        <view class="section-title">💡 推荐理由</view>
+        <view class="section-text">{{selectedOccupation.reason}}</view>
+      </view>
+
+      <!-- 行业热度 -->
+      <view class="detail-section">
+        <view class="section-title">🔥 行业热度</view>
+        <view class="heat-level-display">
+          <view class="heat-badge heat-{{selectedOccupation.industryHeat}}">
+            {{selectedOccupation.industryHeat}}等级
+          </view>
+          <view class="heat-desc">
+            <text wx:if="{{selectedOccupation.industryHeat === 'A'}}">非常热门，需求旺盛</text>
+            <text wx:elif="{{selectedOccupation.industryHeat === 'B'}}">较热门，就业机会多</text>
+            <text wx:elif="{{selectedOccupation.industryHeat === 'C'}}">一般，稳定发展</text>
+            <text wx:else>冷门，竞争小</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
