@@ -3,18 +3,34 @@ const app = getApp()
 
 Page({
   data: {
+    statusBarHeight: 20,
     username: '',
     password: '',
     agreed: false
   },
 
   onLoad(options) {
+    // 获取系统状态栏高度
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight
+    });
+
     // 检查是否已登录
     if (app.globalData.isLogin) {
       wx.switchTab({
         url: '/pages/index/index'
       })
     }
+  },
+
+  // 返回
+  onBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/pages/mine/mine' })
+      }
+    })
   },
 
   // 用户名输入
@@ -77,14 +93,14 @@ Page({
       },
       success: (res) => {
         wx.hideLoading()
-        
+
         if (res.data.code === 200) {
           const { token, userInfo } = res.data.data
-          
+
           // 保存登录状态
           wx.setStorageSync('token', token)
           wx.setStorageSync('userInfo', userInfo)
-          
+
           app.globalData.isLogin = true
           app.globalData.token = token
           app.globalData.userInfo = userInfo
@@ -160,14 +176,14 @@ Page({
               },
               success: (res) => {
                 wx.hideLoading()
-                
+
                 if (res.data.code === 200) {
                   const { token, userInfo } = res.data.data
-                  
+
                   // 保存登录状态
                   wx.setStorageSync('token', token)
                   wx.setStorageSync('userInfo', userInfo)
-                  
+
                   app.globalData.isLogin = true
                   app.globalData.token = token
                   app.globalData.userInfo = userInfo

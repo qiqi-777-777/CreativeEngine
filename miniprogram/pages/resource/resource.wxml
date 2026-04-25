@@ -1,92 +1,163 @@
 <!--pages/resource/resource.wxml-->
-<view class="container">
-  
-  <!-- 顶部 Header -->
-  <view class="page-header">
-    <view class="header-left">
-      <text class="header-subtitle">RESOURCE HUB</text>
-      <text class="header-title">资源对接</text>
+<view class="page-root">
+  <!-- 列表视图 -->
+  <view class="view-container animate-fade-slide" wx:if="{{currentView === 'list'}}">
+    <!-- Editorial Header -->
+    <view class="header-area">
+      <view class="header-left">
+        <view class="header-subtitle">Resource Hub</view>
+        <view class="header-title">资源对接.</view>
+      </view>
+      <view class="search-btn">
+        <view class="icon-search"></view>
+      </view>
     </view>
-    <view class="search-btn">
-      <text class="search-icon-img">🔍</text>
-    </view>
-  </view>
 
-  <!-- 分类标签 -->
-  <view class="category-tabs">
-    <scroll-view scroll-x class="tabs-scroll" enable-flex>
-      <view class="tab-item {{currentTab === index ? 'active' : ''}}" 
-            wx:for="{{tabs}}" 
-            wx:key="id" 
-            data-index="{{index}}"
-            bindtap="onTabChange">
-        {{item.name}}
+    <!-- Minimalist Tabs -->
+    <view class="tabs-area">
+      <scroll-view scroll-x class="tabs-scroll" enable-flex enhanced show-scrollbar="{{false}}">
+        <view
+          wx:for="{{categories}}"
+          wx:key="*this"
+          class="tab-item {{activeTab === item ? 'active' : ''}}"
+          bindtap="onTabChange"
+          data-tab="{{item}}"
+        >
+          {{item}}
+          <view class="tab-indicator" wx:if="{{activeTab === item}}"></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- Resource List -->
+    <scroll-view scroll-y class="list-area" enhanced show-scrollbar="{{false}}">
+      <view class="list-content">
+        <view
+          class="resource-card"
+          wx:for="{{filteredResources}}"
+          wx:key="id"
+          bindtap="onSelectResource"
+          data-item="{{item}}"
+        >
+          <!-- Category & Status -->
+          <view class="card-top">
+            <view class="card-category">{{item.category}}</view>
+            <view class="card-status">
+              <view class="status-dot {{item.status === 'URGENT' ? 'pulse' : ''}}" wx:if="{{item.status === 'URGENT'}}"></view>
+              {{item.status}}
+            </view>
+          </view>
+
+          <!-- Title & Salary -->
+          <view class="card-main">
+            <view class="card-title">{{item.title}}</view>
+            <view class="card-salary-box">
+              <text class="salary-val">{{item.salary}}</text>
+              <text class="salary-unit">{{item.unit}}</text>
+            </view>
+          </view>
+
+          <!-- Description -->
+          <view class="card-desc">{{item.desc}}</view>
+
+          <!-- Location Footer -->
+          <view class="card-footer">
+            <view class="card-location">
+              <view class="icon-map-pin"></view>
+              <text>{{item.location}}</text>
+            </view>
+            <view class="card-arrow">
+              <view class="icon-arrow-up-right"></view>
+            </view>
+          </view>
+        </view>
       </view>
     </scroll-view>
   </view>
 
-  <!-- 列表内容 -->
-  <view class="page-body">
-    <view class="job-item" wx:for="{{displayList}}" wx:key="id">
-      <!-- 顶部信息：胶囊标签 + 薪资 -->
-      <view class="job-top-row">
-        <view class="job-category-tag">{{item.categoryName}}</view>
-        <view class="job-salary-box">
-          <text class="job-salary">{{item.salary}}</text>
-          <text class="job-unit">{{item.unit}}</text>
-        </view>
+  <!-- 详情视图 -->
+  <view class="view-container bg-white animate-fade-slide" wx:if="{{currentView === 'detail'}}">
+    <!-- Detail Navigation -->
+    <view class="detail-nav">
+      <view class="back-btn" bindtap="onBackToList">
+        <view class="icon-chevron-left"></view>
       </view>
+    </view>
 
-      <!-- 标题与描述 -->
-      <view class="job-title">{{item.title}}</view>
-      <view class="job-desc">{{item.description}}</view>
+    <!-- Detail Scrollable Content -->
+    <scroll-view scroll-y class="detail-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="detail-content">
+        <!-- Title Area -->
+        <view class="detail-header-box">
+          <view class="detail-en">{{selectedResource.en}}</view>
+          <view class="detail-title-large">{{selectedResource.title}}</view>
 
-      <!-- 底部信息：地点、时间 & 箭头 -->
-      <view class="job-footer">
-        <view class="job-info-row">
-          <view class="job-info-item">
-            <text class="info-icon">📍</text>
-            <text>{{item.location}}</text>
+          <view class="remuneration-box">
+            <text class="rem-label">REMUNERATION</text>
+            <view class="rem-val-box">
+              <text class="rem-val">{{selectedResource.salary}}</text>
+              <text class="rem-unit">{{selectedResource.unit}}</text>
+            </view>
           </view>
-          <!-- <view class="job-info-item">
-            <text class="info-icon">🕒</text>
-            <text>{{item.time}}</text>
-          </view> --> 
-          <!-- Only hiding time if space is tight, but we have space -->
         </view>
-        <view class="arrow-btn">
-          <text>›</text>
+
+        <!-- Info Grid -->
+        <view class="info-grid">
+          <view class="info-item">
+            <view class="icon-map-pin-black"></view>
+            <view class="info-text-box">
+              <view class="info-label">LOCATION</view>
+              <view class="info-value">{{selectedResource.location}}</view>
+            </view>
+          </view>
+          <view class="info-item">
+            <view class="icon-clock-black"></view>
+            <view class="info-text-box">
+              <view class="info-label">TIME</view>
+              <view class="info-value">{{selectedResource.time}}</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- Description Section -->
+        <view class="detail-section">
+          <view class="section-title">
+            <view class="icon-briefcase"></view>
+            <text>工作内容</text>
+          </view>
+          <view class="section-desc">
+            {{selectedResource.desc}}
+          </view>
+        </view>
+
+        <!-- Requirements Section -->
+        <view class="detail-section">
+          <view class="section-title">
+            <view class="icon-check-circle"></view>
+            <text>资质要求</text>
+          </view>
+          <view class="req-list">
+            <view class="req-item" wx:for="{{selectedResource.requirements}}" wx:key="*this">
+              <text class="req-idx">0{{index + 1}}</text>
+              <text class="req-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- End Mark -->
+        <view class="end-mark">
+          <view class="end-line"></view>
         </view>
       </view>
-    </view>
+    </scroll-view>
 
-    <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{displayList.length === 0}}">
-      <text>暂无相关机会</text>
-    </view>
-  </view>
-
-  <!-- 底部导航 (Homepage Style) -->
-  <view class="tab-bar">
-    <view class="tab-bar-border"></view>
-    <view wx:for="{{tabBarList}}" wx:key="index" class="tab-bar-item {{item.isSpecial ? 'special-item' : ''}}" data-path="{{item.pagePath}}" bindtap="switchTab">
-      
-      <!-- 普通图标 -->
-      <block wx:if="{{!item.isSpecial}}">
-        <image class="tab-icon" src="{{item.iconPath}}"></image>
-        <view class="tab-text">{{item.text}}</view>
-      </block>
-
-      <!-- 中间特殊图标 -->
-      <block wx:else>
-        <view class="special-icon-wrapper">
-          <image class="special-icon" src="{{item.iconPath}}"></image>
-        </view>
-        <view class="tab-text special-text">{{item.text}}</view>
-      </block>
-      
+    <!-- Sticky Bottom Action Bar -->
+    <view class="bottom-action-bar">
+      <view class="bottom-cat-box">
+        <text class="bottom-cat-label">CATEGORY</text>
+        <text class="bottom-cat-val">{{selectedResource.category}}</text>
+      </view>
+      <view class="apply-btn">申请对接</view>
     </view>
   </view>
-
 </view>
-

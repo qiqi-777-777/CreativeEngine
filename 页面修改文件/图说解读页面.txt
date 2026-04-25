@@ -1,0 +1,586 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Monitor, Dna, Zap, Rocket, Cpu, Plane, Bot, Glasses,
+  Atom, Wifi, Server, Database, Factory, Layers,
+  ChevronLeft, MoreHorizontal, CircleDot, BatteryFull, Signal, Wifi as WifiIcon, ArrowRight, ArrowLeft, X, Activity, TrendingUp
+} from 'lucide-react';
+
+// 隐藏滚动条的全局样式
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+  .snap-center {
+    scroll-snap-align: center;
+  }
+  @keyframes slideUp {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+`;
+
+// 行业数据源
+const industries = [
+  { id: '01', name: '信息技术', en: 'INFORMATION TECH', desc: '新一代信息技术是产业变革的核心引擎，涵盖软硬件及通信...', icon: Monitor, color: 'bg-blue-500', textCol: 'text-blue-500', lightBg: 'bg-blue-50' },
+  { id: '02', name: '生物科技', en: 'BIOTECHNOLOGY', desc: '利用生命科学原理发展新技术、新产品，攻克人类健康难题...', icon: Dna, color: 'bg-green-500', textCol: 'text-green-500', lightBg: 'bg-green-50' },
+  { id: '03', name: '新能源', en: 'NEW ENERGY', desc: '推动能源结构转型，实现双碳目标的关键，涵盖风光储氢...', icon: Zap, color: 'bg-yellow-500', textCol: 'text-yellow-500', lightBg: 'bg-yellow-50' },
+  { id: '04', name: '航空航天', en: 'AEROSPACE', desc: '探索宇宙奥秘，发展高精尖航空技术的领域，代表国家硬核实力...', icon: Rocket, color: 'bg-purple-500', textCol: 'text-purple-500', lightBg: 'bg-purple-50' },
+  { id: '05', name: '高端制造', en: 'ADVANCED MFG', desc: '提升国家核心竞争力，实现制造强国的基石，如精密仪器...', icon: Cpu, color: 'bg-indigo-500', textCol: 'text-indigo-500', lightBg: 'bg-indigo-50' },
+  { id: '06', name: '低空经济', en: 'LOW-ALTITUDE', desc: '以低空空域为依托，带动相关领域融合发展的综合性经济形态...', icon: Plane, color: 'bg-sky-500', textCol: 'text-sky-500', lightBg: 'bg-sky-50' },
+  { id: '07', name: '人工智能', en: 'ARTIFICIAL INTEL', desc: '人工智能是计算机科学的重要分支，通过机器学习等技术模拟人类智能...', icon: Bot, color: 'bg-[#ff6b6b]', textCol: 'text-[#ff6b6b]', lightBg: 'bg-red-50' },
+  { id: '08', name: '元宇宙', en: 'METAVERSE', desc: '融合虚拟与现实，构建下一代互联网的全新生态和沉浸式体验...', icon: Glasses, color: 'bg-pink-500', textCol: 'text-pink-500', lightBg: 'bg-pink-50' },
+  { id: '09', name: '机器人', en: 'ROBOTICS', desc: '集成多种先进技术，替代人类完成复杂或危险工作，解放生产力...', icon: Bot, color: 'bg-orange-500', textCol: 'text-orange-500', lightBg: 'bg-orange-50' },
+  { id: '10', name: '量子技术', en: 'QUANTUM TECH', desc: '基于量子力学原理，在计算、通信等领域实现颠覆性突破的尖端技术...', icon: Atom, color: 'bg-violet-500', textCol: 'text-violet-500', lightBg: 'bg-violet-50' },
+  { id: '11', name: '6G', en: '6G NETWORK', desc: '第六代移动通信标准，实现天地一体、万物智联的底层通信网络...', icon: Wifi, color: 'bg-teal-500', textCol: 'text-teal-500', lightBg: 'bg-teal-50' },
+  { id: '12', name: '算力', en: 'COMPUTING POWER', desc: '数字经济时代的核心生产力，支撑各种复杂计算场景和AI大模型...', icon: Server, color: 'bg-rose-500', textCol: 'text-rose-500', lightBg: 'bg-rose-50' },
+  { id: '13', name: '大数据', en: 'BIG DATA', desc: '海量数据的收集、存储、分析和应用，挖掘数据潜藏的巨大商业价值...', icon: Database, color: 'bg-cyan-500', textCol: 'text-cyan-500', lightBg: 'bg-cyan-50' },
+  { id: '14', name: '工业互联网', en: 'INDUSTRIAL NET', desc: '工业系统与互联网深度融合，实现工业智能化升级和协同制造...', icon: Factory, color: 'bg-stone-600', textCol: 'text-stone-600', lightBg: 'bg-stone-100' },
+  { id: '15', name: '新材料', en: 'NEW MATERIALS', desc: '具有优异性能或特殊功能的材料，是所有高新技术的物质基础...', icon: Layers, color: 'bg-emerald-500', textCol: 'text-emerald-500', lightBg: 'bg-emerald-50' },
+];
+
+// 手机外壳组件
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center mb-16">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      {/* 手机侧边按键模拟 */}
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+// iOS 顶部状态栏
+const StatusBar = ({ theme = 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div className={`flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-50 relative ${isDark ? 'text-white' : 'text-black'}`}>
+      <span>20:51</span>
+      {/* 灵动岛模拟 */}
+      <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+      <div className="flex items-center gap-1.5">
+        <Signal size={16} />
+        <WifiIcon size={16} />
+        <BatteryFull size={20} />
+      </div>
+    </div>
+  );
+};
+
+// 行业详情弹窗组件 (Bottom Sheet)
+const IndustryDetailModal = ({ industry, onClose }) => {
+  if (!industry) return null;
+
+  // 模拟该行业的详细数据
+  const mockDetails = {
+    fullDesc: `${industry.desc} 此领域正经历着前所未有的技术迭代，产业链上下游加速整合。预计未来3-5年内，核心技术的突破将带来指数级的商业价值增长，彻底改变现有的市场格局与人类生活方式。`,
+    tags: ['核心突破', '高维融合', '生态重构', '政策驱动'],
+    stats: [
+      { label: '市场规模预计', value: '万亿级' },
+      { label: '复合增长率', value: '15.5%' },
+      { label: '行业景气度', value: '极高' }
+    ]
+  };
+
+  return (
+    <div className="absolute inset-0 z-[999] flex flex-col justify-end overflow-hidden">
+      {/* 背景遮罩 */}
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 cursor-pointer"
+        onClick={onClose}
+      ></div>
+
+      {/* 底部滑出面板 */}
+      <div className="relative w-full h-[82%] bg-white rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex flex-col animate-slide-up">
+        {/* 顶部把手 & 关闭按钮 */}
+        <div className="w-full flex justify-center items-center pt-4 pb-2 relative">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+          <button onClick={onClose} className="absolute right-6 top-5 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* 内容区 */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-8 pb-12 pt-4">
+          {/* 头部信息 */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className={`w-16 h-16 rounded-[20px] flex items-center justify-center ${industry.lightBg} ${industry.textCol} shadow-sm`}>
+              <industry.icon size={32} />
+            </div>
+            <div>
+              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{industry.name}</h2>
+              <p className="text-[11px] font-bold tracking-[0.2em] text-gray-400 mt-1">{industry.en}</p>
+            </div>
+          </div>
+
+          {/* 数据面板 */}
+          <div className="flex justify-between items-center bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-100">
+            {mockDetails.stats.map((stat, i) => (
+              <div key={i} className="flex flex-col items-center flex-1 border-r border-gray-200 last:border-0">
+                <span className="text-lg font-extrabold text-gray-800">{stat.value}</span>
+                <span className="text-[10px] text-gray-500 mt-1 font-medium">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 标签 */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {mockDetails.tags.map((tag, i) => (
+              <span key={i} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${industry.lightBg} ${industry.textCol}`}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* 详细描述 */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <Activity size={18} className={industry.textCol} />
+              深度解读
+            </h3>
+            <p className="text-[15px] text-gray-600 leading-relaxed text-justify">
+              {mockDetails.fullDesc}
+            </p>
+            <p className="text-[15px] text-gray-600 leading-relaxed text-justify mt-4">
+              在全球化竞争日益激烈的今天，<strong>{industry.name}</strong> 的自主可控与创新突破已成为国家战略的重要组成部分。资本的涌入与人才的聚集，正在为该领域的长远发展注入源源不断的动力。
+            </p>
+          </div>
+
+          {/* 底部按钮 */}
+          <button className={`w-full py-4 rounded-2xl text-white font-bold text-[17px] shadow-lg ${industry.color} hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2`}>
+            <TrendingUp size={20} />
+            查看行业研报
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 方案 1: 完美还原 (Carousel / Cover Flow)
+// ==========================================
+const DesignOne = () => {
+  const scrollRef = useRef(null);
+  const [selectedInd, setSelectedInd] = useState(null);
+
+  // 初始化滚动到"人工智能"卡片(index 6)
+  useEffect(() => {
+    if (scrollRef.current) {
+      // 430/2 (屏幕中心) - 280/2 (卡片中心) + 左侧间隔
+      const targetScroll = 6 * 260 - 50;
+      scrollRef.current.scrollTo({ left: targetScroll, behavior: 'smooth' });
+    }
+  }, []);
+
+  return (
+    <div className="w-full h-full bg-[#f4f6fa] flex flex-col relative no-scrollbar">
+      {/* 顶部深色 Header */}
+      <div className="bg-[#1c1d2e] w-full pt-1 pb-4 rounded-b-3xl relative z-10">
+        <StatusBar theme="dark" />
+        <div className="flex justify-between items-center px-4 mt-2">
+          <ChevronLeft className="text-white" size={32} />
+          <span className="text-white text-lg font-medium">图说解读</span>
+          <div className="flex items-center gap-2 bg-[#ffffff15] border border-white/20 rounded-full px-3 py-1.5">
+            <MoreHorizontal className="text-white" size={20} />
+            <div className="w-px h-4 bg-white/30"></div>
+            <CircleDot className="text-white" size={20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Sub-header */}
+      <div className="px-6 mt-8">
+        <p className="text-[11px] text-gray-400 font-bold tracking-[0.15em] mb-1">GRAPHIC INTERPRETATION</p>
+        <div className="flex items-center gap-2">
+          <ArrowLeft size={24} className="text-gray-800" strokeWidth={2.5} />
+          <h1 className="text-2xl font-bold text-gray-900 tracking-wide">图说解读</h1>
+        </div>
+      </div>
+
+      {/* 横向滚动卡片区域 */}
+      <div className="flex-1 mt-6 relative">
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto snap-x-mandatory no-scrollbar px-[75px] pb-12 pt-6 h-[500px] items-center"
+        >
+          {industries.map((ind, idx) => {
+            const isActive = ind.id === '07'; // 人工智能居中激活态模拟
+            return (
+              <div
+                key={ind.id}
+                onClick={() => setSelectedInd(ind)}
+                className={`flex-shrink-0 w-[280px] h-[400px] rounded-[36px] p-8 snap-center transition-all duration-300 relative flex flex-col cursor-pointer
+                  ${isActive ? 'bg-white shadow-[0_15px_40px_rgba(59,130,246,0.15)] border-[3px] border-[#3b82f6] scale-105 z-10'
+                             : 'bg-white/60 shadow-md border border-white/50 scale-95 opacity-80 z-0'}`}
+              >
+                {/* 顶部 Icon */}
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6
+                  ${isActive ? 'bg-[#ff6b6b] shadow-lg shadow-red-500/30' : 'bg-gray-100'}`}>
+                  <ind.icon size={32} className={isActive ? 'text-white' : 'text-gray-400'} />
+                </div>
+
+                <h2 className={`text-[28px] font-bold mb-2 ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {ind.name}
+                </h2>
+
+                {/* 红色小横杠 */}
+                <div className={`w-8 h-1.5 rounded-full mb-6 ${isActive ? 'bg-[#ff6b6b]' : 'bg-gray-200'}`}></div>
+
+                <p className={`text-[15px] leading-relaxed line-clamp-3 ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>
+                  {ind.desc}
+                </p>
+
+                <div className="mt-auto flex justify-between items-end">
+                  <span className={`text-[17px] font-serif font-bold ${isActive ? 'text-[#ff6b6b]' : 'text-gray-300'}`}>
+                    NO. {ind.id}
+                  </span>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center
+                    ${isActive ? 'bg-[#1c1d2e] text-white' : 'bg-gray-100 text-gray-300'}`}>
+                    <ArrowRight size={20} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 底部指示器 */}
+      <div className="pb-12 flex flex-col items-center">
+        <div className="flex gap-2 mb-4">
+          {[...Array(11)].map((_, i) => (
+            <div key={i} className={`h-1.5 rounded-full ${i === 6 ? 'w-8 bg-[#ff6b6b]' : 'w-1.5 bg-gray-200'}`}></div>
+          ))}
+        </div>
+        <p className="text-[10px] font-bold text-gray-300 tracking-[0.3em]">EXPLORE SECTORS</p>
+      </div>
+
+      {/* 底部黑条 */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full"></div>
+
+      {/* 行业详情弹窗 */}
+      <IndustryDetailModal industry={selectedInd} onClose={() => setSelectedInd(null)} />
+    </div>
+  );
+};
+
+// ==========================================
+// 方案 2: 现代 Bento Grid (便当盒)
+// ==========================================
+const DesignTwo = () => {
+  const [selectedInd, setSelectedInd] = useState(null);
+
+  return (
+    <div className="w-full h-full bg-[#f2f4f7] flex flex-col no-scrollbar overflow-hidden relative">
+      <StatusBar theme="light" />
+
+      {/* Header */}
+      <div className="px-6 pt-4 pb-2 flex justify-between items-center bg-white/70 backdrop-blur-md sticky top-0 z-20">
+        <div className="flex flex-col">
+          <span className="text-xs text-gray-500 font-medium">EXPLORE</span>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">行业解读</h1>
+        </div>
+        <div className="w-10 h-10 bg-white shadow-sm rounded-full flex items-center justify-center border border-gray-100">
+          <MoreHorizontal size={20} className="text-gray-800"/>
+        </div>
+      </div>
+
+      {/* Bento Grid Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-4 pb-12">
+        <div className="grid grid-cols-2 gap-4 auto-rows-[160px]">
+          {industries.map((ind, idx) => {
+            // 特殊排版：某些卡片占满两列或更高
+            const isLarge = idx === 0 || idx === 6;
+            const isTall = idx === 1 || idx === 7;
+
+            return (
+              <div
+                key={ind.id}
+                onClick={() => setSelectedInd(ind)}
+                className={`bg-white rounded-[28px] p-5 flex flex-col relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow cursor-pointer
+                  ${isLarge ? 'col-span-2' : 'col-span-1'}
+                  ${isTall ? 'row-span-2' : 'row-span-1'}
+                `}
+              >
+                {/* 装饰背景圆 */}
+                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 blur-2xl ${ind.color}`}></div>
+
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-auto ${ind.lightBg} ${ind.textCol}`}>
+                  <ind.icon size={24} strokeWidth={2.5} />
+                </div>
+
+                <div className="mt-4">
+                  <h3 className="text-[17px] font-bold text-gray-900 mb-1">{ind.name}</h3>
+                  {isLarge && (
+                    <p className="text-xs text-gray-500 line-clamp-2 mt-2 leading-relaxed">{ind.desc}</p>
+                  )}
+                  {isTall && !isLarge && (
+                     <p className="text-xs text-gray-400 mt-2">{ind.en}</p>
+                  )}
+                </div>
+
+                {/* 右上角编号 */}
+                <span className="absolute top-5 right-5 text-xs font-bold text-gray-200">
+                  {ind.id}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-50"></div>
+
+      {/* 行业详情弹窗 */}
+      <IndustryDetailModal industry={selectedInd} onClose={() => setSelectedInd(null)} />
+    </div>
+  );
+};
+
+// ==========================================
+// 方案 3: 暗黑赛博科技风 (Neon / Cyber)
+// ==========================================
+const DesignThree = () => {
+  const [selectedInd, setSelectedInd] = useState(null);
+
+  return (
+    <div className="w-full h-full bg-[#0a0a0f] flex flex-col no-scrollbar overflow-hidden font-sans relative">
+      <StatusBar theme="dark" />
+
+      <div className="px-6 pt-6 pb-4 border-b border-white/10 relative">
+        <div className="absolute top-0 left-1/4 w-1/2 h-20 bg-blue-600/30 blur-[50px] -z-10"></div>
+        <div className="flex items-center gap-3">
+          <ChevronLeft className="text-cyan-400" size={28} />
+          <h1 className="text-2xl font-bold text-white tracking-widest uppercase" style={{ textShadow: '0 0 20px rgba(34,211,238,0.5)' }}>
+            Tech Sectors
+          </h1>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-6 flex flex-col gap-5">
+        {industries.map((ind) => (
+          <div
+            key={ind.id}
+            onClick={() => setSelectedInd(ind)}
+            className="group relative bg-[#12121a] border border-white/5 rounded-2xl p-5 overflow-hidden cursor-pointer hover:bg-white/[0.02] transition-colors"
+          >
+            {/* 边框发光效果 */}
+            <div className="absolute inset-0 border border-transparent group-hover:border-cyan-500/50 rounded-2xl transition-colors duration-500"></div>
+            {/* 左侧发光条 */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1 ${ind.color} opacity-70`}></div>
+
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-lg bg-black border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] ${ind.textCol}`}>
+                <ind.icon size={26} />
+              </div>
+
+              <div className="flex-1">
+                <div className="flex justify-between items-baseline mb-1">
+                  <h2 className="text-lg font-bold text-gray-100">{ind.name}</h2>
+                  <span className="text-[10px] font-mono text-cyan-500/70">ID_{ind.id}</span>
+                </div>
+                <p className="text-[13px] text-gray-400 leading-relaxed mb-3 line-clamp-2">
+                  {ind.desc}
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500 font-mono bg-white/5 px-2 py-0.5 rounded">DATA SYSTEM</span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+                  <ArrowRight size={14} className="text-cyan-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/30 rounded-full z-50"></div>
+
+      {/* 行业详情弹窗 */}
+      <IndustryDetailModal industry={selectedInd} onClose={() => setSelectedInd(null)} />
+    </div>
+  );
+};
+
+// ==========================================
+// 方案 4: 极简杂志风 (Editorial / Minimal)
+// ==========================================
+const DesignFour = () => {
+  const [selectedInd, setSelectedInd] = useState(null);
+
+  return (
+    <div className="w-full h-full bg-[#fdfdfd] flex flex-col no-scrollbar overflow-hidden relative">
+      <StatusBar theme="light" />
+
+      <div className="px-6 pt-12 pb-6">
+        <h1 className="text-4xl font-serif text-black leading-tight">
+          Industry <br/> <span className="italic text-gray-400">Insights.</span>
+        </h1>
+        <div className="w-12 h-1 bg-black mt-6"></div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
+        {industries.map((ind, idx) => (
+          <div key={ind.id} className="mb-10 px-6 relative cursor-pointer group" onClick={() => setSelectedInd(ind)}>
+            <div className="flex gap-4 items-baseline mb-3">
+              <span className="text-2xl font-serif text-gray-300 italic">
+                {ind.id}.
+              </span>
+              <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                {ind.name}
+              </h2>
+            </div>
+
+            <div className={`w-full h-48 rounded-none ${ind.lightBg} relative overflow-hidden mb-4 border border-gray-100 flex items-center justify-center`}>
+              {/* 大图标作为背景 */}
+              <ind.icon size={120} className={`${ind.textCol} opacity-20 absolute -right-4 -bottom-8`} strokeWidth={1} />
+
+              <div className="absolute inset-0 p-6 flex flex-col justify-between">
+                <div className={`w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm ${ind.textCol}`}>
+                  <ind.icon size={20} />
+                </div>
+                <p className="text-[10px] tracking-[0.2em] uppercase font-bold text-gray-800">
+                  {ind.en}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[14px] text-gray-600 leading-loose font-serif">
+              {ind.desc}
+            </p>
+            <button className="mt-4 text-xs font-bold border-b border-black pb-1 uppercase tracking-widest flex items-center gap-2">
+              Read More <ArrowRight size={12}/>
+            </button>
+
+            {idx !== industries.length -1 && (
+              <div className="w-full h-px bg-gray-100 mt-10"></div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-50"></div>
+
+      {/* 行业详情弹窗 */}
+      <IndustryDetailModal industry={selectedInd} onClose={() => setSelectedInd(null)} />
+    </div>
+  );
+};
+
+// ==========================================
+// 方案 5: 时间轴流程式 (Timeline Flow)
+// ==========================================
+const DesignFive = () => {
+  const [selectedInd, setSelectedInd] = useState(null);
+
+  return (
+    <div className="w-full h-full bg-white flex flex-col no-scrollbar overflow-hidden relative">
+      <StatusBar theme="light" />
+
+      <div className="px-6 pt-6 pb-8 bg-gradient-to-b from-blue-50 to-white">
+        <div className="flex justify-between items-center mb-6">
+          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center border border-gray-100">
+            <ChevronLeft size={24} className="text-gray-800" />
+          </div>
+        </div>
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">产业图谱</h1>
+        <p className="text-sm text-gray-500">探索未来经济的15个核心引擎</p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-20 relative">
+        {/* 左侧主轴线 */}
+        <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-gray-100"></div>
+
+        <div className="flex flex-col gap-8 pt-4">
+          {industries.map((ind, idx) => (
+            <div key={ind.id} className="relative flex items-start gap-6 group cursor-pointer" onClick={() => setSelectedInd(ind)}>
+              {/* 时间轴节点 */}
+              <div className="relative z-10 flex flex-col items-center mt-1">
+                <div className={`w-8 h-8 rounded-full border-4 border-white shadow-sm flex items-center justify-center ${ind.color} text-white transition-transform group-hover:scale-110`}>
+                  <span className="text-[10px] font-bold">{parseInt(ind.id)}</span>
+                </div>
+              </div>
+
+              {/* 卡片内容 */}
+              <div className="flex-1 bg-white border border-gray-100 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg ${ind.lightBg} ${ind.textCol}`}>
+                    <ind.icon size={18} />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">{ind.name}</h3>
+                </div>
+                <p className="text-[13px] text-gray-500 leading-relaxed">
+                  {ind.desc}
+                </p>
+                <div className="mt-4 flex items-center justify-between text-xs font-semibold text-gray-400 group-hover:text-blue-500 transition-colors">
+                  <span>查看解析</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-300 rounded-full z-50"></div>
+
+      {/* 行业详情弹窗 */}
+      <IndustryDetailModal industry={selectedInd} onClose={() => setSelectedInd(null)} />
+    </div>
+  );
+};
+
+// 主应用入口：横向排列5个手机模型
+export default function App() {
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 p-10 overflow-x-auto">
+        <div className="max-w-7xl mx-auto text-center mb-12">
+          <h1 className="text-4xl font-bold text-white mb-4">图说解读 - 行业精细化页面设计</h1>
+          <p className="text-gray-400 text-lg">基于 430x932 像素尺寸设计，提供5种不同风格的交互与视觉探索</p>
+        </div>
+
+        {/* 横向滚动容器，展示5套不同设计 */}
+        <div className="flex gap-16 w-max mx-auto px-10 pb-20">
+          <PhoneFrame title="1. 完美复刻原图 (Cover Flow)">
+            <DesignOne />
+          </PhoneFrame>
+
+          <PhoneFrame title="2. 现代便当盒 (Bento Grid)">
+            <DesignTwo />
+          </PhoneFrame>
+
+          <PhoneFrame title="3. 赛博科技暗黑风 (Cyber Neon)">
+            <DesignThree />
+          </PhoneFrame>
+
+          <PhoneFrame title="4. 极简杂志排版 (Magazine)">
+            <DesignFour />
+          </PhoneFrame>
+
+          <PhoneFrame title="5. 产业时间轴流 (Timeline)">
+            <DesignFive />
+          </PhoneFrame>
+        </div>
+      </div>
+    </>
+  );
+}

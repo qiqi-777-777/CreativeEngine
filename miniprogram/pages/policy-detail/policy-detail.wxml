@@ -1,86 +1,132 @@
 <!--pages/policy-detail/policy-detail.wxml-->
-<view class="container">
-  <!-- 内容滚动区 -->
+<view class="container {{isChatOpen ? 'no-scroll' : ''}}">
+  <!-- Detail Content (Scrollable) -->
   <scroll-view class="detail-scroll" scroll-y enable-back-to-top wx:if="{{policy}}">
-    <view class="content-card">
+    <view class="content-wrapper">
+      <view class="policy-en-title">POLICY DETAILS</view>
       <view class="policy-title">{{policy.policyName || '加载中...'}}</view>
-      
-      <view class="keywords-row" wx:if="{{keywordList.length > 0}}">
+
+      <!-- Tags -->
+      <view class="tags-wrapper" wx:if="{{keywordList.length > 0}}">
         <block wx:for="{{keywordList}}" wx:key="*this">
-          <view class="keyword-tag">{{item}}</view>
+          <view class="tag-item">{{item}}</view>
         </block>
       </view>
 
-      <view class="divider"></view>
+      <!-- Full Text -->
+      <view class="text-container">
+        <view class="text-decorator"></view>
+        <block wx:if="{{policy.contentParagraphs.length > 0}}">
+          <block wx:for="{{policy.contentParagraphs}}" wx:key="index">
+            <text class="content-paragraph" user-select>{{item}}</text>
+          </block>
+        </block>
+        <text wx:else class="content-paragraph" user-select>暂无内容</text>
+      </view>
 
-      <view class="policy-content">
-        <text user-select>{{policy.content || '暂无内容'}}</text>
+      <!-- End Mark -->
+      <view class="end-mark">
+        <view class="dot dot-1"></view>
+        <view class="dot dot-2"></view>
+        <view class="dot dot-3"></view>
+      </view>
+
+      <view class="source-footer" wx:if="{{policy.sourceInfo || policy.originalUrl}}">
+        <text wx:if="{{policy.sourceInfo}}">来源：{{policy.sourceInfo}}</text>
+        <text wx:if="{{policy.originalUrl}}" class="source-link" user-select>原文链接：{{policy.originalUrl}}</text>
       </view>
     </view>
-    
-    <!-- 底部垫高，防止被 AI 卡片遮挡 -->
+
     <view class="bottom-spacer"></view>
   </scroll-view>
 
-  <!-- 悬浮 AI 政策助手卡片 -->
-  <view class="ai-float-card {{chatHistory.length > 0 ? 'expanded' : ''}}" wx:if="{{policy}}">
-    <!-- 标题栏 -->
-    <view class="ai-header">
-      <view class="ai-title-wrap">
-        <view class="sparkle-icon">✨</view>
-        <text class="ai-title-text">AI 政策助手</text>
+  <!-- Minimalist AI Sticky Bar -->
+  <view class="ai-sticky-bar" wx:if="{{policy}}">
+    <view class="ai-sticky-header">
+      <view class="ai-sticky-title">
+        <text class="sparkle-icon">✨</text>
+        <text>AI 政策助手</text>
       </view>
-      <view class="ai-subtitle" wx:if="{{chatHistory.length === 0}}">基于本政策解答</view>
-      <view class="collapse-icon" wx:if="{{chatHistory.length > 0}}" bindtap="onCollapseChat">⌄</view>
+      <view class="ai-sticky-subtitle">基于本政策解答</view>
     </view>
 
-    <!-- 聊天记录区域 (展开时显示) -->
-    <scroll-view 
-      class="ai-chat-history" 
-      scroll-y 
-      wx:if="{{chatHistory.length > 0}}" 
-      scroll-into-view="{{scrollToView}}"
-    >
-      <block wx:for="{{chatHistory}}" wx:key="index">
-        <view class="chat-item {{item.role === 'user' ? 'chat-right' : 'chat-left'}}" id="msg-{{index}}">
-          <view class="chat-bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-ai'}}">
-            <text user-select>{{item.content}}</text>
-          </view>
-        </view>
-      </block>
-      
-      <!-- AI思考中指示 -->
-      <view class="chat-item chat-left" wx:if="{{asking}}">
-        <view class="chat-bubble bubble-ai">
-          <text>思考中...</text>
-        </view>
-      </view>
-      <view id="scroll-bottom" style="height: 1px;"></view>
-    </scroll-view>
-
-    <!-- 输入框区域 -->
-    <view class="ai-input-box">
-      <input 
-        class="ai-input" 
-        placeholder="对该政策有疑问？问问AI..." 
-        placeholder-class="ai-placeholder"
-        value="{{question}}"
-        bindinput="onQuestionInput"
-        bindconfirm="onAskQuestion"
-      />
-      <view class="ai-send-btn" bindtap="onAskQuestion">
+    <view class="ai-trigger-box" bindtap="openChat">
+      <text class="ai-trigger-placeholder">对该政策有疑问？问问AI...</text>
+      <view class="ai-trigger-btn">
         <text class="arrow-up">↑</text>
       </view>
     </view>
   </view>
 
-  <!-- 加载状态 -->
+  <!-- Slide-up AI Chat Modal -->
+  <view class="ai-chat-modal" wx:if="{{isChatOpen}}">
+    <!-- Backdrop -->
+    <view class="ai-backdrop animate-fade-in" bindtap="closeChat"></view>
+
+    <!-- Chat Sheet -->
+    <view class="ai-sheet animate-slide-up">
+      <!-- Header -->
+      <view class="ai-sheet-header">
+        <view class="ai-sheet-title">
+          <text class="sparkle-icon-dark">✨</text>
+          <text>AI 助手</text>
+        </view>
+        <view class="ai-sheet-close" bindtap="closeChat">✕</view>
+      </view>
+
+      <!-- Messages Area -->
+      <scroll-view
+        class="ai-messages-area"
+        scroll-y
+        scroll-into-view="{{scrollToView}}"
+      >
+        <view class="messages-container">
+          <block wx:for="{{chatHistory}}" wx:key="index">
+            <view class="msg-row {{item.role === 'user' ? 'msg-right' : 'msg-left'}}" id="msg-{{index}}">
+              <view class="msg-bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-ai'}}">
+                <!-- Decorative quote mark for AI -->
+                <view class="ai-quote-mark" wx:if="{{item.role === 'ai'}}">✨</view>
+                <text user-select>{{item.content}}</text>
+              </view>
+            </view>
+          </block>
+
+          <!-- AI Thinking -->
+          <view class="msg-row msg-left" wx:if="{{asking}}">
+            <view class="msg-bubble bubble-ai">
+              <view class="ai-quote-mark">✨</view>
+              <text>思考中...</text>
+            </view>
+          </view>
+          <view id="scroll-bottom" style="height: 1px;"></view>
+        </view>
+      </scroll-view>
+
+      <!-- Input Bar -->
+      <view class="ai-input-bar">
+        <view class="ai-input-wrapper">
+          <input
+            class="ai-input"
+            placeholder="Ask anything..."
+            placeholder-class="ai-input-placeholder"
+            value="{{question}}"
+            bindinput="onQuestionInput"
+            bindconfirm="onAskQuestion"
+            cursor-spacing="20"
+          />
+          <view class="ai-send-btn" bindtap="onAskQuestion">
+            <text class="arrow-up-light">↑</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Loading & Error states -->
   <view class="loading-state" wx:if="{{!policy && !loadError}}">
     <text class="loading-icon">⏳</text>
     <text class="loading-text">加载中...</text>
   </view>
-
-  <!-- 错误状态 -->
   <view class="error-state" wx:if="{{loadError}}">
     <text class="error-icon">❌</text>
     <text class="error-text">{{loadError}}</text>

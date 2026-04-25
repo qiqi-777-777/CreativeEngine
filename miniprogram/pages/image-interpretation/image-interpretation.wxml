@@ -4,13 +4,13 @@
     var itemAngle = index * angleStep;
     var relAngle = (rotation + itemAngle) % 360;
     if (relAngle < 0) relAngle += 360;
-    
+
     // Determine if front-facing (for style adjustments)
     var isFront = relAngle < 70 || relAngle > 290;
     var isActive = activeIdx === index;
-    
+
     var style = "transform: rotateY(" + itemAngle + "deg) translateZ(" + radius + "rpx);";
-    
+
     if (isFront) {
       style += " opacity: 1; z-index: 10;";
       // filter is not fully supported in all MP environments same as web, but we can try opacity
@@ -24,7 +24,7 @@
   var getCardInnerClass = function(index, activeIdx) {
      return activeIdx === index ? "card-inner active" : "card-inner inactive";
   };
-  
+
   var getSpinnerStyle = function(rotation, radius, tiltAngle) {
     return "transform: translateZ(-" + radius + "rpx) rotateX(" + tiltAngle + "deg) rotateY(" + rotation + "deg);";
   };
@@ -52,18 +52,18 @@
   </view>
 
   <!-- 3D 舞台 -->
-  <view 
-    class="stage" 
-    bindtouchstart="handleTouchStart" 
+  <view
+    class="stage"
+    bindtouchstart="handleTouchStart"
     bindtouchmove="handleTouchMove"
     bindtouchend="handleTouchEnd"
   >
-    <view 
-      class="carousel" 
+    <view
+      class="carousel"
       style="{{wxs.getSpinnerStyle(rotation, radius, tiltAngle)}}; transition: transform {{transitionDuration}}s cubic-bezier(0.25, 1, 0.5, 1);"
     >
       <block wx:for="{{items}}" wx:key="id">
-        <view 
+        <view
           class="card-wrapper"
           style="{{wxs.getCardStyle(index, rotation, radius, angleStep, activeIdx)}}"
           bindtap="onCardTap"
@@ -110,7 +110,7 @@
         </view>
       </block>
     </view>
-    
+
     <!-- 底部指示器 -->
     <view class="indicators">
       <view class="indicators-row">
@@ -126,4 +126,65 @@
   <view class="mask mask-left"></view>
   <view class="mask mask-right"></view>
 
+  <!-- 底部详情弹窗 -->
+  <view class="modal-overlay" wx:if="{{showModal}}" bindtap="closeModal"></view>
+  <view class="modal-panel modal-show" wx:if="{{showModal}}">
+    <!-- 顶部把手 & 关闭按钮 -->
+    <view class="modal-handle-wrap">
+      <view class="modal-handle"></view>
+      <view class="modal-close" bindtap="closeModal">✕</view>
+    </view>
+
+    <!-- 内容区 -->
+    <scroll-view class="modal-scroll-area" scroll-y>
+      <!-- 头部信息 -->
+      <view class="modal-info-header">
+        <view class="modal-icon-box" style="color: {{items[activeIdx].color}}; background-color: {{items[activeIdx].color}}20;">
+          <image class="modal-icon-img" src="{{items[activeIdx].icon}}" mode="aspectFit" style="filter: brightness(0); opacity: 0.8;"></image>
+        </view>
+        <view class="modal-title-box">
+          <text class="modal-title">{{items[activeIdx].name}}</text>
+          <text class="modal-subtitle">INDUSTRY DETAIL</text>
+        </view>
+      </view>
+
+      <!-- 数据面板 (模拟) -->
+      <view class="modal-stats-panel">
+        <view class="modal-stat-item">
+          <text class="modal-stat-val">万亿级</text>
+          <text class="modal-stat-label">市场规模预计</text>
+        </view>
+        <view class="modal-stat-item border-left-right">
+          <text class="modal-stat-val">15.5%</text>
+          <text class="modal-stat-label">复合增长率</text>
+        </view>
+        <view class="modal-stat-item">
+          <text class="modal-stat-val">极高</text>
+          <text class="modal-stat-label">行业景气度</text>
+        </view>
+      </view>
+
+      <!-- 标签 -->
+      <view class="modal-tags">
+        <text class="modal-tag" style="color: {{items[activeIdx].color}}; background-color: {{items[activeIdx].color}}20;">#核心突破</text>
+        <text class="modal-tag" style="color: {{items[activeIdx].color}}; background-color: {{items[activeIdx].color}}20;">#高维融合</text>
+        <text class="modal-tag" style="color: {{items[activeIdx].color}}; background-color: {{items[activeIdx].color}}20;">#生态重构</text>
+      </view>
+
+      <!-- 详细描述 -->
+      <view class="modal-desc-section">
+        <view class="modal-desc-title">
+          <text style="color: {{items[activeIdx].color}}">📊</text>
+          <text style="margin-left: 10rpx;">深度解读</text>
+        </view>
+        <text class="modal-desc-text">{{items[activeIdx].desc}}</text>
+        <text class="modal-desc-text" style="margin-top: 20rpx;">{{items[activeIdx].interpretation}} 此领域正经历着前所未有的技术迭代，产业链上下游加速整合。预计未来3-5年内，核心技术的突破将带来指数级的商业价值增长，彻底改变现有的市场格局与人类生活方式。</text>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="modal-btn" style="background-color: {{items[activeIdx].color}};" bindtap="closeModal">
+        <text>查看行业研报</text>
+      </view>
+    </scroll-view>
+  </view>
 </view>

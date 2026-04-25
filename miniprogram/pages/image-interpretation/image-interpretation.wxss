@@ -134,7 +134,7 @@ page {
   background: #fff;
   /* border-color handled by JS/inline style? Or dynamic class? */
   /* Fallback border color */
-  border-color: #3B82F6; 
+  border-color: #3B82F6;
   box-shadow: 0 60rpx 100rpx -30rpx rgba(0,0,0,0.15);
   transform: scale(1.1);
 }
@@ -290,4 +290,216 @@ page {
 .mask-right {
   right: 0;
   background: linear-gradient(to left, rgba(255,255,255,0.6), transparent);
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+}
+
+.modal-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 82%;
+  background: #ffffff;
+  border-top-left-radius: 80rpx;
+  border-top-right-radius: 80rpx;
+  box-shadow: 0 -20rpx 80rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transform: translateY(100%);
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+.modal-show {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-handle-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32rpx 0 16rpx;
+  position: relative;
+}
+
+.modal-handle {
+  width: 96rpx;
+  height: 12rpx;
+  background: #D1D5DB;
+  border-radius: 999rpx;
+}
+
+.modal-close {
+  position: absolute;
+  right: 48rpx;
+  top: 40rpx;
+  width: 64rpx;
+  height: 64rpx;
+  background: #F3F4F6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+  font-size: 32rpx;
+}
+
+.modal-scroll-area {
+  flex: 1;
+  padding: 32rpx 64rpx 96rpx;
+  box-sizing: border-box;
+  height: 0;
+}
+
+.modal-info-header {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  margin-bottom: 48rpx;
+}
+
+.modal-icon-box {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.05);
+}
+
+.modal-icon-img {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.modal-title-box {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.modal-title {
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -1rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-subtitle {
+  font-size: 22rpx;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+  color: #9CA3AF;
+  margin-top: 8rpx;
+}
+
+.modal-stats-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F9FAFB;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  margin-bottom: 48rpx;
+  border: 2rpx solid #F3F4F6;
+}
+
+.modal-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.border-left-right {
+  border-left: 2rpx solid #E5E7EB;
+  border-right: 2rpx solid #E5E7EB;
+}
+
+.modal-stat-val {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1F2937;
+}
+
+.modal-stat-label {
+  font-size: 20rpx;
+  color: #6B7280;
+  margin-top: 8rpx;
+  font-weight: 500;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 64rpx;
+}
+
+.modal-tag {
+  padding: 12rpx 24rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.modal-desc-section {
+  margin-bottom: 64rpx;
+}
+
+.modal-desc-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+}
+
+.modal-desc-text {
+  font-size: 30rpx;
+  color: #4B5563;
+  line-height: 1.6;
+  text-align: justify;
+  display: block;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 32rpx 0;
+  border-radius: 32rpx;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 34rpx;
+  box-shadow: 0 20rpx 30rpx -10rpx rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-btn:active {
+  opacity: 0.9;
+  transform: scale(0.98);
 }

@@ -5,14 +5,12 @@ const { getPolicyList } = require('../../utils/api')
 Page({
   data: {
     bannerList: [],
-    policyList: [], // 新增：政策列表数据
     greeting: '',   // 新增：问候语
   },
 
   onLoad() {
     this.setGreeting()
     this.loadBannerList()
-    this.loadPolicyList() // 新增：加载政策
   },
 
   onShow() {
@@ -27,8 +25,7 @@ Page({
   onPullDownRefresh() {
     // 并行刷新数据
     Promise.all([
-      this.loadBannerList(),
-      this.loadPolicyList()
+      this.loadBannerList()
     ]).then(() => {
       wx.stopPullDownRefresh()
     })
@@ -37,14 +34,12 @@ Page({
   // 设置问候语
   setGreeting() {
     const hour = new Date().getHours()
-    let greeting = '你好'
-    if (hour < 6) greeting = '夜深了'
-    else if (hour < 9) greeting = '早上好'
-    else if (hour < 12) greeting = '上午好'
-    else if (hour < 14) greeting = '中午好'
-    else if (hour < 18) greeting = '下午好'
-    else greeting = '晚上好'
-    
+    let greeting = 'Good Evening'
+    if (hour < 6) greeting = 'Good Night'
+    else if (hour < 12) greeting = 'Good Morning'
+    else if (hour < 18) greeting = 'Good Afternoon'
+    else greeting = 'Good Evening'
+
     this.setData({ greeting })
   },
 
@@ -59,7 +54,8 @@ Page({
             const bannerList = res.data.data.map(item => {
               if (item.imageUrl && item.imageUrl.startsWith('/')) {
                 const baseUrl = app.globalData.apiBase.replace('/api', '')
-                item.imageUrl = baseUrl + item.imageUrl
+                // 追加时间戳防止微信开发者工具缓存旧图片
+                item.imageUrl = baseUrl + item.imageUrl + '?t=' + new Date().getTime()
               }
               return item
             })
@@ -75,19 +71,6 @@ Page({
     })
   },
 
-  // 加载推荐政策（取前3条）
-  loadPolicyList() {
-    return getPolicyList({ page: 1, size: 3 }).then(res => {
-      if (res.code === 200 && res.data && res.data.records) {
-        this.setData({
-          policyList: res.data.records
-        })
-      }
-    }).catch(err => {
-      console.error('加载政策失败', err)
-    })
-  },
-
   // 页面跳转函数
   goToPolicy() {
     wx.switchTab({
@@ -96,13 +79,6 @@ Page({
         // 如果不是 tab 页面，则使用 navigateTo
         wx.navigateTo({ url: '/pages/policy/policy' })
       }
-    })
-  },
-
-  goToPolicyDetail(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({
-      url: `/pages/policy-detail/policy-detail?id=${id}`
     })
   },
 

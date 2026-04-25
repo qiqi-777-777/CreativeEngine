@@ -1,0 +1,393 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  ChevronLeft, MoreHorizontal, CircleDot, Signal, Wifi, BatteryFull, ArrowRight,
+  Search, SlidersHorizontal, Sparkles, X, ArrowUpRight, ArrowUp
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式与动画
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  @keyframes slideUp {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+`;
+
+// ==========================================
+// 共享基础组件
+// ==========================================
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center shrink-0 my-10">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+const StatusBar = () => (
+  <div className="flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-[100] relative shrink-0 text-black">
+    <span>00:25</span>
+    <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+    <div className="flex items-center gap-1.5">
+      <Signal size={16} />
+      <Wifi size={16} />
+      <BatteryFull size={20} />
+    </div>
+  </div>
+);
+
+const MiniProgramCapsule = () => (
+  <div className="absolute top-14 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 border border-black/10 text-black bg-white/50 backdrop-blur-md z-50">
+    <MoreHorizontal size={20} strokeWidth={1.5} />
+    <div className="w-px h-4 bg-black/20"></div>
+    <CircleDot size={20} strokeWidth={1.5} />
+  </div>
+);
+
+// ==========================================
+// 模拟数据源
+// ==========================================
+const policyData = [
+  {
+    id: '01',
+    title: '《2025年高校毕业生"三支一扶"计划》',
+    en: 'GRASSROOTS SUPPORT PLAN 2025',
+    summary: '明确中央财政支持招募34430名高校毕业生到基层从事支教、支农、支医和帮扶乡村振兴服务，要求各地优化招募流程...',
+    fullText: '明确中央财政支持招募34430名高校毕业生到基层从事支教、支农、支医和帮扶乡村振兴服务，要求各地优化招募选拔流程，扩大招募规模并向脱贫地区、西部地区、东北地区、革命老区、民族地区和边疆地区倾斜，对口支援省市协助西藏、新疆招募，强化能力提升与管理使用，规范管理使用基层服务单位，落实待遇保障，加强日常管理与联系服务，拓展留用渠道落实机关事业单位考录支持政策，鼓励服务期满人员留当地工作并纳入人才工作部署跟踪培养，加强组织领导并严格财经纪律。',
+    tags: ['三支一扶', '2025招募', '中央财政支持'],
+    date: '2025-01-15'
+  },
+  {
+    id: '02',
+    title: '《关于进一步支持青年创新创业的若干措施》',
+    en: 'YOUTH INNOVATION & ENTREPRENEURSHIP',
+    summary: '支教岗位面向汉语言文学、数学与应用数学、英语、物理学、化学、生物学、历史学、地理科学、思想政治教育等专业...',
+    fullText: '为进一步优化青年创新创业环境，激发青年创新创业活力，现就有关事项通知如下：加大财政资金支持力度，设立青年创业专项基金；提供免费或低成本创业场地；优化行政审批流程，实施“一网通办”；加强创业导师队伍建设，提供一对一辅导服务；拓宽融资渠道，鼓励社会资本参与青年创业投资。',
+    tags: ['支教岗位', '师范专业', '基层教育'],
+    date: '2025-02-10'
+  },
+  {
+    id: '03',
+    title: '《乡村振兴专项农业技术人才引进补贴方案》',
+    en: 'RURAL REVITALIZATION TALENT SUBSIDY',
+    summary: '支农岗位面向农学、园艺、植物保护、农业资源与环境、动物科学、动物医学、林学、园林、农业机械化及其自动化...',
+    fullText: '针对农业农村发展需求，重点引进农学、园艺、植物保护、农业机械化等相关专业人才。对于符合条件的人才，给予一次性安家费补贴、连续三年的生活津贴，并在职称评审、科研项目申报等方面给予倾斜政策。',
+    tags: ['支农岗位', '农业专业', '乡村振兴'],
+    date: '2025-03-05'
+  }
+];
+
+// ==========================================
+// 页面 1: 极简杂志风 - 政策速配 (列表页)
+// ==========================================
+const PolicyListView = ({ onSelectPolicy }) => (
+  <div className="flex-1 flex flex-col w-full h-full">
+    {/* Minimalist Header */}
+    <div className="px-7 pt-12 pb-6 border-b-2 border-black flex justify-between items-end shrink-0">
+      <div>
+        <p className="text-[10px] tracking-[0.3em] text-gray-400 font-bold uppercase mb-2">
+          Policy Match
+        </p>
+        <h1 className="text-[34px] font-serif font-bold text-black leading-none tracking-tight">
+          政策速配.
+        </h1>
+      </div>
+      <button className="w-10 h-10 border border-black flex items-center justify-center rounded-none hover:bg-black hover:text-white transition-colors">
+        <SlidersHorizontal size={18} strokeWidth={1.5} />
+      </button>
+    </div>
+
+    {/* Search Bar */}
+    <div className="px-7 py-6 shrink-0">
+      <div className="flex items-center border-b border-gray-300 pb-3 group focus-within:border-black transition-colors">
+        <Search size={20} className="text-gray-400 group-focus-within:text-black mr-3" />
+        <input
+          type="text"
+          placeholder="输入关键词匹配..."
+          className="flex-1 outline-none text-[15px] font-sans text-black placeholder-gray-400 bg-transparent"
+        />
+        <button className="text-[12px] font-bold text-black uppercase tracking-widest bg-gray-100 px-4 py-1.5 ml-2 hover:bg-black hover:text-white transition-colors">
+          MATCH
+        </button>
+      </div>
+    </div>
+
+    {/* List Content */}
+    <div className="flex-1 overflow-y-auto no-scrollbar px-7 pb-20">
+      <div className="flex flex-col">
+        {policyData.map((policy, index) => (
+          <article
+            key={policy.id}
+            className="border-b border-gray-200 py-8 hover:border-black transition-colors group cursor-pointer"
+            onClick={() => onSelectPolicy(policy)}
+          >
+            {/* Index & Date */}
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[10px] font-serif text-gray-400 italic">0{index + 1}</span>
+              <span className="text-[10px] tracking-widest text-gray-400 uppercase">{policy.date}</span>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-[19px] font-serif font-bold text-black leading-snug mb-3 group-hover:underline decoration-1 underline-offset-4">
+              {policy.title}
+            </h2>
+
+            {/* Snippet */}
+            <p className="text-[13px] text-gray-500 font-sans leading-relaxed mb-6 line-clamp-2">
+              {policy.summary}
+            </p>
+
+            {/* Tags & Action */}
+            <div className="flex justify-between items-end">
+              <div className="flex flex-wrap gap-2 flex-1 pr-4">
+                {policy.tags.map(tag => (
+                  <span key={tag} className="px-2 py-1 border border-gray-200 text-[10px] text-gray-600 font-sans uppercase tracking-wide">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center gap-1 text-[11px] font-bold text-black uppercase tracking-widest whitespace-nowrap">
+                READ <ArrowRight size={14} className="ml-0.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ==========================================
+// 页面 2: 极简杂志风 - 政策详情 & AI助手交互
+// ==========================================
+const PolicyDetailView = ({ policy, onBack }) => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const chatEndRef = useRef(null);
+
+  // Mock chat messages
+  const [messages, setMessages] = useState([
+    { role: 'user', content: '你好' },
+    { role: 'ai', content: `你好！请问有什么关于${policy.title}的问题需要我帮忙解答吗？例如招募人数、倾斜地区、待遇保障或留用政策等，我很乐意为你提供简洁准确的信息。` }
+  ]);
+
+  // Scroll to bottom when chat opens or new messages arrive
+  useEffect(() => {
+    if (isChatOpen && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isChatOpen, messages]);
+
+  return (
+    <div className="flex-1 flex flex-col w-full h-full relative bg-white">
+      {/* Detail Header */}
+      <div className="px-5 pt-4 pb-2 flex items-center shrink-0 border-b border-transparent z-40 relative">
+        <div
+          onClick={onBack}
+          className="w-10 h-10 flex items-center justify-center -ml-2 cursor-pointer hover:bg-gray-100 transition-colors rounded-full"
+        >
+          <ChevronLeft size={28} strokeWidth={1.5} className="text-black" />
+        </div>
+        <span className="absolute left-1/2 -translate-x-1/2 text-[14px] font-medium tracking-[0.2em] uppercase text-black">
+          政策详情
+        </span>
+      </div>
+
+      {/* Detail Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-8 pt-8 pb-32">
+        <p className="text-[10px] tracking-[0.2em] text-gray-400 font-bold uppercase mb-3 text-center">
+          {policy.en}
+        </p>
+        <h1 className="text-[28px] font-serif font-bold text-black leading-tight text-center mb-8">
+          {policy.title}
+        </h1>
+
+        {/* Tags */}
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {policy.tags.map(tag => (
+            <span key={tag} className="px-3 py-1 bg-black text-white text-[11px] font-bold tracking-widest uppercase rounded-none">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Full Text */}
+        <div className="relative">
+          <div className="absolute left-0 top-0 w-8 h-px bg-black mb-6"></div>
+          <p className="text-[15px] text-gray-700 font-serif leading-[2.2] text-justify pt-6 whitespace-pre-wrap">
+            {policy.fullText}
+          </p>
+        </div>
+
+        {/* End Mark */}
+        <div className="mt-12 flex justify-center">
+          <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+          <div className="w-1.5 h-1.5 bg-black rounded-full mx-1 opacity-50"></div>
+          <div className="w-1.5 h-1.5 bg-black rounded-full opacity-20"></div>
+        </div>
+      </div>
+
+      {/* Minimalist AI Sticky Bar (Instead of floating pill) */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black text-white px-7 py-6 z-40">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-white" strokeWidth={2} />
+            <span className="text-[14px] font-bold tracking-widest">AI 政策助手</span>
+          </div>
+          <span className="text-[10px] text-gray-400 font-serif italic">基于本政策解答</span>
+        </div>
+
+        <div
+          onClick={() => setIsChatOpen(true)}
+          className="w-full bg-white/10 border border-white/20 h-12 px-4 flex items-center justify-between cursor-text hover:bg-white/20 transition-colors"
+        >
+          <span className="text-gray-400 text-[13px] font-sans">对该政策有疑问？问问AI...</span>
+          <div className="w-6 h-6 bg-white text-black flex items-center justify-center rounded-none">
+            <ArrowUp size={14} strokeWidth={2} />
+          </div>
+        </div>
+      </div>
+
+      {/* Slide-up AI Chat Modal */}
+      {isChatOpen && (
+        <div className="absolute inset-0 z-[999] flex flex-col justify-end overflow-hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsChatOpen(false)}
+          ></div>
+
+          {/* Chat Sheet */}
+          <div className="relative w-full h-[85%] bg-white rounded-t-[24px] flex flex-col animate-slide-up shadow-2xl">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-black flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles size={20} className="text-black" strokeWidth={2} />
+                <span className="text-[16px] font-bold tracking-widest uppercase">AI 助手</span>
+              </div>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="p-1 hover:bg-gray-100 transition-colors rounded-none"
+              >
+                <X size={22} className="text-black" />
+              </button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 bg-[#fcfcfc]">
+              <div className="flex flex-col gap-6">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'user' ? (
+                      // User Bubble (Minimalist Solid Black)
+                      <div className="bg-black text-white px-5 py-3 max-w-[80%] rounded-none shadow-[4px_4px_0_rgba(0,0,0,0.1)]">
+                        <p className="text-[14px] font-sans leading-relaxed">{msg.content}</p>
+                      </div>
+                    ) : (
+                      // AI Bubble (Editorial Outline)
+                      <div className="bg-white border border-gray-300 text-black px-5 py-4 max-w-[90%] rounded-none shadow-sm relative">
+                        {/* Decorative quote mark */}
+                        <div className="absolute -top-3 -left-2 bg-white px-1">
+                           <Sparkles size={14} className="text-gray-400" />
+                        </div>
+                        <p className="text-[14px] font-serif leading-[1.8] text-gray-800">{msg.content}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+            </div>
+
+            {/* Chat Input Bar */}
+            <div className="p-5 bg-white border-t border-gray-200 shrink-0 mb-4">
+              <div className="flex items-end gap-3 border-b border-black focus-within:border-black pb-2 transition-colors">
+                <textarea
+                  placeholder="Ask anything..."
+                  className="flex-1 bg-transparent outline-none text-[14px] text-black placeholder-gray-400 font-sans resize-none max-h-24 no-scrollbar"
+                  rows="1"
+                ></textarea>
+                <button className="w-8 h-8 bg-black text-white flex items-center justify-center shrink-0 mb-1 hover:bg-gray-800 transition-colors">
+                  <ArrowUp size={16} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* iOS Home Indicator Overrides (Needs to be visible over black footer) */}
+      {!isChatOpen && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-white rounded-full z-[100]"></div>
+      )}
+    </div>
+  );
+};
+
+
+// ==========================================
+// 主应用入口
+// ==========================================
+export default function App() {
+  // State to manage routing: 'list' or 'detail'
+  const [currentView, setCurrentView] = useState('list');
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
+
+  const handleSelectPolicy = (policy) => {
+    setSelectedPolicy(policy);
+    setCurrentView('detail');
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedPolicy(null);
+  };
+
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-10 font-sans text-black">
+        <PhoneFrame title="极简杂志风：政策匹配与AI助手">
+          <StatusBar />
+          <MiniProgramCapsule />
+
+          {currentView === 'list' ? (
+            <PolicyListView onSelectPolicy={handleSelectPolicy} />
+          ) : (
+            <PolicyDetailView policy={selectedPolicy} onBack={handleBackToList} />
+          )}
+
+          {/* iOS Home Indicator (Default for white bg screens) */}
+          {currentView === 'list' && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+          )}
+        </PhoneFrame>
+      </div>
+    </>
+  );
+}

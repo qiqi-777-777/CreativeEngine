@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "AI职业匹配",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
   "usingComponents": {}
 }

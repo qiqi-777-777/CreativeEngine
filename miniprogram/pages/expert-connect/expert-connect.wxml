@@ -1,0 +1,130 @@
+<view class="container font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部导航 -->
+  <view class="page-header">
+    <text class="page-subtitle font-sans">EXPERT CONNECT</text>
+    <view class="title-row">
+      <view class="back-btn" bindtap="goBack">
+        <text class="icon-back">←</text>
+      </view>
+      <text class="page-title">专家对接</text>
+    </view>
+  </view>
+
+  <!-- 分类筛选 -->
+  <scroll-view scroll-x class="category-scroll no-scrollbar font-sans">
+    <view class="category-row">
+      <view
+        wx:for="{{categories}}"
+        wx:key="*this"
+        class="category-tag {{activeCategory === index ? 'active' : ''}}"
+        bindtap="onCategoryTap"
+        data-index="{{index}}"
+      >
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 专家列表 -->
+  <scroll-view scroll-y class="content-scroll no-scrollbar">
+    <view class="expert-count font-sans">
+      <text>共 {{filteredExperts.length}} 位专家</text>
+    </view>
+
+    <view class="expert-card" wx:for="{{filteredExperts}}" wx:key="id" bindtap="onExpertTap" data-index="{{index}}">
+      <!-- 头部信息 -->
+      <view class="expert-header">
+        <view class="expert-avatar">
+          <text class="avatar-char">{{item.name[0]}}</text>
+        </view>
+        <view class="expert-info">
+          <view class="expert-name-row">
+            <text class="expert-name">{{item.name}}</text>
+            <text class="expert-rating">★ {{item.rating}}</text>
+          </view>
+          <text class="expert-title font-sans">{{item.title}}</text>
+        </view>
+      </view>
+
+      <!-- 擅长领域 -->
+      <view class="expert-tags font-sans">
+        <text class="expert-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+      </view>
+
+      <!-- 底部信息 -->
+      <view class="expert-footer font-sans">
+        <text class="expert-consult">已咨询 {{item.consultCount}} 次</text>
+        <text class="expert-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="empty-hint font-sans" wx:if="{{filteredExperts.length === 0}}">
+      <text>该分类暂无入驻专家</text>
+    </view>
+
+    <view style="height: 60px;"></view>
+  </scroll-view>
+
+  <!-- 专家详情弹窗 -->
+  <view class="modal-overlay" wx:if="{{showDetail}}" bindtap="closeDetail"></view>
+  <view class="modal-panel {{showDetail ? 'show' : ''}}">
+    <view class="modal-handle-wrap">
+      <view class="modal-handle"></view>
+      <view class="modal-close" bindtap="closeDetail">✕</view>
+    </view>
+
+    <scroll-view scroll-y class="modal-scroll" wx:if="{{selectedExpert}}">
+      <!-- 专家头部 -->
+      <view class="detail-header">
+        <view class="detail-avatar">
+          <text class="detail-avatar-char">{{selectedExpert.name[0]}}</text>
+        </view>
+        <view class="detail-info">
+          <text class="detail-name">{{selectedExpert.name}}</text>
+          <text class="detail-title font-sans">{{selectedExpert.title}}</text>
+          <text class="detail-rating font-sans">★ {{selectedExpert.rating}} · 已咨询 {{selectedExpert.consultCount}} 次</text>
+        </view>
+      </view>
+
+      <!-- 详细介绍 -->
+      <view class="detail-section">
+        <text class="detail-label">专家简介</text>
+        <text class="detail-text font-sans">{{selectedExpert.bio}}</text>
+      </view>
+
+      <!-- 擅长领域 -->
+      <view class="detail-section">
+        <text class="detail-label">擅长领域</text>
+        <view class="detail-tags font-sans">
+          <text class="detail-tag" wx:for="{{selectedExpert.tags}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 服务信息 -->
+      <view class="detail-section">
+        <text class="detail-label">服务方式</text>
+        <view class="service-info-grid font-sans">
+          <view class="service-info-item">
+            <text class="service-info-val">{{selectedExpert.price}}</text>
+            <text class="service-info-lbl">咨询费用</text>
+          </view>
+          <view class="service-info-item">
+            <text class="service-info-val">{{selectedExpert.duration}}</text>
+            <text class="service-info-lbl">单次时长</text>
+          </view>
+          <view class="service-info-item">
+            <text class="service-info-val">{{selectedExpert.mode}}</text>
+            <text class="service-info-lbl">咨询方式</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 预约按钮 -->
+      <view class="book-btn" bindtap="bookExpert">
+        <text>预约咨询</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

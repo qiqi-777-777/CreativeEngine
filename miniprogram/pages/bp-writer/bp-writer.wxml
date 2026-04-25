@@ -1,0 +1,126 @@
+<view class="container font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部导航 -->
+  <view class="page-header">
+    <text class="page-subtitle font-sans">BP WRITER</text>
+    <view class="title-row">
+      <view class="back-btn" bindtap="goBack">
+        <text class="icon-back">←</text>
+      </view>
+      <text class="page-title">BP 智写</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y class="content-scroll no-scrollbar">
+
+    <!-- 输入表单阶段 -->
+    <view wx:if="{{!showResult}}">
+      <!-- 步骤指示器 -->
+      <view class="step-indicator font-sans">
+        <view class="step-dots">
+          <view class="step-dot {{currentStep >= 0 ? 'active' : ''}}"></view>
+          <view class="step-line {{currentStep >= 1 ? 'active' : ''}}"></view>
+          <view class="step-dot {{currentStep >= 1 ? 'active' : ''}}"></view>
+          <view class="step-line {{currentStep >= 2 ? 'active' : ''}}"></view>
+          <view class="step-dot {{currentStep >= 2 ? 'active' : ''}}"></view>
+          <view class="step-line {{currentStep >= 3 ? 'active' : ''}}"></view>
+          <view class="step-dot {{currentStep >= 3 ? 'active' : ''}}"></view>
+        </view>
+        <text class="step-hint">Step {{currentStep + 1}} / 4</text>
+      </view>
+
+      <!-- Step 0: 项目名称 -->
+      <view class="form-section" wx:if="{{currentStep === 0}}">
+        <view class="form-label-row">
+          <text class="form-label">项目名称</text>
+          <text class="form-en font-sans">Project Name</text>
+        </view>
+        <input class="form-input font-sans" placeholder="例如：智能校园外卖配送平台" value="{{formData.projectName}}" bindinput="onInput" data-field="projectName" />
+
+        <view class="form-label-row" style="margin-top: 32px;">
+          <text class="form-label">一句话描述</text>
+          <text class="form-en font-sans">One-Liner</text>
+        </view>
+        <textarea class="form-textarea font-sans" placeholder="用一句话说明你的项目做什么，例如：为高校学生提供基于AI调度的30分钟极速送餐服务" value="{{formData.oneLiner}}" bindinput="onInput" data-field="oneLiner" maxlength="200"></textarea>
+      </view>
+
+      <!-- Step 1: 解决的痛点 -->
+      <view class="form-section" wx:if="{{currentStep === 1}}">
+        <view class="form-label-row">
+          <text class="form-label">解决什么痛点？</text>
+          <text class="form-en font-sans">Pain Points</text>
+        </view>
+        <textarea class="form-textarea tall font-sans" placeholder="描述你的目标用户面临的核心问题，例如：校园外卖配送慢、体验差、价格高" value="{{formData.painPoints}}" bindinput="onInput" data-field="painPoints" maxlength="500"></textarea>
+      </view>
+
+      <!-- Step 2: 核心优势 -->
+      <view class="form-section" wx:if="{{currentStep === 2}}">
+        <view class="form-label-row">
+          <text class="form-label">核心竞争优势</text>
+          <text class="form-en font-sans">Competitive Edge</text>
+        </view>
+        <textarea class="form-textarea tall font-sans" placeholder="你的项目有什么别人做不到或很难模仿的优势？例如：自研AI调度算法、独家校园场地合作" value="{{formData.competitiveEdge}}" bindinput="onInput" data-field="competitiveEdge" maxlength="500"></textarea>
+      </view>
+
+      <!-- Step 3: 目标用户 -->
+      <view class="form-section" wx:if="{{currentStep === 3}}">
+        <view class="form-label-row">
+          <text class="form-label">目标用户群体</text>
+          <text class="form-en font-sans">Target Users</text>
+        </view>
+        <textarea class="form-textarea tall font-sans" placeholder="你的产品主要服务谁？例如：18-25岁大学生、有外卖需求的高校在校生" value="{{formData.targetUsers}}" bindinput="onInput" data-field="targetUsers" maxlength="500"></textarea>
+      </view>
+
+      <!-- 底部导航按钮 -->
+      <view class="form-nav font-sans">
+        <view class="nav-btn nav-prev {{currentStep === 0 ? 'disabled' : ''}}" bindtap="prevStep">
+          <text>← 上一步</text>
+        </view>
+        <view class="nav-btn nav-next" bindtap="{{currentStep < 3 ? 'nextStep' : 'generateBP'}}" wx:if="{{currentStep < 3}}">
+          <text>下一步 →</text>
+        </view>
+        <view class="nav-btn nav-generate" bindtap="generateBP" wx:if="{{currentStep === 3}}">
+          <text>AI 生成 BP →</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 生成结果阶段 -->
+    <view wx:if="{{showResult}}" class="result-section">
+      <view class="result-header-bar">
+        <view>
+          <text class="result-main-title">{{formData.projectName || '商业计划书'}}</text>
+          <text class="result-sub font-sans">BUSINESS PLAN · AI GENERATED</text>
+        </view>
+      </view>
+
+      <!-- Loading 状态 -->
+      <view class="loading-box" wx:if="{{isGenerating}}">
+        <view class="loading-dot-group">
+          <view class="loading-dot"></view>
+          <view class="loading-dot"></view>
+          <view class="loading-dot"></view>
+        </view>
+        <text class="loading-text font-sans">AI 正在为您撰写商业计划书...</text>
+      </view>
+
+      <!-- 生成的内容 -->
+      <view class="bp-content font-sans" wx:if="{{!isGenerating && bpContent}}">
+        <text class="bp-text">{{bpContent}}</text>
+      </view>
+
+      <!-- 底部操作 -->
+      <view class="result-actions font-sans" wx:if="{{!isGenerating}}">
+        <view class="action-btn-outline" bindtap="resetForm">
+          <text>重新填写</text>
+        </view>
+        <view class="action-btn-solid" bindtap="copyBP">
+          <text>复制全文</text>
+        </view>
+      </view>
+    </view>
+
+    <view style="height: 60px;"></view>
+  </scroll-view>
+</view>

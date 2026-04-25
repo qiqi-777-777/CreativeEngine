@@ -1,0 +1,333 @@
+import React, { useState } from 'react';
+import {
+  ChevronLeft, MoreHorizontal, CircleDot, Signal, Wifi, BatteryFull, ArrowRight,
+  X, Briefcase, GraduationCap, Terminal, UserSquare2, TrendingUp, Lightbulb, Flame, Target
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  @keyframes slideUp {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(0); }
+  }
+  .animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+`;
+
+// ==========================================
+// 共享基础组件
+// ==========================================
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center shrink-0 my-10">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+const StatusBar = () => (
+  <div className="flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-[100] relative shrink-0 text-black">
+    <span>08:03</span>
+    <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+    <div className="flex items-center gap-1.5">
+      <Signal size={16} />
+      <Wifi size={16} />
+      <BatteryFull size={20} />
+    </div>
+  </div>
+);
+
+const MiniProgramCapsule = () => (
+  <div className="absolute top-14 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 border border-black/10 text-black bg-white/50 backdrop-blur-md z-50">
+    <MoreHorizontal size={20} strokeWidth={1.5} />
+    <div className="w-px h-4 bg-black/20"></div>
+    <CircleDot size={20} strokeWidth={1.5} />
+  </div>
+);
+
+// ==========================================
+// 数据源 (模拟匹配结果)
+// ==========================================
+const matchResults = [
+  {
+    id: '01',
+    title: '新媒体运营',
+    en: 'NEW MEDIA OPERATIONS',
+    grade: 'C',
+    majors: ['新闻学', '市场营销', '中文'],
+    techPreview: ['公众号', '抖音'],
+    techCount: '+3',
+    techFull: ['公众号', '抖音', '小红书运营', '内容策划', '文案撰写', '数据分析', '增长转化'],
+    personality: 'AES型',
+    overview: '该职业在行业中扮演重要角色，负责企业品牌传播与用户增长，需要敏锐的网感、扎实的文案功底以及数据分析技能。',
+    reason: '企业营销新标配，入门门槛低但精通难，数据驱动，非常适合网感好的年轻人。',
+    development: '该职业具有良好的发展前景，可以向高级运营、增长黑客或CMO岗位晋升，薪资待遇随经验呈指数级增长。',
+    popularity: { level: 'C等级', desc: '一般，稳定发展' }
+  },
+  {
+    id: '02',
+    title: '公关经理',
+    en: 'PUBLIC RELATIONS MGR',
+    grade: 'B',
+    majors: ['新闻传播', '公共关系', '中文'],
+    techPreview: ['危机公关', '媒介统筹'],
+    techCount: '+2',
+    techFull: ['危机公关', '媒介统筹', '品牌活动策划', '新闻稿撰写', '舆情监测'],
+    personality: 'EAC型',
+    overview: '负责维护企业与公众、媒体、政府等外部利益相关者的良好关系，塑造和提升企业品牌形象。',
+    reason: '核心企业必不可少的护城河角色，极具挑战性，适合高情商、抗压能力强、具备出色沟通技巧的人才。',
+    development: '职业生命周期长，可晋升为公关总监、品牌VP，越老越吃香，是跨界高管的摇篮。',
+    popularity: { level: 'B等级', desc: '较高，需求旺盛' }
+  }
+];
+
+// ==========================================
+// 职业详情弹窗组件
+// ==========================================
+const CareerDetailModal = ({ career, onClose }) => {
+  if (!career) return null;
+
+  const DetailSection = ({ icon: Icon, title, children }) => (
+    <div className="mb-8 font-sans">
+      <div className="flex items-center gap-2 mb-3">
+        <Icon size={18} strokeWidth={2} className="text-black" />
+        <h3 className="text-[15px] font-bold text-black tracking-wide">{title}</h3>
+      </div>
+      <div className="pl-6 text-[14px] text-gray-600 leading-relaxed">
+        {children}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="absolute inset-0 z-[999] flex flex-col justify-end overflow-hidden">
+      {/* 模糊遮罩 */}
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in cursor-pointer"
+        onClick={onClose}
+      ></div>
+
+      {/* 底部滑出面板 (极简切割风格) */}
+      <div className="relative w-full h-[88%] bg-white rounded-t-[24px] flex flex-col animate-slide-up shadow-[0_-20px_40px_rgba(0,0,0,0.15)] border-t border-black">
+
+        {/* Header - Editorial Style */}
+        <div className="w-full flex justify-between items-start p-7 border-b border-black shrink-0 relative">
+          <div>
+            <p className="text-[10px] font-sans tracking-[0.2em] text-gray-400 uppercase mb-1">{career.en}</p>
+            <h2 className="text-[26px] font-serif font-bold text-black leading-tight tracking-tight">{career.title}</h2>
+          </div>
+          <button onClick={onClose} className="p-2 border border-gray-200 hover:border-black transition-colors rounded-none mt-1">
+            <X size={20} strokeWidth={1.5} className="text-black" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto no-scrollbar px-7 py-8">
+
+          <DetailSection icon={Briefcase} title="职业概述">
+            <p className="font-serif italic text-gray-700">{career.overview}</p>
+          </DetailSection>
+
+          <DetailSection icon={GraduationCap} title="匹配专业">
+            <div className="flex flex-wrap gap-2 mt-1">
+              {career.majors.map(m => (
+                <span key={m} className="px-3 py-1.5 border border-gray-300 text-[12px] font-medium text-black">{m}</span>
+              ))}
+            </div>
+          </DetailSection>
+
+          <DetailSection icon={Terminal} title="技术要求">
+            <div className="flex flex-wrap gap-2 mt-1">
+              {career.techFull.map(t => (
+                <span key={t} className="px-3 py-1.5 border border-black/10 bg-gray-50 text-[12px] text-gray-700">{t}</span>
+              ))}
+            </div>
+          </DetailSection>
+
+          <DetailSection icon={UserSquare2} title="适合性格">
+            <div className="mt-1">
+               <span className="px-4 py-2 bg-black text-white text-[13px] font-bold tracking-widest uppercase inline-block">
+                 {career.personality}
+               </span>
+            </div>
+          </DetailSection>
+
+          <DetailSection icon={TrendingUp} title="职业发展">
+            <p className="text-justify">{career.development}</p>
+          </DetailSection>
+
+          <DetailSection icon={Lightbulb} title="推荐理由">
+             <div className="border-l-2 border-black pl-4 py-1">
+                <p className="italic text-black font-medium">{career.reason}</p>
+             </div>
+          </DetailSection>
+
+          <DetailSection icon={Flame} title="行业热度">
+            <div className="flex items-center gap-3 mt-1">
+              <span className="w-8 h-8 border-2 border-black flex items-center justify-center font-serif font-bold text-black">{career.popularity.level.charAt(0)}</span>
+              <span className="text-[14px] text-gray-600 font-medium">{career.popularity.desc}</span>
+            </div>
+          </DetailSection>
+
+          <div className="h-10"></div> {/* Bottom Padding */}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 主页面：极简杂志风 - 匹配结果
+// ==========================================
+const MatchResultsDesign = () => {
+  const [selectedCareer, setSelectedCareer] = useState(null);
+
+  return (
+    <div className="w-full h-full bg-white flex flex-col relative font-sans text-black">
+      <StatusBar />
+      <MiniProgramCapsule />
+
+      {/* Top Navigation */}
+      <div className="px-5 pt-4 pb-2 flex items-center shrink-0 relative z-40">
+        <div className="w-10 h-10 flex items-center justify-center -ml-2 cursor-pointer border border-transparent hover:border-gray-200 transition-colors">
+          <ChevronLeft size={28} strokeWidth={1.5} />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+
+        {/* Editorial Header Section */}
+        <div className="px-7 pt-6 pb-10 border-b-2 border-black">
+          <div className="flex justify-center mb-6">
+             <Target size={40} strokeWidth={1} className="text-black" />
+          </div>
+          <h1 className="text-[34px] font-serif font-bold text-black leading-tight tracking-tight text-center mb-3">
+            为您匹配到 3 个职业
+          </h1>
+          <p className="text-[13px] text-gray-500 font-serif italic text-center tracking-wide">
+            Recommendations aligned with your competencies & traits.
+          </p>
+        </div>
+
+        {/* Results List */}
+        <div className="flex flex-col">
+          {matchResults.map((career, index) => (
+            <article key={career.id} className="border-b border-black px-7 py-8 hover:bg-gray-50/50 transition-colors">
+
+              {/* Title & Badge */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-serif text-gray-400 italic">0{index + 1}</span>
+                    <span className="text-[10px] tracking-[0.2em] uppercase text-gray-500">{career.en}</span>
+                  </div>
+                  <h2 className="text-[26px] font-bold text-black tracking-tight">{career.title}</h2>
+                </div>
+                <div className="w-9 h-9 border-2 border-black flex items-center justify-center font-serif font-bold text-[15px]">
+                  {career.grade}
+                </div>
+              </div>
+
+              {/* Tags Area */}
+              <div className="space-y-5 mb-8">
+                {/* Majors */}
+                <div>
+                  <p className="text-[12px] font-bold text-black mb-2 flex items-center gap-1.5"><GraduationCap size={14}/> 匹配专业</p>
+                  <div className="flex gap-2">
+                    {career.majors.map(m => (
+                      <span key={m} className="px-2.5 py-1 border border-gray-300 text-[11px] text-gray-700 rounded-sm">{m}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tech */}
+                <div>
+                  <p className="text-[12px] font-bold text-black mb-2 flex items-center gap-1.5"><Terminal size={14}/> 技术要求</p>
+                  <div className="flex gap-2">
+                    {career.techPreview.map(t => (
+                      <span key={t} className="px-2.5 py-1 bg-gray-100 text-[11px] text-gray-600 rounded-sm">{t}</span>
+                    ))}
+                    <span className="px-2.5 py-1 border border-dashed border-gray-400 text-[11px] text-gray-500 rounded-sm font-mono">{career.techCount}</span>
+                  </div>
+                </div>
+
+                {/* Personality */}
+                <div>
+                  <p className="text-[12px] font-bold text-black mb-2 flex items-center gap-1.5"><UserSquare2 size={14}/> 适合性格</p>
+                  <span className="px-3 py-1 bg-black text-white text-[11px] font-bold tracking-widest uppercase inline-block">
+                    {career.personality}
+                  </span>
+                </div>
+              </div>
+
+              {/* Reason & Action */}
+              <div className="bg-white border border-gray-200 p-5 rounded-none relative">
+                <div className="absolute top-0 left-0 w-1 h-full bg-black"></div>
+                <p className="text-[13px] text-gray-600 leading-relaxed font-serif italic mb-5">
+                  "{career.reason}"
+                </p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setSelectedCareer(career)}
+                    className="text-[12px] font-bold text-black uppercase tracking-widest border-b border-black pb-0.5 flex items-center gap-1 hover:pr-2 transition-all"
+                  >
+                    READ MORE <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+
+            </article>
+          ))}
+        </div>
+        <div className="h-10"></div>
+      </div>
+
+      {/* Render Modal if a career is selected */}
+      <CareerDetailModal
+        career={selectedCareer}
+        onClose={() => setSelectedCareer(null)}
+      />
+
+      {/* iOS Home Indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100] mix-blend-difference"></div>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-10">
+        <PhoneFrame title="极简杂志风：匹配结果与详情">
+          <MatchResultsDesign />
+        </PhoneFrame>
+      </div>
+    </>
+  );
+}

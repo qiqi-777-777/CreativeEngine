@@ -1,0 +1,296 @@
+import React from 'react';
+import {
+  Search, Briefcase, FileText, Users,
+  ChevronRight, Home, Sparkles, User, CircleDot, MoreHorizontal,
+  Signal, Wifi, BatteryFull, TrendingUp,
+  MapPin, CircleDollarSign, FileDigit, FileBox, ShieldCheck, Bell, HelpCircle, Settings,
+  PieChart, Target, PenTool
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式与共享组件
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+`;
+
+// 手机外壳组件
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center mb-16 shrink-0">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+// iOS 顶部状态栏
+const StatusBar = ({ theme = 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div className={`flex justify-between items-center px-8 pt-3 pb-1 text-[15px] font-semibold z-[100] relative shrink-0 ${isDark ? 'text-white' : 'text-black'}`}>
+      <span>21:39</span>
+      <div className="absolute left-1/2 top-2 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+      <div className="flex items-center gap-1.5">
+        <Signal size={16} />
+        <Wifi size={16} />
+        <BatteryFull size={20} />
+      </div>
+    </div>
+  );
+};
+
+// 小程序右上角胶囊
+const MiniProgramCapsule = ({ theme = 'light' }) => {
+  const isDark = theme === 'dark';
+  return (
+    <div className={`absolute top-12 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 border z-50
+      ${isDark ? 'bg-black/20 border-white/20 text-white' : 'bg-white/50 border-black/10 text-black backdrop-blur-md'}`}>
+      <MoreHorizontal size={20} />
+      <div className={`w-px h-4 ${isDark ? 'bg-white/30' : 'bg-black/20'}`}></div>
+      <CircleDot size={20} />
+    </div>
+  );
+};
+
+// ==========================================
+// 1. 极简杂志风 - 首页
+// ==========================================
+const services = [
+  { id: 1, title: '职业匹配', desc: '精准定位方向' },
+  { id: 2, title: '政策匹配', desc: '获取扶持资金' },
+  { id: 3, title: '图说解读', desc: 'AI 智能读图' },
+  { id: 4, title: '资源对接', desc: '找专家找场地' },
+];
+
+const HomeDesign = () => (
+  <div className="w-full h-full bg-white flex flex-col relative font-serif">
+    <StatusBar theme="light" />
+    <MiniProgramCapsule theme="light" />
+
+    <div className="px-6 pt-12 pb-6 border-b border-gray-100 shrink-0">
+      <p className="text-[11px] font-sans tracking-[0.2em] text-gray-400 uppercase mb-2">Innovation Engine</p>
+      <h1 className="text-3xl font-bold text-black leading-snug">
+        Good Evening,<br/>青年创享者.
+      </h1>
+
+      <div className="mt-8 border-b border-black flex items-center pb-2">
+        <Search size={18} className="text-black mr-3" />
+        <input type="text" placeholder="Search resources..." className="bg-transparent border-none outline-none flex-1 text-sm font-sans text-black placeholder-gray-400" />
+      </div>
+    </div>
+
+    <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-28 pt-8">
+      <div className="w-full h-[180px] bg-black text-white p-6 relative flex flex-col justify-end mb-10">
+        <div className="absolute top-6 right-6 w-12 h-12 border border-white/20 rounded-full flex items-center justify-center">
+          <TrendingUp size={20} className="text-white" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">青年创业平台</h2>
+        <p className="text-xs font-sans text-gray-400 uppercase tracking-wider">Empowering Youth</p>
+      </div>
+
+      <div className="flex justify-between items-end mb-6">
+        <h2 className="text-xl font-bold text-black">核心服务</h2>
+        <span className="text-xs font-sans text-gray-500 uppercase tracking-widest">Core Services</span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-0 border-t border-black mb-10 font-sans">
+        {services.map((s) => (
+          <div key={s.id} className="flex items-center justify-between py-5 border-b border-gray-200 group hover:pr-4 transition-all">
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-mono text-gray-400">0{s.id}</span>
+              <div>
+                <h3 className="text-[16px] font-semibold text-black">{s.title}</h3>
+                <p className="text-[12px] text-gray-500 mt-0.5">{s.desc}</p>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors text-gray-400">
+               <ChevronRight size={16} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-end mb-6">
+        <h2 className="text-xl font-bold text-black">最新政策</h2>
+        <span className="text-[11px] font-sans font-bold border-b border-black pb-0.5">VIEW ALL</span>
+      </div>
+      <div className="h-32 bg-gray-50 flex items-center justify-center border border-gray-200">
+        <span className="text-gray-400 text-sm font-sans">No policies available</span>
+      </div>
+    </div>
+
+    {/* Bottom Nav */}
+    <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm flex justify-around pt-4 pb-8 px-6 z-50 font-sans border-t border-gray-100">
+      <div className="flex flex-col items-center gap-1.5 text-black">
+        <Home size={20} strokeWidth={2.5} />
+        <span className="text-[10px] font-bold tracking-wider">HOME</span>
+      </div>
+      <div className="flex flex-col items-center gap-1.5 text-gray-300">
+        <Sparkles size={20} strokeWidth={2} />
+        <span className="text-[10px] font-semibold tracking-wider">AI</span>
+      </div>
+      <div className="flex flex-col items-center gap-1.5 text-gray-300">
+        <User size={20} strokeWidth={2} />
+        <span className="text-[10px] font-semibold tracking-wider">PROFILE</span>
+      </div>
+    </div>
+    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+  </div>
+);
+
+// ==========================================
+// 2. 极简杂志风 - 我的 (Profile)
+// ==========================================
+const menuItems = [
+  { label: '我的申请', icon: FileDigit },
+  { label: '企业档案', icon: FileBox },
+  { label: '资质认证', icon: ShieldCheck, action: '去认证' },
+  { label: '消息通知', icon: Bell },
+  { label: '帮助与客服', icon: HelpCircle },
+  { label: '设置', icon: Settings },
+];
+
+const ProfileDesign = () => (
+  <div className="w-full h-full bg-white flex flex-col relative font-serif">
+    <StatusBar theme="light" />
+    <MiniProgramCapsule theme="light" />
+
+    {/* Header / User Info */}
+    <div className="px-6 pt-16 pb-8 border-b border-black shrink-0 flex items-center gap-6">
+      <div className="w-[84px] h-[84px] rounded-full border border-black flex items-center justify-center bg-white shadow-[8px_8px_0_rgba(0,0,0,0.05)]">
+         <User size={36} className="text-gray-300" strokeWidth={1.5} />
+      </div>
+      <div>
+        <h1 className="text-[26px] font-bold text-black mb-3 tracking-wide">点击登录 / 注册</h1>
+        <p className="text-[10px] font-sans font-bold tracking-[0.2em] text-black uppercase border border-black rounded-full px-4 py-1.5 inline-block">
+          开启您的创业之旅
+        </p>
+      </div>
+    </div>
+
+    <div className="flex-1 overflow-y-auto no-scrollbar pb-28">
+      {/* Stats Section */}
+      <div className="flex justify-between px-10 py-8 border-b border-gray-100 font-sans">
+        <div className="flex flex-col items-center">
+          <span className="text-[28px] font-bold text-black leading-none">15</span>
+          <span className="text-[11px] text-gray-500 font-medium mt-2">已读行业</span>
+        </div>
+        <div className="w-px h-10 bg-gray-100"></div>
+        <div className="flex flex-col items-center">
+          <span className="text-[28px] font-bold text-black leading-none">8</span>
+          <span className="text-[11px] text-gray-500 font-medium mt-2">适配政策</span>
+        </div>
+        <div className="w-px h-10 bg-gray-100"></div>
+        <div className="flex flex-col items-center">
+          <span className="text-[28px] font-bold text-black leading-none">3</span>
+          <span className="text-[11px] text-gray-500 font-medium mt-2">对接资源</span>
+        </div>
+      </div>
+
+      {/* Common Services */}
+      <div className="px-6 py-8 border-b border-black">
+        <div className="flex justify-between items-end mb-8">
+          <h2 className="text-xl font-bold text-black">常用服务</h2>
+          <span className="text-[10px] font-sans text-gray-400 uppercase tracking-widest">Common</span>
+        </div>
+
+        <div className="flex justify-between px-2 font-sans">
+          <div className="flex flex-col items-center group cursor-pointer">
+            <div className="w-14 h-14 rounded-full border border-gray-200 flex items-center justify-center mb-3 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all">
+              <PieChart size={22} strokeWidth={1.5} />
+            </div>
+            <span className="text-[12px] text-black font-medium">行业图谱</span>
+          </div>
+          <div className="flex flex-col items-center group cursor-pointer">
+            <div className="w-14 h-14 rounded-full border border-gray-200 flex items-center justify-center mb-3 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all">
+              <Target size={22} strokeWidth={1.5} />
+            </div>
+            <span className="text-[12px] text-black font-medium">我的匹配</span>
+          </div>
+          <div className="flex flex-col items-center group cursor-pointer">
+            <div className="w-14 h-14 rounded-full border border-gray-200 flex items-center justify-center mb-3 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all">
+              <PenTool size={22} strokeWidth={1.5} />
+            </div>
+            <span className="text-[12px] text-black font-medium">BP 智写</span>
+          </div>
+          <div className="flex flex-col items-center group cursor-pointer">
+            <div className="w-14 h-14 rounded-full border border-gray-200 flex items-center justify-center mb-3 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all">
+              <Users size={22} strokeWidth={1.5} />
+            </div>
+            <span className="text-[12px] text-black font-medium">专家对接</span>
+          </div>
+        </div>
+      </div>
+
+      {/* List Items */}
+      <div className="px-6 pt-2 font-sans">
+        {menuItems.map((item, idx) => (
+          <div key={idx} className="flex items-center justify-between py-[22px] border-b border-gray-100 group hover:pl-2 transition-all cursor-pointer">
+            <div className="flex items-center gap-4">
+              <item.icon size={20} className="text-gray-400 group-hover:text-black transition-colors" strokeWidth={1.5} />
+              <span className="text-[15px] text-black font-medium">{item.label}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {item.action && (
+                <span className="text-[10px] font-bold border border-black px-3 py-1 rounded-full text-black">
+                  {item.action}
+                </span>
+              )}
+              <ChevronRight size={16} className="text-gray-300 group-hover:text-black transition-colors" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Bottom Nav */}
+    <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm flex justify-around pt-4 pb-8 px-6 z-50 font-sans border-t border-gray-100">
+      <div className="flex flex-col items-center gap-1.5 text-gray-300">
+        <Home size={20} strokeWidth={2} />
+        <span className="text-[10px] font-semibold tracking-wider">HOME</span>
+      </div>
+      <div className="flex flex-col items-center gap-1.5 text-gray-300">
+        <Sparkles size={20} strokeWidth={2} />
+        <span className="text-[10px] font-semibold tracking-wider">AI</span>
+      </div>
+      <div className="flex flex-col items-center gap-1.5 text-black">
+        <User size={20} strokeWidth={2.5} />
+        <span className="text-[10px] font-bold tracking-wider">PROFILE</span>
+      </div>
+    </div>
+    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+  </div>
+);
+
+
+export default function App() {
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 p-10 overflow-x-auto flex items-center justify-center">
+        <div className="flex gap-16 w-max px-10 pb-10">
+          <PhoneFrame title="首页 (极简杂志风)">
+            <HomeDesign />
+          </PhoneFrame>
+
+          <PhoneFrame title="我的 (极简杂志风)">
+            <ProfileDesign />
+          </PhoneFrame>
+        </div>
+      </div>
+    </>
+  );
+}

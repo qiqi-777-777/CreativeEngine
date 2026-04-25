@@ -156,14 +156,26 @@ Page({
     angleStep: 360 / 14,
     tiltAngle: -12, // degrees
     transitionDuration: 1, // Start with transition enabled
+    showModal: false,
   },
 
-  onLoad() {
+  onLoad(options) {
     this.touchStartX = 0;
     this.startRotation = 0;
     this.lastTouchX = 0;
     this.lastMoveTime = 0;
     this.velocity = 0;
+
+    if (options && options.index !== undefined) {
+      const idx = parseInt(options.index, 10);
+      if (!isNaN(idx) && idx >= 0 && idx < this.data.items.length) {
+        this.setData({
+          activeIdx: idx,
+          rotation: -idx * this.data.angleStep,
+          transitionDuration: 0
+        });
+      }
+    }
   },
 
   // 返回首页
@@ -273,12 +285,15 @@ Page({
     });
   },
 
-  // 点击某个卡片直接跳转到该卡片
+  // 点击某个卡片直接跳转到该卡片或弹出详情
   onCardTap(e) {
     const idx = e.currentTarget.dataset.index;
     const { activeIdx, items, angleStep, rotation } = this.data;
 
-    if (idx === activeIdx) return;
+    if (idx === activeIdx) {
+      this.setData({ showModal: true });
+      return;
+    }
 
     let diff = idx - activeIdx;
     const total = items.length;
@@ -290,6 +305,10 @@ Page({
       rotation: rotation - (diff * angleStep),
       activeIdx: idx
     });
+  },
+
+  closeModal() {
+    this.setData({ showModal: false });
   },
 
   onShareAppMessage() {

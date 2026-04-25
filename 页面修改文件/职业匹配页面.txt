@@ -1,0 +1,224 @@
+import React, { useState } from 'react';
+import {
+  ChevronLeft, MoreHorizontal, CircleDot, Signal, Wifi, BatteryFull, ArrowRight
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+`;
+
+// ==========================================
+// 共享基础组件
+// ==========================================
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center shrink-0 my-10">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+const StatusBar = () => (
+  <div className="flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-[100] relative shrink-0 text-black">
+    <span>22:52</span>
+    <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+    <div className="flex items-center gap-1.5">
+      <Signal size={16} />
+      <Wifi size={16} />
+      <BatteryFull size={20} />
+    </div>
+  </div>
+);
+
+const MiniProgramCapsule = () => (
+  <div className="absolute top-14 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 border border-black/10 text-black bg-white/50 backdrop-blur-md z-50">
+    <MoreHorizontal size={20} strokeWidth={1.5} />
+    <div className="w-px h-4 bg-black/20"></div>
+    <CircleDot size={20} strokeWidth={1.5} />
+  </div>
+);
+
+// ==========================================
+// 数据源
+// ==========================================
+const criteriaData = [
+  {
+    id: '01',
+    title: '专业',
+    en: 'MAJOR & CERT.',
+    tags: ['CFP认证', 'PMP认证', '中文', '临床医学', 'MBA', '中医学', '中西医结合', '临床药学']
+  },
+  {
+    id: '02',
+    title: '技术',
+    en: 'TECHNICAL SKILLS',
+    tags: ['ACIA资质', 'AWS', 'Bloomberg', 'C++', 'ARM单片机', 'Angular', 'C', 'CAD']
+  },
+  {
+    id: '03',
+    title: '性格',
+    en: 'PERSONALITY TRAITS',
+    tags: ['AEC型', 'AIC型', 'ERC型', 'IAC型', 'AES型', 'CRI型', 'ESC型', 'IAR型'],
+    hasHelper: true
+  }
+];
+
+// ==========================================
+// 极简杂志风 - AI职业匹配页面
+// ==========================================
+const CareerMatchDesign = () => {
+  // 状态管理：存储用户选中的标签
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  // 切换标签选择状态
+  const toggleTag = (tag) => {
+    setSelectedTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  return (
+    <div className="w-full h-full bg-white flex flex-col relative font-sans text-black">
+      <StatusBar />
+      <MiniProgramCapsule />
+
+      {/* Header Navigation */}
+      <div className="px-5 pt-4 pb-2 flex items-center shrink-0 z-40 relative">
+        <div className="w-10 h-10 flex items-center justify-center -ml-2 cursor-pointer">
+          <ChevronLeft size={28} strokeWidth={1.5} />
+        </div>
+        {/* 顶部标题弱化，体现极简 */}
+        <span className="absolute left-1/2 -translate-x-1/2 text-[15px] font-medium tracking-widest text-black">
+          AI职业匹配
+        </span>
+      </div>
+
+      {/* Main Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-7 pt-6 pb-40">
+
+        {/* Editorial Title Section */}
+        <div className="mb-12 border-b border-black pb-8">
+          <p className="text-[11px] tracking-[0.3em] text-gray-400 font-bold uppercase mb-3">
+            Career Match
+          </p>
+          <h1 className="text-[42px] font-serif font-bold text-black leading-none tracking-tight">
+            职业匹配.
+          </h1>
+          <p className="mt-4 text-[13px] text-gray-500 leading-relaxed font-serif italic max-w-[85%]">
+            Select your competencies and traits below to initiate the AI-driven career alignment protocol.
+          </p>
+        </div>
+
+        {/* Dynamic Sections */}
+        {criteriaData.map((section, idx) => (
+          <div key={section.id} className="mb-10">
+            {/* Section Header */}
+            <div className="flex items-baseline gap-4 mb-6">
+              <span className="text-xl font-serif text-gray-300 italic">{section.id}</span>
+              <div>
+                <h2 className="text-xl font-bold text-black tracking-wide">{section.title}</h2>
+                <p className="text-[9px] tracking-[0.2em] text-gray-400 uppercase mt-1">{section.en}</p>
+              </div>
+            </div>
+
+            {/* Tags Grid */}
+            <div className="flex flex-wrap gap-2.5">
+              {section.tags.map(tag => {
+                const isSelected = selectedTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`
+                      px-4 py-2 text-[13px] font-medium rounded-sm border transition-all duration-300
+                      ${isSelected
+                        ? 'bg-black border-black text-white shadow-md'
+                        : 'bg-transparent border-gray-200 text-gray-600 hover:border-black hover:text-black'}
+                    `}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Optional Helper Link for Personality */}
+            {section.hasHelper && (
+              <div className="mt-6 flex justify-start">
+                <button className="text-[12px] text-gray-400 hover:text-black transition-colors flex items-center gap-1 border-b border-gray-300 pb-0.5 hover:border-black group">
+                  查看性格详细说明
+                  <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity -ml-2 group-hover:ml-0" />
+                </button>
+              </div>
+            )}
+
+            {/* Divider (except last) */}
+            {idx !== criteriaData.length - 1 && (
+              <div className="w-full h-px bg-gray-100 mt-10"></div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Fixed Bottom Action Bar (Editorial Style) */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black px-7 pt-5 pb-10 flex justify-between items-center z-50">
+        <div>
+          <p className="text-[11px] tracking-[0.1em] text-gray-500 uppercase font-semibold mb-1">已选要素</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-serif font-bold text-black leading-none">
+              {selectedTags.length > 0 ? selectedTags.length : '0'}
+            </span>
+            {selectedTags.length === 0 && (
+              <span className="text-xs text-gray-400 font-serif italic ml-1">期待你的选择</span>
+            )}
+          </div>
+        </div>
+
+        <button
+          className={`
+            flex items-center gap-3 px-8 py-4 bg-black text-white text-[15px] font-bold tracking-widest rounded-none
+            transition-transform active:scale-95
+            ${selectedTags.length === 0 ? 'opacity-50 cursor-not-allowed' : 'opacity-100 shadow-[8px_8px_0_rgba(0,0,0,0.1)]'}
+          `}
+        >
+          开始匹配
+          <ArrowRight size={18} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* iOS Home Indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-10">
+        <PhoneFrame title="极简杂志风：AI职业匹配">
+          <CareerMatchDesign />
+        </PhoneFrame>
+      </div>
+    </>
+  );
+}

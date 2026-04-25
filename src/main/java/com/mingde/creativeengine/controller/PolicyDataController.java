@@ -18,23 +18,23 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/policy-data")
 public class PolicyDataController {
-    
+
     private static final Logger log = LoggerFactory.getLogger(PolicyDataController.class);
-    
+
     @Autowired
     private PolicyDataService policyDataService;
-    
+
     @Autowired
     private DeepSeekService deepSeekService;
-    
+
     /**
      * 获取所有政策列表
      */
     @GetMapping("/list")
-    public Map<String, Object> getPolicyList() {
+    public Map<String, Object> getPolicyList(@RequestParam(value = "keyword", required = false) String keyword) {
         Map<String, Object> result = new HashMap<>();
         try {
-            List<PolicyData> policies = policyDataService.getAllPolicies();
+            List<PolicyData> policies = policyDataService.searchPolicies(keyword);
             result.put("code", 200);
             result.put("message", "success");
             result.put("data", policies);
@@ -45,7 +45,7 @@ public class PolicyDataController {
         }
         return result;
     }
-    
+
     /**
      * 根据ID获取政策详情
      */
@@ -69,7 +69,7 @@ public class PolicyDataController {
         }
         return result;
     }
-    
+
     /**
      * 政策问答
      */
@@ -79,7 +79,7 @@ public class PolicyDataController {
         try {
             Long policyId = Long.valueOf(params.get("policyId").toString());
             String question = params.get("question").toString();
-            
+
             // 获取政策内容
             PolicyData policy = policyDataService.getPolicyById(policyId);
             if (policy == null) {
@@ -87,7 +87,7 @@ public class PolicyDataController {
                 result.put("message", "政策不存在");
                 return result;
             }
-            
+
             // 构建提示词，将政策内容作为上下文
             String prompt = String.format(
                 "你是一个政策解读助手。以下是政策信息：\n\n" +
@@ -101,14 +101,14 @@ public class PolicyDataController {
                 policy.getContent(),
                 question
             );
-            
+
             // 调用DeepSeek API
             String answer = deepSeekService.chat(prompt);
-            
+
             result.put("code", 200);
             result.put("message", "success");
             result.put("data", answer);
-            
+
         } catch (Exception e) {
             log.error("政策问答失败", e);
             result.put("code", 500);

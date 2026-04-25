@@ -1,0 +1,370 @@
+import React, { useState } from 'react';
+import {
+  ChevronLeft, MoreHorizontal, CircleDot, Signal, Wifi, BatteryFull, ArrowRight,
+  Search, MapPin, Clock, DollarSign, ArrowUpRight, CheckCircle2, Briefcase
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式与动画
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  @keyframes fadeSlideIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-slide {
+    animation: fadeSlideIn 0.4s ease-out forwards;
+  }
+`;
+
+// ==========================================
+// 共享基础组件
+// ==========================================
+const PhoneFrame = ({ children, title }) => (
+  <div className="flex flex-col items-center shrink-0 my-10">
+    <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+    <div
+      className="relative bg-black rounded-[55px] p-[10px] shadow-2xl"
+      style={{ width: '450px', height: '952px' }}
+    >
+      <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-700 rounded-l-md"></div>
+      <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-700 rounded-r-md"></div>
+
+      {/* 屏幕本体 430x932 */}
+      <div className="relative w-[430px] h-[932px] bg-white rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+const StatusBar = () => (
+  <div className="flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-[100] relative shrink-0 text-black">
+    <span>02:04</span>
+    <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+    <div className="flex items-center gap-1.5">
+      <Signal size={16} />
+      <Wifi size={16} />
+      <BatteryFull size={20} />
+    </div>
+  </div>
+);
+
+const MiniProgramCapsule = () => (
+  <div className="absolute top-14 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 border border-black/10 text-black bg-white/50 backdrop-blur-md z-50">
+    <MoreHorizontal size={20} strokeWidth={1.5} />
+    <div className="w-px h-4 bg-black/20"></div>
+    <CircleDot size={20} strokeWidth={1.5} />
+  </div>
+);
+
+// ==========================================
+// 模拟数据源
+// ==========================================
+const categories = ['全部', '基础便捷', '学术辅助', '技能变现', '名企实习'];
+
+const resourceData = [
+  {
+    id: 'R01',
+    category: '基础便捷',
+    title: '食堂帮工',
+    en: 'CANTEEN HELPER',
+    salary: '800-1000',
+    unit: '元/月',
+    desc: '负责打饭、收银、清洁餐具等，提供免费工作餐，工作集中在饭点，与上课冲突小。',
+    requirements: ['细心负责，手脚麻利', '持有有效健康证', '能适应饭点高强度工作节奏'],
+    location: '第一食堂',
+    time: '每日 11:00-13:00 / 17:00-19:00',
+    status: 'URGENT'
+  },
+  {
+    id: 'R02',
+    category: '基础便捷',
+    title: '校园便利店店员',
+    en: 'CONVENIENCE STORE CLERK',
+    salary: '15-20',
+    unit: '元/时',
+    desc: '商品补货、收银、整理货架，空闲时可复习，适配零散时间。',
+    requirements: ['热情礼貌，具备基本沟通能力', '会使用基本的收银系统(可入职培训)', '每周至少能提供10小时空闲时间'],
+    location: '生活区便利店',
+    time: '排班制，可根据课表协调',
+    status: 'ACTIVE'
+  },
+  {
+    id: 'R03',
+    category: '学术辅助',
+    title: 'CV算法助理',
+    en: 'CV ALGORITHM ASST.',
+    salary: '200-300',
+    unit: '元/天',
+    desc: '协助教授进行计算机视觉方向的数据清洗、模型跑批和初步分析工作，适合保研党。',
+    requirements: ['计算机/人工智能相关专业大三以上', '熟练使用 Python, PyTorch', '具备基础的英语论文阅读能力'],
+    location: '科技楼 A座 402实验室',
+    time: '每周至少到岗 3 天',
+    status: 'HOT'
+  },
+  {
+    id: 'R04',
+    category: '技能变现',
+    title: '独立插画师(商单)',
+    en: 'FREELANCE ILLUSTRATOR',
+    salary: '500-2000',
+    unit: '元/单',
+    desc: '为校外合作企业绘制公众号配图、IP形象设计及海报物料，按件计酬，多劳多得。',
+    requirements: ['熟练使用 PS, Procreate 等绘画软件', '有独立完成商业插画的案例/作品集', '沟通能力强，能准确理解甲方需求并按时交稿'],
+    location: '线上远程 / 不限',
+    time: '项目制，弹性工作',
+    status: 'ACTIVE'
+  }
+];
+
+// ==========================================
+// 页面 1: 极简杂志风 - 资源对接列表
+// ==========================================
+const ResourceListView = ({ onSelectResource }) => {
+  const [activeTab, setActiveTab] = useState('全部');
+
+  const filteredResources = activeTab === '全部'
+    ? resourceData
+    : resourceData.filter(r => r.category === activeTab);
+
+  return (
+    <div className="flex-1 flex flex-col w-full h-full animate-fade-slide">
+      {/* Editorial Header */}
+      <div className="px-7 pt-12 pb-2 flex justify-between items-end shrink-0">
+        <div>
+          <p className="text-[10px] tracking-[0.3em] text-gray-400 font-bold uppercase mb-2">
+            Resource Hub
+          </p>
+          <h1 className="text-[34px] font-serif font-bold text-black leading-none tracking-tight">
+            资源对接.
+          </h1>
+        </div>
+        <button className="w-10 h-10 border border-black flex items-center justify-center rounded-none hover:bg-black hover:text-white transition-colors">
+          <Search size={18} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Minimalist Tabs */}
+      <div className="px-7 pt-6 pb-2 shrink-0 border-b border-black">
+        <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              className={`whitespace-nowrap text-[13px] font-bold tracking-widest uppercase transition-colors relative
+                ${activeTab === cat ? 'text-black' : 'text-gray-400 hover:text-gray-600'}
+              `}
+            >
+              {cat}
+              {activeTab === cat && (
+                <div className="absolute -bottom-[9px] left-0 right-0 h-0.5 bg-black"></div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Resource List */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-7 pb-20 pt-4">
+        <div className="flex flex-col">
+          {filteredResources.map((item) => (
+            <article
+              key={item.id}
+              className="border-b border-gray-200 py-8 group cursor-pointer hover:border-black transition-colors"
+              onClick={() => onSelectResource(item)}
+            >
+              {/* Category & Status */}
+              <div className="flex justify-between items-center mb-4">
+                <span className="px-2 py-0.5 border border-black text-[10px] font-bold text-black tracking-widest">
+                  {item.category}
+                </span>
+                <span className="text-[9px] tracking-[0.2em] font-sans font-bold uppercase text-gray-400 flex items-center gap-1">
+                  {item.status === 'URGENT' && <span className="w-1.5 h-1.5 bg-black rounded-full animate-pulse"></span>}
+                  {item.status}
+                </span>
+              </div>
+
+              {/* Title & Salary */}
+              <div className="flex justify-between items-start mb-3 gap-4">
+                <h2 className="text-[20px] font-bold text-black leading-snug group-hover:underline decoration-2 underline-offset-4">
+                  {item.title}
+                </h2>
+                <div className="text-right shrink-0">
+                  <span className="text-[22px] font-serif font-bold text-black leading-none">{item.salary}</span>
+                  <span className="text-[10px] text-gray-500 font-medium ml-1">{item.unit}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-[13px] text-gray-500 font-sans leading-relaxed mb-5 line-clamp-2">
+                {item.desc}
+              </p>
+
+              {/* Location Footer */}
+              <div className="flex justify-between items-center pt-2">
+                <div className="flex items-center text-gray-400 gap-1.5">
+                  <MapPin size={14} strokeWidth={1.5} />
+                  <span className="text-[11px] font-medium">{item.location}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                  <ArrowUpRight size={14} strokeWidth={1.5} />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 页面 2: 极简杂志风 - 资源详情页
+// ==========================================
+const ResourceDetailView = ({ item, onBack }) => {
+  return (
+    <div className="flex-1 flex flex-col w-full h-full relative bg-white animate-fade-slide">
+      {/* Detail Navigation */}
+      <div className="px-5 pt-4 pb-2 flex items-center shrink-0 border-b border-transparent z-40 relative">
+        <div
+          onClick={onBack}
+          className="w-10 h-10 flex items-center justify-center -ml-2 cursor-pointer hover:bg-gray-100 transition-colors rounded-none"
+        >
+          <ChevronLeft size={28} strokeWidth={1.5} className="text-black" />
+        </div>
+      </div>
+
+      {/* Detail Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-7 pt-4 pb-32">
+
+        {/* Title Area */}
+        <div className="border-b border-black pb-8 mb-8">
+          <p className="text-[10px] tracking-[0.2em] text-gray-400 font-bold uppercase mb-2">
+            {item.en}
+          </p>
+          <h1 className="text-[32px] font-bold text-black leading-tight tracking-tight mb-6">
+            {item.title}
+          </h1>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] text-gray-500 uppercase tracking-widest">REMUNERATION</span>
+            <div>
+              <span className="text-[36px] font-serif font-bold text-black leading-none">{item.salary}</span>
+              <span className="text-[14px] text-gray-600 font-serif italic ml-2">{item.unit}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 gap-6 mb-10 border-b border-gray-200 pb-10">
+          <div className="flex items-start gap-3">
+            <MapPin size={18} className="text-black shrink-0 mt-0.5" strokeWidth={1.5}/>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">LOCATION</p>
+              <p className="text-[14px] text-black font-medium">{item.location}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Clock size={18} className="text-black shrink-0 mt-0.5" strokeWidth={1.5}/>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">TIME</p>
+              <p className="text-[14px] text-black font-medium">{item.time}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Description Section */}
+        <div className="mb-10">
+          <h3 className="text-[15px] font-bold text-black tracking-widest uppercase mb-4 flex items-center gap-2">
+            <Briefcase size={16} strokeWidth={2}/> 工作内容
+          </h3>
+          <p className="text-[14px] text-gray-700 font-serif leading-[1.8] text-justify">
+            {item.desc}
+          </p>
+        </div>
+
+        {/* Requirements Section */}
+        <div className="mb-10">
+          <h3 className="text-[15px] font-bold text-black tracking-widest uppercase mb-4 flex items-center gap-2">
+            <CheckCircle2 size={16} strokeWidth={2}/> 资质要求
+          </h3>
+          <ul className="space-y-3">
+            {item.requirements.map((req, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <span className="text-[12px] font-serif font-bold text-gray-300 italic pt-0.5">0{idx+1}</span>
+                <span className="text-[14px] text-gray-700 leading-relaxed">{req}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* End Mark */}
+        <div className="mt-8 flex justify-center">
+          <div className="w-6 h-px bg-black"></div>
+        </div>
+      </div>
+
+      {/* Sticky Bottom Action Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-black px-7 pt-4 pb-10 flex justify-between items-center z-50">
+        <div className="flex flex-col">
+          <span className="text-[10px] tracking-widest uppercase text-gray-400 font-bold mb-1">CATEGORY</span>
+          <span className="text-[14px] font-bold text-black">{item.category}</span>
+        </div>
+        <button className="px-8 py-4 bg-black text-white text-[14px] font-bold tracking-widest uppercase rounded-none shadow-[6px_6px_0_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-transform active:translate-y-0 active:shadow-none">
+          申请对接
+        </button>
+      </div>
+
+      {/* iOS Home Indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+    </div>
+  );
+};
+
+
+// ==========================================
+// 主应用入口
+// ==========================================
+export default function App() {
+  const [currentView, setCurrentView] = useState('list');
+  const [selectedResource, setSelectedResource] = useState(null);
+
+  const handleSelectResource = (item) => {
+    setSelectedResource(item);
+    setCurrentView('detail');
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setTimeout(() => setSelectedResource(null), 300); // 延迟清除数据，防止动画突兀
+  };
+
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center p-10 font-sans text-black">
+        <PhoneFrame title="极简杂志风：资源对接">
+          <StatusBar />
+          <MiniProgramCapsule />
+
+          {currentView === 'list' ? (
+            <ResourceListView onSelectResource={handleSelectResource} />
+          ) : (
+            <ResourceDetailView item={selectedResource} onBack={handleBackToList} />
+          )}
+
+          {/* iOS Home Indicator (List view) */}
+          {currentView === 'list' && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-[100]"></div>
+          )}
+        </PhoneFrame>
+      </div>
+    </>
+  );
+}

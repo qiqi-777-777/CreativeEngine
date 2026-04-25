@@ -1,55 +1,72 @@
 <!--pages/policy/policy.wxml-->
 <view class="container">
-  <!-- 顶部区域 -->
+  <!-- Minimalist Header -->
   <view class="header-section">
-    <view class="title-bar">
-      <view class="page-title">政策速配</view>
-      <view class="filter-btn">
-        <view class="icon-filter"></view>
+    <view class="title-wrapper">
+      <view class="page-subtitle">POLICY MATCH</view>
+      <view class="page-title">政策速配.</view>
+    </view>
+    <view class="filter-btn">
+      <view class="icon-sliders">
+        <view class="slider-line"><view class="slider-knob"></view></view>
+        <view class="slider-line reverse"><view class="slider-knob"></view></view>
+        <view class="slider-line"><view class="slider-knob"></view></view>
       </view>
     </view>
+  </view>
 
+  <!-- Search Bar -->
+  <view class="search-section">
     <view class="search-box">
-      <icon type="search" size="20" color="#9CA3AF"></icon>
-      <input 
-        class="search-input" 
-        placeholder="输入关键词匹配..." 
+      <icon type="search" size="20" color="#9CA3AF" class="search-icon"></icon>
+      <input
+        class="search-input"
+        placeholder="输入关键词匹配..."
         placeholder-class="placeholder-style"
         value="{{searchKeyword}}"
         bindinput="onSearchInput"
         bindconfirm="onSearch"
       />
-      <view class="match-btn" bindtap="onSearch">匹配</view>
+      <view class="match-btn" bindtap="onSearch">MATCH</view>
     </view>
   </view>
 
-  <!-- 列表区域 -->
+  <!-- List Content -->
   <scroll-view class="policy-list" scroll-y enable-back-to-top>
-    <block wx:for="{{filteredPolicyList}}" wx:key="id">
-      <view class="policy-card" bindtap="onSelectPolicy" data-id="{{item.id}}">
-        <view class="card-header">
-          <view class="card-title">{{item.policyName}}</view>
-          <view class="icon-file">📄</view>
-        </view>
-        
-        <view class="card-content">
-          {{item.content || '暂无摘要'}}
-        </view>
+    <view class="list-wrapper">
+      <block wx:for="{{filteredPolicyList}}" wx:key="id">
+        <view class="policy-article" bindtap="onSelectPolicy" data-id="{{item.id}}">
+          <!-- Index & Date -->
+          <view class="article-meta">
+            <text class="article-index">{{index < 9 ? '0' + (index + 1) : (index + 1)}}</text>
+            <text class="article-date">{{item.publishDate ? item.publishDate : 'LATEST'}}</text>
+          </view>
 
-        <view class="card-footer">
-          <view class="tags">
-            <view class="tag" wx:if="{{item.keywords}}">{{item.keywords}}</view>
+          <!-- Title -->
+          <view class="article-title">{{item.policyName}}</view>
+
+          <!-- Snippet -->
+          <view class="article-snippet">
+            {{item.displaySnippet || '暂无详细摘要内容...'}}
           </view>
-          <view class="detail-link">
-            详情 >
+
+          <!-- Tags & Action -->
+          <view class="article-footer">
+            <view class="article-tags">
+              <!-- Using a simple split here if needed, or just display the whole keyword string if it's one string. Assuming backend sends string. -->
+              <view class="tag" wx:if="{{item.keywords}}">{{item.keywords}}</view>
+            </view>
+            <view class="article-action">
+              <text class="action-text">READ</text>
+              <text class="arrow-right">→</text>
+            </view>
           </view>
         </view>
+      </block>
+
+      <view wx:if="{{filteredPolicyList.length === 0}}" class="empty-state">
+        <text class="empty-text">{{searchKeyword ? 'NO RESULTS FOUND.' : 'NO POLICIES AVAILABLE.'}}</text>
       </view>
-    </block>
-    
-    <view wx:if="{{filteredPolicyList.length === 0}}" class="empty-state">
-      <text class="empty-icon">📭</text>
-      <text class="empty-text">{{searchKeyword ? '未找到相关政策' : '暂无政策数据'}}</text>
     </view>
     <view class="bottom-spacer"></view>
   </scroll-view>

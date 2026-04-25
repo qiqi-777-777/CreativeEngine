@@ -3,6 +3,7 @@ const app = getApp()
 
 Page({
   data: {
+    statusBarHeight: 20,
     // 图标资源 (Base64 SVGs)
     icons: {
       major: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIgMTBsLTEwIDUtMTAtNSA4LTQgOCA0eiIvPjxwYXRoIGQ9Ik02IDEydjUuMzNhNiA2IDAgMCAwIDEyIDBWMTIiLz48L3N2Zz4=',
@@ -75,7 +76,15 @@ Page({
   },
 
   onLoad(options) {
+    const sysInfo = wx.getSystemInfoSync()
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 20
+    })
     this.loadData()
+  },
+
+  goBack() {
+    wx.navigateBack()
   },
 
   // 加载数据

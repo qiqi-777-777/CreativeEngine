@@ -1,30 +1,33 @@
 // pages/policy/policy.js
 const app = getApp()
+const { formatPolicy, parseSearchTerms } = require('../../utils/policyText')
 
 Page({
   data: {
-    policyList: [],           // 政策列表
-    filteredPolicyList: [],   // 过滤后的政策列表
-    searchKeyword: ''         // 搜索关键词
+    policyList: [],
+    filteredPolicyList: [],
+    searchKeyword: ''
   },
 
   onLoad() {
     this.loadPolicyList()
   },
 
-  // 加载政策列表
-  loadPolicyList() {
+  loadPolicyList(keyword = '') {
     wx.showLoading({ title: '加载中...' })
-    
+
+    const query = keyword && keyword.trim()
+      ? `?keyword=${encodeURIComponent(keyword.trim())}`
+      : ''
+
     wx.request({
-      url: `${app.globalData.apiBase}/policy-data/list`,
+      url: `${app.globalData.apiBase}/policy-data/list${query}`,
       method: 'GET',
       success: (res) => {
-        console.log('政策列表响应:', res.data)
         if (res.data.code === 200) {
-          const policyList = res.data.data || []
+          const policyList = (res.data.data || []).map(formatPolicy)
           this.setData({
-            policyList: policyList,
+            policyList,
             filteredPolicyList: policyList
           })
         } else {
@@ -46,50 +49,51 @@ Page({
       }
     })
   },
-  
-  // 搜索输入
+
   onSearchInput(e) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
     this.filterPolicyList(keyword)
   },
-  
-  // 执行搜索
+
   onSearch() {
-    this.filterPolicyList(this.data.searchKeyword)
+    this.loadPolicyList(this.data.searchKeyword)
   },
-  
-  // 清空搜索
+
   onClearSearch() {
-    this.setData({ 
+    this.setData({
       searchKeyword: '',
       filteredPolicyList: this.data.policyList
     })
+    this.loadPolicyList()
   },
-  
-  // 过滤政策列表
+
   filterPolicyList(keyword) {
     const { policyList } = this.data
-    
+
     if (!keyword || !keyword.trim()) {
       this.setData({ filteredPolicyList: policyList })
       return
     }
-    
-    const filtered = policyList.filter(policy => {
-      return policy.policyName.toLowerCase().includes(keyword.toLowerCase())
+
+    const terms = parseSearchTerms(keyword).map((term) => term.toLowerCase())
+    if (terms.length === 0) {
+      this.setData({ filteredPolicyList: policyList })
+      return
+    }
+
+    const filtered = policyList.filter((policy) => {
+      const text = `${policy.policyName || ''} ${policy.keywords || ''} ${policy.displayContent || ''} ${policy.content || ''}`.toLowerCase()
+      return terms.every((term) => text.includes(term))
     })
-    
+
     this.setData({ filteredPolicyList: filtered })
   },
 
-  // 选择政策
   onSelectPolicy(e) {
     const policyId = e.currentTarget.dataset.id
-    // 跳转到政策详情页
     wx.navigateTo({
       url: `/pages/policy-detail/policy-detail?id=${policyId}`
     })
   }
 })
-

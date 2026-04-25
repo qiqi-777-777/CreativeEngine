@@ -1,5 +1,6 @@
 // pages/policy-detail/policy-detail.js
 const app = getApp()
+const { formatPolicy } = require('../../utils/policyText')
 
 Page({
   data: {
@@ -10,7 +11,8 @@ Page({
     chatHistory: [],          // 对话历史
     asking: false,            // 是否正在问答
     scrollToView: '',         // 滚动到指定消息
-    loadError: ''             // 加载错误信息
+    loadError: '',            // 加载错误信息
+    isChatOpen: false         // 聊天模态框是否打开
   },
 
   onLoad(options) {
@@ -75,7 +77,7 @@ Page({
       success: (res) => {
         console.log('政策详情响应:', res.data)
         if (res.data.code === 200) {
-          const policy = res.data.data
+          const policy = formatPolicy(res.data.data)
           // 解析关键词（按顿号或逗号分隔）
           const keywordList = policy.keywords ?
             policy.keywords.split(/[、,，]/).filter(k => k.trim()) : []
@@ -110,11 +112,34 @@ Page({
     })
   },
 
-  // 收起对话（清空历史，恢复为小卡片）
-  onCollapseChat() {
+  // 打开AI聊天模态框
+  openChat() {
+    // 如果没有聊天历史，自动发送一条欢迎语
+    let newHistory = this.data.chatHistory;
+    if (newHistory.length === 0 && this.data.policy) {
+      newHistory = [
+        { role: 'ai', content: `你好！请问有什么关于《${this.data.policy.policyName}》的问题需要我帮忙解答吗？我很乐意为你提供简洁准确的信息。` }
+      ];
+    }
+
     this.setData({
-      chatHistory: [],
-      asking: false
+      isChatOpen: true,
+      chatHistory: newHistory
+    });
+
+    if (newHistory.length > 0) {
+      wx.nextTick(() => {
+        this.setData({
+          scrollToView: `msg-${newHistory.length - 1}`
+        });
+      });
+    }
+  },
+
+  // 关闭AI聊天模态框
+  closeChat() {
+    this.setData({
+      isChatOpen: false
     })
   },
 
