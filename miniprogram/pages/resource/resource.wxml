@@ -6,7 +6,7 @@
     <view class="header-area">
       <view class="header-left">
         <view class="header-subtitle">Resource Hub</view>
-        <view class="header-title">资源对接.</view>
+        <view class="header-title">资源对接</view>
       </view>
       <view class="search-btn">
         <view class="icon-search"></view>

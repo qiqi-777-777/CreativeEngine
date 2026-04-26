@@ -1,0 +1,52 @@
+<view class="module-page font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="module-header">
+    <view class="header-top">
+      <view class="back-btn font-sans" bindtap="goBack">←</view>
+      <view>
+        <text class="module-eyebrow font-sans">BP DRAFTS</text>
+        <text class="module-title">BP 草稿箱</text>
+      </view>
+    </view>
+    <text class="module-desc font-sans">集中管理 AI 生成过的商业计划书草稿，可继续编辑或复制使用。</text>
+  </view>
+
+  <scroll-view scroll-y class="module-scroll no-scrollbar">
+    <view class="content font-sans">
+      <view class="summary-row">
+        <view class="summary-item">
+          <text class="summary-value">{{drafts.length}}</text>
+          <text class="summary-label">草稿数量</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{completedCount}}</text>
+          <text class="summary-label">已生成正文</text>
+        </view>
+      </view>
+
+      <view wx:if="{{drafts.length === 0}}" class="empty-state">
+        <view class="empty-mark">BP</view>
+        <text class="empty-title">暂无 BP 草稿</text>
+        <text class="empty-desc">在 BP 智写生成结果后，点击“保存草稿”即可收进这里。</text>
+        <view class="solid-btn" bindtap="goToWriter">去写 BP</view>
+      </view>
+
+      <view wx:else class="record-list">
+        <view class="record-card" wx:for="{{drafts}}" wx:key="id" bindtap="openDraft" data-id="{{item.id}}">
+          <view class="record-top">
+            <text class="record-title">{{item.projectName}}</text>
+            <text class="record-badge">{{item.status}}</text>
+          </view>
+          <text class="record-meta">更新时间：{{item.updatedAtText}}</text>
+          <text class="record-desc">{{item.summary}}</text>
+          <view class="card-actions">
+            <view class="outline-btn" catchtap="openDraft" data-id="{{item.id}}">继续编辑</view>
+            <view class="text-btn" catchtap="copyDraft" data-id="{{item.id}}">复制</view>
+            <view class="text-btn danger" catchtap="removeDraft" data-id="{{item.id}}">删除</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

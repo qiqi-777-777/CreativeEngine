@@ -503,3 +503,143 @@ page {
   opacity: 0.9;
   transform: scale(0.98);
 }
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.scene-container {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.bg-decoration,
+.mask-left,
+.mask-right {
+  display: none;
+}
+
+.page-subtitle,
+.modal-subtitle,
+.modal-stat-label,
+.modal-desc-text {
+  color: #7a8b9e;
+}
+
+.page-title,
+.card-name,
+.modal-title,
+.modal-desc-title,
+.modal-stat-val {
+  color: #5a6a85;
+}
+
+.back-btn,
+.modal-close,
+.card-arrow {
+  border: none;
+  border-radius: 24rpx;
+  background-color: #f0f3f8;
+  box-shadow: 5px 5px 10px #d9dfe9, -5px -5px 10px #ffffff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.back-btn:active,
+.modal-close:active,
+.card-arrow:active {
+  transform: scale(0.9);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.icon-back-simple {
+  color: #7a8b9e;
+}
+
+.card-inner {
+  background-color: #f0f3f8;
+  border: none;
+  border-radius: 64rpx;
+  box-shadow: 12px 12px 24px #d9dfe9, -12px -12px 24px #ffffff;
+}
+
+.card-inner.active {
+  background-color: #f0f3f8;
+  border-color: transparent;
+  box-shadow: 16px 16px 32px #d9dfe9, -16px -16px 32px #ffffff;
+}
+
+.card-icon-box {
+  border-radius: 32rpx;
+  background-color: #f0f3f8 !important;
+  box-shadow: 4px 4px 8px #d9dfe9, -4px -4px 8px #ffffff;
+}
+
+.card-desc,
+.card-no,
+.indicators-text {
+  color: #7a8b9e;
+}
+
+.card-footer {
+  border-top-color: #d9dfe9;
+}
+
+.card-arrow.show {
+  background-color: #a1c4fd;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.indicator-dot {
+  background-color: #d9dfe9 !important;
+}
+
+.indicator-dot.active {
+  background-color: #ff9a9e !important;
+  box-shadow: inset 2px 2px 4px #e68b8e, inset -2px -2px 4px #ffabae;
+}
+
+.modal-overlay {
+  background: rgba(240, 243, 248, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.modal-panel {
+  background: #f0f3f8;
+  border-top-left-radius: 64rpx;
+  border-top-right-radius: 64rpx;
+  box-shadow: -12px -12px 24px rgba(255,255,255,0.95), 0 -12px 30px rgba(217,223,233,0.9);
+}
+
+.modal-handle {
+  background: #d9dfe9;
+}
+
+.modal-icon-box,
+.modal-stats-panel,
+.modal-tag {
+  background-color: #f0f3f8 !important;
+  box-shadow: 8px 8px 16px #d9dfe9, -8px -8px 16px #ffffff;
+}
+
+.modal-stats-panel {
+  border: none;
+}
+
+.border-left-right {
+  border-color: #d9dfe9;
+}
+
+.modal-tag {
+  color: #7a8b9e !important;
+  border-radius: 20rpx;
+}
+
+.modal-btn {
+  border-radius: 40rpx;
+  background-color: #a1c4fd !important;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.modal-btn:active {
+  opacity: 1;
+  transform: scale(0.95);
+  box-shadow: inset 4px 4px 8px #91b0e4, inset -4px -4px 8px #b1d8ff;
+}

@@ -1,6 +1,7 @@
 // pages/policy-detail/policy-detail.js
 const app = getApp()
 const { formatPolicy } = require('../../utils/policyText')
+const userData = require('../../utils/userData')
 
 Page({
   data: {
@@ -12,7 +13,8 @@ Page({
     asking: false,            // 是否正在问答
     scrollToView: '',         // 滚动到指定消息
     loadError: '',            // 加载错误信息
-    isChatOpen: false         // 聊天模态框是否打开
+    isChatOpen: false,        // 聊天模态框是否打开
+    isFavorite: false         // 是否已收藏
   },
 
   onLoad(options) {
@@ -85,7 +87,11 @@ Page({
           this.setData({
             policy,
             keywordList,
-            loadError: ''
+            loadError: '',
+            isFavorite: false
+          })
+          userData.getPolicyFavorites().then((favorites) => {
+            this.setData({ isFavorite: this.isPolicyFavorite(policy, favorites) })
           })
         } else {
           this.setData({
@@ -103,6 +109,40 @@ Page({
         wx.hideLoading()
       }
     })
+  },
+
+  isPolicyFavorite(policy, favorites = []) {
+    const currentKey = String(policy.id || policy.policyName)
+    return favorites.some((item) => String(item.id || item.policyName) === currentKey)
+  },
+
+  async togglePolicyFavorite() {
+    const { policy, isFavorite } = this.data
+    if (!policy) return
+
+    const currentKey = String(policy.id || policy.policyName)
+
+    if (isFavorite) {
+      await userData.deletePolicyFavorite(currentKey)
+      this.setData({ isFavorite: false })
+      wx.showToast({ title: '已取消收藏', icon: 'none' })
+      return
+    }
+
+    const favorite = {
+      id: policy.id,
+      policyName: policy.policyName,
+      keywords: policy.keywords,
+      displayContent: policy.displayContent,
+      content: policy.content,
+      sourceInfo: policy.sourceInfo,
+      originalUrl: policy.originalUrl,
+      savedAt: new Date().toISOString()
+    }
+
+    await userData.savePolicyFavorite(favorite)
+    this.setData({ isFavorite: true })
+    wx.showToast({ title: '已收藏', icon: 'success' })
   },
 
   // 问题输入

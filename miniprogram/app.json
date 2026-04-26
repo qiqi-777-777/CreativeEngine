@@ -16,21 +16,27 @@
     "pages/industry-atlas/industry-atlas",
     "pages/my-match/my-match",
     "pages/bp-writer/bp-writer",
-    "pages/expert-connect/expert-connect"
+    "pages/expert-connect/expert-connect",
+    "pages/policy-favorites/policy-favorites",
+    "pages/career-records/career-records",
+    "pages/bp-drafts/bp-drafts",
+    "pages/notifications/notifications",
+    "pages/settings/settings",
+    "pages/account-profile/account-profile"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#3B9FFF",
+    "navigationBarBackgroundColor": "#f0f3f8",
     "navigationBarTitleText": "创享引擎",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F7FA"
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f0f3f8"
   },
   "tabBar": {
     "custom": true,
-    "color": "#999999",
-    "selectedColor": "#3B9FFF",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "color": "#7a8b9e",
+    "selectedColor": "#5a6a85",
+    "backgroundColor": "#f0f3f8",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",

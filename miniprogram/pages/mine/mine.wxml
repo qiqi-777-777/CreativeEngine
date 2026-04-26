@@ -4,8 +4,9 @@
 
   <!-- Header: 未登录状态 -->
   <view class="header-section" wx:if="{{!isLogin}}">
-    <view class="avatar-box">
+    <view class="avatar-box avatar-changeable" bindtap="handleLogin">
       <view class="avatar-icon"></view>
+      <view class="avatar-edit-badge">登录</view>
     </view>
     <view class="user-info-box">
       <view class="user-title" bindtap="handleLogin">点击登录 / 注册</view>
@@ -15,7 +16,7 @@
 
   <!-- Header: 已登录状态 -->
   <view class="header-section" wx:else>
-    <view class="avatar-box avatar-logged">
+    <view class="avatar-box avatar-logged avatar-changeable" bindtap="chooseAvatar">
       <image
         wx:if="{{userInfo.avatar}}"
         class="avatar-image"
@@ -38,8 +39,8 @@
         <view class="stat-item" bindtap="handleStatClick" data-index="{{index}}">
           <text class="stat-val">{{item.value}}</text>
           <text class="stat-lbl">{{item.label}}</text>
+          <text class="stat-desc">{{item.desc}}</text>
         </view>
-        <view class="stat-divider" wx:if="{{index < stats.length - 1}}"></view>
       </block>
     </view>
 

@@ -3,6 +3,13 @@ Page({
   data: {
     statusBarHeight: 20,
     activeIndustry: 0,
+    activeIndustryData: null,
+    competition: {
+      concentration: '',
+      barrier: '',
+      opportunity: '',
+      players: []
+    },
     industries: [
       {
         id: 1, name: '信息技术',
@@ -206,6 +213,7 @@ Page({
   onLoad() {
     const sysInfo = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sysInfo.statusBarHeight });
+    this.refreshActiveIndustry();
   },
 
   goBack() {
@@ -213,7 +221,51 @@ Page({
   },
 
   onIndustryTap(e) {
-    this.setData({ activeIndustry: e.currentTarget.dataset.index });
+    this.setData({ activeIndustry: e.currentTarget.dataset.index }, () => {
+      this.refreshActiveIndustry();
+    });
+  },
+
+  refreshActiveIndustry() {
+    const activeIndustryData = this.data.industries[this.data.activeIndustry];
+    this.setData({
+      activeIndustryData,
+      competition: this.buildCompetition(activeIndustryData)
+    });
+  },
+
+  buildCompetition(industry) {
+    if (!industry) {
+      return { concentration: '', barrier: '', opportunity: '', players: [] };
+    }
+
+    const growth = parseFloat(String(industry.growth || '').replace('%', '')) || 0;
+    const heat = String(industry.heat || '');
+    const coreTrack = (industry.core || []).slice(0, 2).join('、');
+    const downstreamTrack = (industry.downstream || []).slice(0, 2).join('、');
+    const roles = ['综合龙头', '平台生态', '技术突破', '场景服务'];
+
+    return {
+      concentration: heat.includes('极高') || growth > 20
+        ? '头部集中度提升，平台型与技术型公司优势明显'
+        : '格局处于分层竞争阶段，细分赛道仍有切入空间',
+      barrier: growth > 18
+        ? '技术、资本、供应链和场景数据共同构成进入壁垒'
+        : '渠道、交付能力和行业 Know-how 是主要竞争门槛',
+      opportunity: `${coreTrack || '核心技术'} 与 ${downstreamTrack || '下游场景'} 的结合，是创业项目更适合切入的方向。`,
+      players: (industry.players || []).map((player, index) => ({
+        ...player,
+        role: roles[index] || '细分代表',
+        focus: (industry.core || industry.downstream || [])[index] || '产业协同',
+        chance: index === 0
+          ? '学习其生态布局和标准能力'
+          : index === 1
+            ? '关注平台接口、流量和合作资源'
+            : index === 2
+              ? '参考其技术壁垒和研发路径'
+              : '从细分场景、服务体验切入'
+      }))
+    };
   },
 
   goToImageInterpretation() {

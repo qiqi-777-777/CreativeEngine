@@ -1,124 +1,112 @@
-# 创享引擎 (CreativeEngine)
+# 创享引擎 CreativeEngine
 
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.5-brightgreen.svg)
-![Miniprogram](https://img.shields.io/badge/WeChat-Miniprogram-07C160.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+创享引擎是一个面向大学生、青年创业者和早期项目团队的一站式创业赋能平台。项目以前后端分离方式构建：前端采用微信小程序原生框架，后端采用 Spring Boot 3.1.5，围绕职业匹配、政策匹配、AI 创业助手、BP 智写、行业图谱、资源对接、个人工作台等场景，为用户提供从方向判断到材料生成、政策查询和资源沉淀的完整支持。
 
-## 📖 项目简介
+## 项目亮点
 
-**创享引擎 (Innovation Engine)** 是一个专为“青年创享者”打造的综合性创业赋能平台。项目采用全新的**极简杂志风 (Minimalist Magazine Style)** 设计语言，将美学与实用性完美结合。
-平台集成了行业图谱、政策匹配、BP智写、专家对接、AI图像解析等多种核心功能，并接入了 DeepSeek AI 智能助手，旨在为青年创业者提供从想法萌芽到落地执行的全方位、一站式支持。
+- **极简高端 UI 设计**：全站深度重构，应用高级杂志风格排版（Editorial Magazine Style）与极简黏土风（Claymorphism），搭配流畅的物理微动效，提供兼具美感与现代感的高品质使用体验。
+- **微信小程序入口**：覆盖首页、AI 助手、我的、政策匹配、职业匹配、BP 智写、行业图谱、资源对接、专家对接等页面。
+- **Spring Boot 后端服务**：提供认证、政策数据、职业匹配、AI 会话、用户个人数据、Banner、BP 导出等 REST API。
+- **DeepSeek AI 接入**：支持创业咨询、政策问答、BP 内容生成、职业匹配补充推荐等智能能力。
+- **政策数据增强**：内置 `gov.cn` 公开政策抓取脚本，可按关键词生成 MySQL 导入 SQL。
+- **用户数据沉淀**：支持政策收藏、职业匹配记录、BP 草稿、通知消息和个人统计。
+- **前后端分离**：小程序通过 `http://localhost:8080/api` 访问后端接口，便于后续扩展管理端或 Web 端。
 
-## 🎯 核心功能模块
+## 技术栈
 
-### 1. 首页核心引擎 (Innovation Engine)
-*   **职业匹配**: 根据专业和技能精准定位发展方向。
-*   **政策匹配**: 支持“毕业生 / 创业 / 大学生”等关键词单独检索或组合检索，获取国家扶持政策。
-*   **图说解读**: AI 智能读图与图像分析。
-*   **资源对接**: 高效寻找优质专家库与场地资源。
+| 层级 | 技术 |
+| --- | --- |
+| 小程序端 | 微信小程序原生框架、WXML、WXSS、JavaScript、自定义 TabBar |
+| 后端 | Java 17、Spring Boot 3.1.5、Spring Web、Spring Validation |
+| 数据访问 | MyBatis Plus 3.5.5、MySQL 8.0+ |
+| AI/外部调用 | DeepSeek API、OkHttp 4.11.0、Gson |
+| 工程工具 | Maven、Lombok、Node.js 脚本 |
 
-### 2. 个人工作台 (Profile)
-*   **数据看板**: 直观展示“已读行业”、“适配政策”、“对接资源”等核心足迹。
-*   **高频服务**: 快捷入口直达“行业图谱”、“我的匹配”、“BP 智写”、“专家对接”。
-*   **管理中心**: 企业档案、资质认证、消息通知等一体化管理。
-
-### 3. AI 智能驱动 (AI Assistant)
-*   基于 **DeepSeek AI** 驱动的智能对话与创业咨询解答。
-*   BP (商业计划书) 智能辅助撰写。
-
-### 4. 政策数据增强
-*   内置 `gov.cn` 政策抓取脚本，低频抓取公开政策页面并生成 MySQL 导入 SQL。
-*   政策正文会清洗导航、来源、原文链接等页面杂项，详情页展示更接近阅读型文本。
-*   支持多关键词拆分搜索，例如 `大学生创业`、`毕业生+创业`、`毕业生,创业,大学生`。
-
----
-
-## 🛠️ 技术栈架构
-
-### 后端技术 (Spring Boot)
-*   **核心框架**: Spring Boot 3.1.5
-*   **编程语言**: Java (JDK 17)
-*   **数据库**: MySQL 8.0+
-*   **ORM框架**: MyBatis Plus 3.5.5
-*   **HTTP通信**: OkHttp 4.11.0 (用于对接外部 AI 接口)
-*   **AI底层**: DeepSeek AI 大模型 API
-*   **其他组件**: Lombok, Gson, Validation
-
-### 前端技术 (微信小程序)
-*   **开发平台**: 微信小程序原生框架 (WXML, WXSS, JS)
-*   **设计语言**: 极简杂志风黑白排版 (Minimalist Magazine Style)
-*   **UI 布局**: Flexbox 高级流式布局，自适应滚动视图 (Scroll-View) 完美兼容。
-*   **AppID**: `wx32588fde0ff73bbb`
-
----
-
-## 📂 项目结构说明
+## 目录结构
 
 ```text
 CreativeEngine/
-├── miniprogram/               # 微信小程序前端 (极简杂志风 UI)
-│   ├── pages/                 # 小程序页面目录
-│   │   ├── index/             # 首页 (Innovation Engine)
-│   │   ├── mine/              # 个人中心 (Profile)
-│   │   ├── policy/            # 政策列表
-│   │   ├── policy-detail/     # 政策详情
-│   │   ├── resource/          # 资源对接
-│   │   ├── ai-assistant/      # AI 助手
-│   │   ├── image-interpretation/ # 图说解读
-│   │   ├── career-match/      # 职业匹配
-│   │   └── login/             # 登录/注册模块
-│   ├── utils/                 # 前端工具类与网络请求封装
-│   ├── images/                # 图片/图标资源库
-│   └── app.js/json/wxss       # 小程序全局配置
-├── src/                       # Spring Boot 后端源码
-│   ├── main/
-│   │   ├── java/com/mingde/creativeengine/
-│   │   │   ├── controller/    # RESTful API 控制器
-│   │   │   ├── service/       # 业务逻辑层
-│   │   │   ├── mapper/        # MyBatis Mapper 层
-│   │   │   ├── entity/        # 数据库实体类
-│   │   │   ├── common/        # 全局通用组件
-│   │   │   ├── config/        # 配置类 (跨域、拦截器等)
-│   │   │   └── exception/     # 全局异常处理
-│   │   └── resources/         # 后端资源文件
-│   │       └── application.yml# Spring Boot 核心配置
-├── scripts/                   # 政策抓取、导入说明与生成 SQL
-├── creative_engine.sql        # 数据库建表与初始化脚本
-├── pom.xml                    # Maven 依赖配置
-└── uploads/                   # 用户上传文件存储目录
+├─ miniprogram/                         # 微信小程序前端
+│  ├─ pages/                            # 页面目录
+│  │  ├─ index/                         # 首页
+│  │  ├─ ai-assistant/                  # AI 助手
+│  │  ├─ policy/                        # 政策列表/匹配
+│  │  ├─ policy-detail/                 # 政策详情与政策问答
+│  │  ├─ career-match/                  # 职业匹配
+│  │  ├─ career-match-result/           # 职业匹配结果
+│  │  ├─ bp-writer/                     # BP 智写
+│  │  ├─ bp-drafts/                     # BP 草稿
+│  │  ├─ industry-atlas/                # 行业图谱
+│  │  ├─ expert-connect/                # 专家对接
+│  │  ├─ resource/                      # 资源对接
+│  │  ├─ policy-favorites/              # 政策收藏
+│  │  ├─ career-records/                # 职业匹配记录
+│  │  ├─ notifications/                 # 通知
+│  │  ├─ settings/                      # 设置
+│  │  └─ mine/                          # 我的
+│  ├─ utils/                            # 请求、接口和本地数据工具
+│  ├─ images/                           # 图片与图标资源
+│  └─ custom-tab-bar/                   # 自定义底部导航
+├─ src/main/java/com/mingde/creativeengine/
+│  ├─ controller/                       # REST API 控制器
+│  ├─ service/                          # 业务服务
+│  ├─ mapper/                           # MyBatis Mapper
+│  ├─ entity/                           # 数据实体
+│  ├─ config/                           # 跨域、静态资源、MyBatis 配置
+│  ├─ common/                           # 统一返回结构
+│  └─ exception/                        # 全局异常处理
+├─ src/main/resources/
+│  ├─ application.yml                   # 后端主配置
+│  └─ application.properties
+├─ backend/sql/                         # 政策表结构、查询和种子数据
+├─ scripts/                             # 政策抓取、导入和数据库扩展脚本
+├─ creative_engine.sql                  # 数据库初始化脚本
+├─ uploads/                             # 上传文件目录
+└─ pom.xml                              # Maven 配置
 ```
 
----
+## 快速开始
 
-## 🚀 快速开始
+### 1. 环境准备
 
-### 环境准备
-1. **Java 17** 及以上版本。
-2. **Maven 3.6+**。
-3. **MySQL 8.0+**。
-4. **微信开发者工具**。
+- JDK 17+
+- Maven 3.6+
+- MySQL 8.0+
+- Node.js 16+（仅政策抓取脚本需要）
+- 微信开发者工具
 
-### 步骤 1：数据库配置
-在 MySQL 中创建数据库并导入表结构：
+### 2. 初始化数据库
+
 ```sql
 CREATE DATABASE creative_engine DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE creative_engine;
-SOURCE /path/to/creative_engine.sql;
 ```
 
-### 步骤 2：配置本地密钥
-不要把真实 DeepSeek API Key 写入 Git。推荐使用环境变量，或在本地创建已被 `.gitignore` 忽略的 `src/main/resources/application-secret.yml`。
+然后导入项目根目录的数据库脚本：
 
-环境变量方式：
+```bash
+mysql -uroot -p creative_engine < creative_engine.sql
+```
+
+如需启用用户个人数据相关表，可同时检查并导入：
+
+```bash
+mysql -uroot -p creative_engine < scripts/user_personal_data_schema.sql
+```
+
+### 3. 配置后端
+
+后端配置文件位于 `src/main/resources/application.yml`，默认端口为 `8080`，默认数据库为本机 `creative_engine`。
+
+建议使用环境变量保存敏感信息：
+
 ```bash
 DB_PASSWORD=your_mysql_password
 DEEPSEEK_API_KEY=your_deepseek_api_key
 ```
 
-本地私有配置方式：
+也可以在本地创建 `src/main/resources/application-secret.yml`，该文件不应提交到 Git：
+
 ```yaml
-# src/main/resources/application-secret.yml
 spring:
   datasource:
     password: your_mysql_password
@@ -127,57 +115,96 @@ deepseek:
   api-key: your_deepseek_api_key
 ```
 
-### 步骤 3：启动后端服务
-在根目录下运行：
+### 4. 启动后端
+
 ```bash
-mvn clean install
 mvn spring-boot:run
 ```
-*(服务默认启动在 `http://localhost:8080`)*
 
-### 步骤 4：导入政策数据
-生成并导入“毕业生 / 创业 / 大学生”相关政策：
+启动后可访问：
+
+```text
+http://localhost:8080
+http://localhost:8080/health
+http://localhost:8080/api/test
+```
+
+### 5. 运行小程序
+
+1. 打开微信开发者工具。
+2. 导入项目中的 `miniprogram` 目录。
+3. 根据需要配置 AppID，或使用测试号本地调试。
+4. 本地联调时，在微信开发者工具中勾选“不校验合法域名、web-view、TLS 版本以及 HTTPS 证书”。
+5. 确认 `miniprogram/app.js` 中 `globalData.apiBase` 指向：
+
+```js
+apiBase: 'http://localhost:8080/api'
+```
+
+## 政策数据导入
+
+项目提供了中国政府网公开政策抓取脚本，可按关键词低频抓取政策页面并生成 SQL。
+
 ```bash
-node scripts/import-gov-graduate-policies.js "--keyword=毕业生,创业,大学生" --pages=1 --output=scripts/generated/graduate_policies.sql
+node scripts/import-gov-graduate-policies.js "--keyword=毕业生 创业,大学生 就业" --pages=1 --output=scripts/generated/graduate_policies.sql
 mysql -uroot -p creative_engine < scripts/generated/graduate_policies.sql
 ```
 
-### 步骤 5：启动微信小程序
-1. 打开 **微信开发者工具**。
-2. 导入项目中的 `miniprogram` 文件夹。
-3. 如果尚未配置，填写您的 `AppID`，如果只是本地调试，可选择“测试号”。
-4. 在详情设置中勾选 **“不校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书”**。
-5. 编译运行即可预览“极简杂志风”精美 UI！
+定时导入可运行：
 
----
+```bash
+node scripts/schedule-gov-policy-import.js
+```
 
-## 🌐 核心 API 参考
+更多说明见 `scripts/README-gov-policy-import.md`。
 
-| 模块 | 接口路径 | 方法 | 说明 |
+## 核心接口
+
+| 模块 | 方法 | 路径 | 说明 |
 | --- | --- | --- | --- |
-| **用户** | `/api/auth/login` | POST | 用户登录鉴权 |
-| **用户** | `/api/auth/register` | POST | 用户注册 |
-| **政策** | `/api/policy-data/list` | GET | 获取政策列表，支持 `keyword` 多词检索 |
-| **政策** | `/api/policy-data/detail/{id}` | GET | 获取政策详情 |
-| **政策** | `/api/policy-data/ask` | POST | 基于政策内容进行 AI 问答 |
-| **AI 引擎** | `/api/ai/chat` | POST | 唤起 DeepSeek 智能对话 |
-| **职业/行业**| `/api/occupation/match` | POST | 提交信息进行职业匹配 |
-| **轮播图** | `/api/banner/list` | GET | 首页动态轮播获取 |
+| 健康检查 | GET | `/health` | 后端服务状态 |
+| 认证 | POST | `/api/auth/login` | 用户登录 |
+| 认证 | POST | `/api/auth/register` | 用户注册 |
+| 认证 | GET/PUT | `/api/auth/userInfo` | 获取或更新用户信息 |
+| AI 助手 | POST | `/api/ai/session/create` | 创建 AI 会话 |
+| AI 助手 | POST | `/api/ai/chat` | AI 对话 |
+| AI 助手 | GET | `/api/ai/history` | 查询会话消息 |
+| 政策 | GET | `/api/policy-data/list` | 政策列表，支持 `keyword` |
+| 政策 | GET | `/api/policy-data/detail/{id}` | 政策详情 |
+| 政策 | POST | `/api/policy-data/ask` | 基于政策内容进行问答 |
+| 职业匹配 | GET | `/api/occupation/majors` | 专业选项 |
+| 职业匹配 | GET | `/api/occupation/skills` | 技能选项 |
+| 职业匹配 | GET | `/api/occupation/personalities` | 性格选项 |
+| 职业匹配 | POST | `/api/occupation/match` | 生成匹配结果 |
+| 用户数据 | GET | `/api/user-data/stats` | 用户统计 |
+| 用户数据 | GET/POST/DELETE | `/api/user-data/bp-drafts` | BP 草稿管理 |
+| 用户数据 | GET/POST/DELETE | `/api/user-data/career-records` | 职业记录管理 |
+| 用户数据 | GET/POST/DELETE | `/api/user-data/policy-favorites` | 政策收藏管理 |
+| 用户数据 | GET/POST/PUT | `/api/user-data/notifications` | 通知管理 |
+| BP 导出 | POST | `/api/bp/export/{format}` | 导出 `doc` 或 `pdf` |
+| Banner | GET | `/api/banner/list` | 首页轮播图 |
+| Banner 管理 | GET/POST/PUT/DELETE | `/api/banner/admin/*` | 轮播图管理 |
 
-*(更多详细接口说明请在启动项目后访问 `http://localhost:8080/api/doc.html` 查看 Swagger 文档)*
+## 当前实现状态
 
----
+- 已接入后端：登录注册、用户信息、AI 助手、政策列表/详情/问答、职业匹配、Banner、用户收藏/记录/草稿/通知、BP 导出。
+- 以前端本地数据或原型为主：行业图谱、资源对接、专家对接的部分展示数据。
+- 可继续扩展：管理后台、真实专家预约、政策精准画像、微信一键登录、多模态图像理解、BP 文档深度排版导出。
 
-## 💡 开发与设计理念
+## 常见问题
 
-1. **“Less is More” 的视觉体验**: 小程序端抛弃了冗余的卡片与色块，采用黑白高对比的杂志风设计，并引入恰到好处的微交互，让“青年创享者”享受顶级阅读与使用体验。
-2. **前后端完全分离**: 标准 RESTful 规范，JSON 数据交互，提升扩展性。
-3. **AI 深度赋能**: 不只是简单的工具，而是将 AI 作为“联合创始人”，深度参与到 BP 撰写、行业分析中。
+### 小程序请求失败
 
----
+检查后端是否启动、`apiBase` 是否为 `http://localhost:8080/api`，并确认微信开发者工具已开启本地调试域名豁免。
 
-## 📄 许可证
+### AI 没有回复
 
-本项目基于 **MIT License** 开源。
+检查 `DEEPSEEK_API_KEY` 是否配置，后端控制台是否有外部接口调用错误。
 
-**感谢使用创享引擎！祝您创业顺利！** 🚀
+### 数据库连接失败
+
+检查 MySQL 是否启动、数据库名是否为 `creative_engine`，以及 `DB_PASSWORD` 或 `application-secret.yml` 是否正确。
+
+## 许可证
+
+项目当前用于学习、课程设计、原型验证和二次开发。若用于公开发布或商业部署，请先补充正式的 License、隐私政策、数据来源说明和第三方 API 使用条款。

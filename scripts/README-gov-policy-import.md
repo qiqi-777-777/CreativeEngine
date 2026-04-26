@@ -11,10 +11,10 @@ This project imports public policy pages from `www.gov.cn` into the existing
 
 ## Run
 
-Generate SQL for graduate, startup, and college student policy matching:
+Generate SQL for graduate, startup, college student, and employment policy matching:
 
 ```bash
-node scripts/import-gov-graduate-policies.js "--keyword=毕业生,创业,大学生" --pages=1 --output=scripts/generated/graduate_policies.sql
+node scripts/import-gov-graduate-policies.js "--keyword=毕业生,创业,大学生,就业" --pages=1 --output=scripts/generated/graduate_policies.sql
 ```
 
 Import into MySQL:
@@ -27,6 +27,19 @@ The importer keeps request frequency low and preserves the original `gov.cn`
 source URL inside each policy's content, so it works with the existing
 `policy_data` table without adding new columns. Generated SQL inserts new
 policies and refreshes existing rows with the same policy title.
+
+Run every 24 hours:
+
+```bash
+node scripts/schedule-gov-policy-import.js
+```
+
+The scheduler runs once immediately after startup, then runs again every 24
+hours. You can override the same crawl options when needed:
+
+```bash
+node scripts/schedule-gov-policy-import.js "--keyword=毕业生,创业,大学生,就业" --pages=1 --output=scripts/generated/graduate_policies.sql
+```
 
 For automatic import, the local machine needs:
 

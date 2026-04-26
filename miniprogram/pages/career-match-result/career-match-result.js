@@ -1,4 +1,6 @@
 // pages/career-match-result/career-match-result.js
+const userData = require('../../utils/userData')
+
 Page({
   data: {
     occupations: [],
@@ -11,6 +13,9 @@ Page({
       try {
         const occupations = JSON.parse(decodeURIComponent(options.data))
         this.setData({ occupations })
+        if (!options.fromRecord) {
+          this.saveRecord(occupations)
+        }
       } catch (err) {
         console.error('解析数据失败:', err)
         wx.showToast({
@@ -19,6 +24,18 @@ Page({
         })
       }
     }
+  },
+
+  saveRecord(occupations) {
+    if (!occupations || occupations.length === 0) return
+
+    const record = {
+      id: `career-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      results: occupations
+    }
+
+    userData.saveCareerRecord(record)
   },
 
   // 查看职业详情

@@ -1,4 +1,6 @@
 const app = getApp()
+const userData = require('../../utils/userData')
+const avatarUtil = require('../../utils/avatar')
 
 Page({
   data: {
@@ -7,9 +9,9 @@ Page({
     userInfo: null,
     avatarLetter: '',
     stats: [
-      { label: '已读行业', value: '0' },
-      { label: '适配政策', value: '0' },
-      { label: '对接资源', value: '0' },
+      { label: '政策收藏', value: '0', desc: '已关注', route: '/pages/policy-favorites/policy-favorites' },
+      { label: '测评记录', value: '0', desc: '职业方向', route: '/pages/career-records/career-records' },
+      { label: 'BP 草稿', value: '0', desc: '待完善', route: '/pages/bp-drafts/bp-drafts' },
     ],
     services: [
       { label: '行业图谱', iconChar: '图' },
@@ -18,12 +20,11 @@ Page({
       { label: '专家对接', iconChar: '专' },
     ],
     menuItems: [
-      { label: '我的申请', badge: '2', icon: 'file-text' },
-      { label: '企业档案', icon: 'briefcase' },
-      { label: '资质认证', text: '去认证', icon: 'award' },
-      { label: '消息通知', icon: 'message-square' },
-      { label: '帮助与客服', icon: 'help-circle' },
-      { label: '设置', icon: 'settings' },
+      { label: '我的政策收藏' },
+      { label: '职业测评记录' },
+      { label: 'BP 草稿箱' },
+      { label: '消息通知' },
+      { label: '设置' }
     ]
   },
 
@@ -59,16 +60,7 @@ Page({
       avatarLetter = name.charAt(0).toUpperCase();
     }
 
-    // 登录后显示真实数据，未登录显示0
-    const stats = isLogin ? [
-      { label: '已读行业', value: '15' },
-      { label: '适配政策', value: '8' },
-      { label: '对接资源', value: '3' },
-    ] : [
-      { label: '已读行业', value: '0' },
-      { label: '适配政策', value: '0' },
-      { label: '对接资源', value: '0' },
-    ];
+    const stats = this.buildStats();
 
     this.setData({
       isLogin,
@@ -76,6 +68,39 @@ Page({
       avatarLetter,
       stats
     });
+
+    if (isLogin) {
+      userData.getStats().then((serverStats) => {
+        this.setData({ stats: this.buildStats(serverStats) });
+      });
+    }
+  },
+
+  buildStats(counts = null) {
+    const favorites = userData.getLocalList(userData.KEYS.policyFavorites);
+    const careerRecords = userData.getLocalList(userData.KEYS.careerRecords);
+    const bpDrafts = userData.getLocalList(userData.KEYS.bpDrafts);
+
+    return [
+      {
+        label: '政策收藏',
+        value: String(counts ? counts.policyFavorites || 0 : favorites.length),
+        desc: '已关注',
+        route: '/pages/policy-favorites/policy-favorites'
+      },
+      {
+        label: '测评记录',
+        value: String(counts ? counts.careerRecords || 0 : careerRecords.length),
+        desc: '职业方向',
+        route: '/pages/career-records/career-records'
+      },
+      {
+        label: 'BP 草稿',
+        value: String(counts ? counts.bpDrafts || 0 : bpDrafts.length),
+        desc: '待完善',
+        route: '/pages/bp-drafts/bp-drafts'
+      }
+    ];
   },
 
   handleLogin() {
@@ -87,6 +112,34 @@ Page({
         icon: 'none'
       });
     });
+  },
+
+  async chooseAvatar() {
+    if (!this.data.isLogin) {
+      this.handleLogin();
+      return;
+    }
+
+    try {
+      wx.showLoading({ title: '处理中...' });
+      const userInfo = await avatarUtil.chooseAndSaveAvatar();
+      wx.hideLoading();
+
+      if (!userInfo) return;
+
+      this.refreshLoginState();
+      wx.showToast({
+        title: '头像已更换',
+        icon: 'success'
+      });
+    } catch (err) {
+      wx.hideLoading();
+      wx.showToast({
+        title: '更换失败',
+        icon: 'none'
+      });
+      console.error('更换头像失败:', err);
+    }
   },
 
   // 退出登录
@@ -138,10 +191,9 @@ Page({
     }
     const index = e.currentTarget.dataset.index;
     const item = this.data.stats[index];
-    wx.showToast({
-      title: `点击了 ${item.label}`,
-      icon: 'none'
-    });
+    if (item && item.route) {
+      wx.navigateTo({ url: item.route });
+    }
   },
 
   handleServiceClick(e) {
@@ -163,9 +215,22 @@ Page({
 
   handleMenuClick(e) {
     const item = e.currentTarget.dataset.item;
-    wx.showToast({
-      title: `点击了 ${item.label}`,
-      icon: 'none'
-    });
+    const routeMap = {
+      '我的政策收藏': '/pages/policy-favorites/policy-favorites',
+      '职业测评记录': '/pages/career-records/career-records',
+      'BP 草稿箱': '/pages/bp-drafts/bp-drafts',
+      '消息通知': '/pages/notifications/notifications',
+      '设置': '/pages/settings/settings'
+    };
+
+    const url = routeMap[item.label];
+    if (url) {
+      wx.navigateTo({ url });
+    } else {
+      wx.showToast({
+        title: `点击了 ${item.label}`,
+        icon: 'none'
+      });
+    }
   }
 })

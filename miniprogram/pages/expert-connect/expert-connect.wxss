@@ -102,3 +102,129 @@ view, scroll-view, text, image { box-sizing: border-box; }
   color: #fff; font-size: 16px; font-weight: 600; margin-top: 8px;
 }
 .book-btn:active { opacity: 0.8; }
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.container,
+.modal-panel {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.page-subtitle,
+.category-tag,
+.expert-count,
+.expert-title,
+.expert-consult,
+.expert-arrow,
+.detail-title,
+.detail-rating,
+.detail-text,
+.service-info-lbl,
+.empty-hint {
+  color: #7a8b9e;
+}
+
+.page-title,
+.expert-name,
+.expert-rating,
+.avatar-char,
+.detail-name,
+.detail-avatar-char,
+.detail-label,
+.service-info-val {
+  color: #5a6a85;
+}
+
+.back-btn,
+.category-tag,
+.expert-card,
+.expert-avatar,
+.expert-tag,
+.modal-panel,
+.detail-avatar,
+.detail-tag,
+.service-info-item,
+.book-btn {
+  border: none;
+  background-color: #f0f3f8;
+  box-shadow: 6px 6px 12px #d9dfe9, -6px -6px 12px #ffffff;
+}
+
+.back-btn {
+  border-radius: 18px;
+}
+
+.back-btn:active,
+.expert-card:active,
+.book-btn:active {
+  opacity: 1;
+  transform: scale(0.97);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.back-btn:active .icon-back,
+.icon-back {
+  color: #7a8b9e;
+}
+
+.category-scroll {
+  border-bottom: none;
+  padding-bottom: 20px;
+}
+
+.category-tag {
+  border-radius: 18px;
+}
+
+.category-tag.active {
+  background-color: #ff9a9e;
+  color: #ffffff;
+  box-shadow: inset 4px 4px 8px #e68b8e, inset -4px -4px 8px #ffabae;
+}
+
+.expert-card {
+  margin-bottom: 18px;
+  padding: 20px;
+  border-radius: 24px;
+}
+
+.expert-avatar,
+.detail-avatar {
+  border-radius: 22px;
+}
+
+.expert-tag,
+.detail-tag {
+  border-radius: 16px;
+  color: #7a8b9e;
+}
+
+.modal-overlay {
+  background: rgba(240, 243, 248, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.modal-panel {
+  border-radius: 32px 32px 0 0;
+  box-shadow: -12px -12px 24px rgba(255,255,255,0.95), 0 -12px 30px rgba(217,223,233,0.9);
+}
+
+.modal-handle {
+  background: #d9dfe9;
+}
+
+.detail-header {
+  border-bottom-color: #d9dfe9;
+}
+
+.service-info-item {
+  border-radius: 20px;
+}
+
+.book-btn {
+  border-radius: 22px;
+  background-color: #a1c4fd;
+  color: #ffffff;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}

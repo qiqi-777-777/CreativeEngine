@@ -30,31 +30,25 @@ module.exports = {
 <view class="page-container">
   <!-- Custom Navigation Bar -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-back" bindtap="goBack">
+    <view class="nav-back clay-btn-icon" bindtap="goBack">
       <view class="back-icon"></view>
     </view>
-    <text class="nav-title">AI职业匹配</text>
   </view>
 
-  <scroll-view class="main-content" scroll-y="true">
+  <scroll-view class="main-content" scroll-y="true" enable-flex="true">
     <!-- Editorial Title Section -->
     <view class="editorial-header">
-      <text class="en-subtitle">Career Match</text>
-      <text class="zh-title">职业匹配.</text>
-      <text class="desc-text">Select your competencies and traits below to initiate the AI-driven career alignment protocol.</text>
+      <text class="zh-title animate-slide-up-fade" style="animation-delay: 0ms">职业匹配</text>
+      <text class="desc-text animate-slide-up-fade" style="animation-delay: 100ms">轻触模块，构建你的多维画像</text>
     </view>
 
     <!-- 1. Major Section -->
-    <view class="section">
+    <view class="section clay-card animate-slide-up-fade" style="animation-delay: 200ms">
       <view class="section-header">
-        <text class="section-id">01</text>
-        <view class="section-title-wrap">
-          <text class="section-title">专业</text>
-          <text class="section-en">MAJOR & CERT.</text>
-        </view>
+        <text class="section-title">专业</text>
       </view>
-      <scroll-view class="tags-scroll" scroll-x="true" show-scrollbar="false">
-        <view class="tags-grid">
+      <scroll-view class="tags-scroll" scroll-x="true" enhanced show-scrollbar="{{false}}">
+        <view class="tags-wrap">
           <view
             wx:for="{{majorOptions}}"
             wx:key="*this"
@@ -67,20 +61,15 @@ module.exports = {
           </view>
         </view>
       </scroll-view>
-      <view class="divider"></view>
     </view>
 
     <!-- 2. Skill Section -->
-    <view class="section">
+    <view class="section clay-card animate-slide-up-fade" style="animation-delay: 300ms">
       <view class="section-header">
-        <text class="section-id">02</text>
-        <view class="section-title-wrap">
-          <text class="section-title">技术</text>
-          <text class="section-en">TECHNICAL SKILLS</text>
-        </view>
+        <text class="section-title">技术</text>
       </view>
-      <scroll-view class="tags-scroll" scroll-x="true" show-scrollbar="false">
-        <view class="tags-grid">
+      <scroll-view class="tags-scroll" scroll-x="true" enhanced show-scrollbar="{{false}}">
+        <view class="tags-wrap">
           <view
             wx:for="{{skillOptions}}"
             wx:key="*this"
@@ -93,20 +82,15 @@ module.exports = {
           </view>
         </view>
       </scroll-view>
-      <view class="divider"></view>
     </view>
 
     <!-- 3. Personality Section -->
-    <view class="section">
+    <view class="section clay-card animate-slide-up-fade" style="animation-delay: 400ms">
       <view class="section-header">
-        <text class="section-id">03</text>
-        <view class="section-title-wrap">
-          <text class="section-title">性格</text>
-          <text class="section-en">PERSONALITY TRAITS</text>
-        </view>
+        <text class="section-title">性格</text>
       </view>
-      <scroll-view class="tags-scroll" scroll-x="true" show-scrollbar="false">
-        <view class="tags-grid">
+      <scroll-view class="tags-scroll" scroll-x="true" enhanced show-scrollbar="{{false}}">
+        <view class="tags-wrap">
           <view
             wx:for="{{personalityDetails}}"
             wx:key="type"
@@ -122,32 +106,26 @@ module.exports = {
 
       <view class="helper-link" bindtap="showPersonalityDetail">
         <text>查看性格详细说明</text>
-        <view class="arrow-right-icon"></view>
       </view>
     </view>
   </scroll-view>
 
   <!-- Bottom Action Bar -->
-  <view class="bottom-bar">
-    <view class="selected-info">
-      <text class="info-label">已选要素</text>
-      <view class="info-value-wrap">
-        <text class="info-count">{{totalSelected > 0 ? totalSelected : '0'}}</text>
-        <text class="info-placeholder" wx:if="{{totalSelected === 0}}">期待你的选择</text>
-      </view>
-    </view>
-    <view class="match-btn {{totalSelected === 0 ? 'disabled' : ''}}" bindtap="onMatch">
-      <text>开始匹配</text>
-      <view class="btn-arrow"></view>
-    </view>
+  <view class="bottom-bar-wrapper animate-slide-up-fade" style="animation-delay: 600ms">
+    <button class="match-btn {{totalSelected > 0 ? 'active-btn' : 'inactive-btn'}}" bindtap="onMatch">
+      开始匹配
+      <view class="badge {{badgeAnimateClass}}" wx:if="{{totalSelected > 0}}">{{totalSelected}}</view>
+    </button>
   </view>
+
+  <view class="home-indicator"></view>
 
   <!-- Personality Modal -->
   <view class="modal-overlay" wx:if="{{showPersonalityModal}}" catchtap="hidePersonalityDetail">
-    <view class="personality-modal" catchtap="stopPropagation">
+    <view class="personality-modal clay-card" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">性格类型说明</text>
-        <view class="close-btn" bindtap="hidePersonalityDetail">✕</view>
+        <view class="close-btn clay-btn-icon-small" bindtap="hidePersonalityDetail">✕</view>
       </view>
       <scroll-view class="personality-content" scroll-y="true">
         <view class="personality-detail-item" wx:for="{{personalityDetails}}" wx:key="type">

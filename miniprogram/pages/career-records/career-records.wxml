@@ -1,0 +1,54 @@
+<view class="module-page font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="module-header">
+    <view class="header-top">
+      <view class="back-btn font-sans" bindtap="goBack">←</view>
+      <view>
+        <text class="module-eyebrow font-sans">CAREER RECORDS</text>
+        <text class="module-title">职业测评记录</text>
+      </view>
+    </view>
+    <text class="module-desc font-sans">保存每次职业匹配结果，方便你对比方向、技能要求和推荐理由。</text>
+  </view>
+
+  <scroll-view scroll-y class="module-scroll no-scrollbar">
+    <view class="content font-sans">
+      <view class="summary-row">
+        <view class="summary-item">
+          <text class="summary-value">{{records.length}}</text>
+          <text class="summary-label">测评次数</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{topCareerCount}}</text>
+          <text class="summary-label">累计推荐职业</text>
+        </view>
+      </view>
+
+      <view wx:if="{{records.length === 0}}" class="empty-state">
+        <view class="empty-mark">测</view>
+        <text class="empty-title">暂无测评记录</text>
+        <text class="empty-desc">完成一次职业匹配后，结果会自动保存到这里。</text>
+        <view class="solid-btn" bindtap="goToCareerMatch">开始测评</view>
+      </view>
+
+      <view wx:else class="record-list">
+        <view class="record-card" wx:for="{{records}}" wx:key="id" bindtap="openRecord" data-index="{{index}}">
+          <view class="record-top">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-badge">{{item.count}} 项</text>
+          </view>
+          <text class="record-meta">测评时间：{{item.createdAtText}}</text>
+          <text class="record-desc">{{item.summary}}</text>
+          <view class="tag-row">
+            <text class="tag" wx:for="{{item.topNames}}" wx:key="*this">{{item}}</text>
+          </view>
+          <view class="card-actions">
+            <view class="outline-btn" catchtap="openRecord" data-index="{{index}}">查看结果</view>
+            <view class="text-btn danger" catchtap="removeRecord" data-id="{{item.id}}">删除记录</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

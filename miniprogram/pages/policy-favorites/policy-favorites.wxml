@@ -1,0 +1,54 @@
+<view class="module-page font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="module-header">
+    <view class="header-top">
+      <view class="back-btn font-sans" bindtap="goBack">←</view>
+      <view>
+        <text class="module-eyebrow font-sans">POLICY FAVORITES</text>
+        <text class="module-title">我的政策收藏</text>
+      </view>
+    </view>
+    <text class="module-desc font-sans">把想持续关注的政策放在这里，后续可以继续查看、匹配和咨询 AI。</text>
+  </view>
+
+  <scroll-view scroll-y class="module-scroll no-scrollbar">
+    <view class="content font-sans">
+      <view class="summary-row">
+        <view class="summary-item">
+          <text class="summary-value">{{favorites.length}}</text>
+          <text class="summary-label">已收藏政策</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{recentCount}}</text>
+          <text class="summary-label">近 7 天新增</text>
+        </view>
+      </view>
+
+      <view wx:if="{{favorites.length === 0}}" class="empty-state">
+        <view class="empty-mark">策</view>
+        <text class="empty-title">还没有收藏政策</text>
+        <text class="empty-desc">进入政策详情页，点击“收藏政策”后会同步到这里。</text>
+        <view class="solid-btn" bindtap="goToPolicy">去看政策</view>
+      </view>
+
+      <view wx:else class="record-list">
+        <view class="record-card" wx:for="{{favorites}}" wx:key="key" bindtap="goToPolicyDetail" data-id="{{item.id}}">
+          <view class="record-top">
+            <text class="record-title">{{item.policyName}}</text>
+            <text class="record-badge">已收藏</text>
+          </view>
+          <text class="record-meta">收藏时间：{{item.savedAtText}}</text>
+          <text class="record-desc">{{item.summary}}</text>
+          <view class="tag-row" wx:if="{{item.keywordList.length > 0}}">
+            <text class="tag" wx:for="{{item.keywordList}}" wx:key="*this">{{item}}</text>
+          </view>
+          <view class="card-actions">
+            <view class="outline-btn" catchtap="goToPolicyDetail" data-id="{{item.id}}">查看详情</view>
+            <view class="text-btn danger" catchtap="removeFavorite" data-key="{{item.key}}">取消收藏</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,44 @@
+<view class="module-page font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="module-header">
+    <view class="header-top">
+      <view class="back-btn font-sans" bindtap="goBack">←</view>
+      <view>
+        <text class="module-eyebrow font-sans">MESSAGES</text>
+        <text class="module-title">消息通知</text>
+      </view>
+    </view>
+    <text class="module-desc font-sans">政策更新、测评结果、BP 草稿和系统提醒都会集中在这里。</text>
+  </view>
+
+  <scroll-view scroll-y class="module-scroll no-scrollbar">
+    <view class="content font-sans">
+      <view class="summary-row">
+        <view class="summary-item">
+          <text class="summary-value">{{notifications.length}}</text>
+          <text class="summary-label">全部消息</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{unreadCount}}</text>
+          <text class="summary-label">未读消息</text>
+        </view>
+      </view>
+
+      <view class="card-actions" wx:if="{{unreadCount > 0}}">
+        <view class="outline-btn" bindtap="markAllRead">全部已读</view>
+      </view>
+
+      <view class="record-list">
+        <view class="record-card" wx:for="{{notifications}}" wx:key="id" bindtap="markRead" data-id="{{item.id}}">
+          <view class="record-top">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-badge" wx:if="{{!item.read}}">未读</text>
+          </view>
+          <text class="record-meta">{{item.timeText}} · {{item.type}}</text>
+          <text class="record-desc">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

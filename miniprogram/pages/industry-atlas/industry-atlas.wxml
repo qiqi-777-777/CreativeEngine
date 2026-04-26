@@ -37,7 +37,7 @@
         <text class="section-en font-sans">Overview</text>
       </view>
       <view class="overview-card">
-        <text class="overview-text font-sans">{{industries[activeIndustry].overview}}</text>
+        <text class="overview-text font-sans">{{activeIndustryData.overview}}</text>
       </view>
     </view>
 
@@ -49,17 +49,17 @@
       </view>
       <view class="data-grid font-sans">
         <view class="data-item">
-          <text class="data-val">{{industries[activeIndustry].marketSize}}</text>
+          <text class="data-val">{{activeIndustryData.marketSize}}</text>
           <text class="data-lbl">市场规模</text>
         </view>
         <view class="data-divider"></view>
         <view class="data-item">
-          <text class="data-val">{{industries[activeIndustry].growth}}</text>
+          <text class="data-val">{{activeIndustryData.growth}}</text>
           <text class="data-lbl">年复合增长率</text>
         </view>
         <view class="data-divider"></view>
         <view class="data-item">
-          <text class="data-val">{{industries[activeIndustry].heat}}</text>
+          <text class="data-val">{{activeIndustryData.heat}}</text>
           <text class="data-lbl">行业景气度</text>
         </view>
       </view>
@@ -75,21 +75,21 @@
         <view class="chain-node">
           <text class="chain-title">上游</text>
           <view class="chain-tags">
-            <text class="chain-tag" wx:for="{{industries[activeIndustry].upstream}}" wx:key="*this">{{item}}</text>
+            <text class="chain-tag" wx:for="{{activeIndustryData.upstream}}" wx:key="*this">{{item}}</text>
           </view>
         </view>
         <view class="chain-arrow">→</view>
         <view class="chain-node chain-node-center">
           <text class="chain-title">核心</text>
           <view class="chain-tags">
-            <text class="chain-tag highlight" wx:for="{{industries[activeIndustry].core}}" wx:key="*this">{{item}}</text>
+            <text class="chain-tag highlight" wx:for="{{activeIndustryData.core}}" wx:key="*this">{{item}}</text>
           </view>
         </view>
         <view class="chain-arrow">→</view>
         <view class="chain-node">
           <text class="chain-title">下游</text>
           <view class="chain-tags">
-            <text class="chain-tag" wx:for="{{industries[activeIndustry].downstream}}" wx:key="*this">{{item}}</text>
+            <text class="chain-tag" wx:for="{{activeIndustryData.downstream}}" wx:key="*this">{{item}}</text>
           </view>
         </view>
       </view>
@@ -101,12 +101,33 @@
         <text class="section-label">竞争格局</text>
         <text class="section-en font-sans">Competition</text>
       </view>
+      <view class="competition-insights font-sans">
+        <view class="insight-card">
+          <text class="insight-label">格局判断</text>
+          <text class="insight-text">{{competition.concentration}}</text>
+        </view>
+        <view class="insight-card">
+          <text class="insight-label">进入壁垒</text>
+          <text class="insight-text">{{competition.barrier}}</text>
+        </view>
+        <view class="insight-card wide">
+          <text class="insight-label">创业切入点</text>
+          <text class="insight-text">{{competition.opportunity}}</text>
+        </view>
+      </view>
       <view class="player-list font-sans">
-        <view class="player-item" wx:for="{{industries[activeIndustry].players}}" wx:key="name">
+        <view class="player-item" wx:for="{{competition.players}}" wx:key="name">
           <view class="player-rank">{{index < 9 ? '0' : ''}}{{index + 1}}</view>
           <view class="player-info">
-            <text class="player-name">{{item.name}}</text>
+            <view class="player-name-row">
+              <text class="player-name">{{item.name}}</text>
+              <text class="player-role">{{item.role}}</text>
+            </view>
             <text class="player-desc">{{item.desc}}</text>
+            <view class="player-meta">
+              <text>重点：{{item.focus}}</text>
+              <text>启发：{{item.chance}}</text>
+            </view>
           </view>
           <text class="player-arrow">›</text>
         </view>

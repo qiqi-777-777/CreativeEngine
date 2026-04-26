@@ -329,3 +329,120 @@ page {
   color: #9CA3AF;
   margin-top: 8px;
 }
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.container,
+.nav-container {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.nav-bar {
+  padding: 10px 20px 14px;
+}
+
+.icon-menu,
+.send-btn,
+.sparkle-box,
+.avatar-box,
+.suggestion-item,
+.input-box-container {
+  background-color: #f0f3f8;
+  box-shadow: 6px 6px 12px #d9dfe9, -6px -6px 12px #ffffff;
+}
+
+.icon-menu {
+  width: 44px;
+  height: 44px;
+  border-radius: 18px;
+  align-items: center;
+}
+
+.line {
+  background-color: #7a8b9e;
+}
+
+.nav-title,
+.welcome-text,
+.message-content,
+.suggestion-text {
+  color: #5a6a85;
+}
+
+.arrow-down,
+.arrow-right,
+.disclaimer {
+  color: #7a8b9e;
+}
+
+.sparkle-box,
+.avatar-box {
+  border-radius: 24px;
+}
+
+.sparkle-icon,
+.sparkle-icon-small {
+  color: #ff9a9e;
+}
+
+.suggestion-item {
+  border: none;
+  border-radius: 24px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.suggestion-item:active {
+  background-color: #f0f3f8;
+  transform: scale(0.98);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.message-user .message-content {
+  background-color: #a1c4fd;
+  color: #ffffff;
+  border-radius: 24px;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.message-ai .message-content {
+  color: #5a6a85;
+}
+
+.bottom-input-area {
+  background: linear-gradient(to top, rgba(240,243,248,1) 88%, rgba(240,243,248,0));
+}
+
+.input-box-container {
+  border: none;
+  border-radius: 24px;
+  background-color: #f0f3f8;
+}
+
+.input-box-container:focus-within {
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.input-textarea,
+.icon-text {
+  color: #5a6a85;
+}
+
+.send-btn {
+  background-color: #f0f3f8;
+  color: #7a8b9e;
+}
+
+.send-btn.active {
+  background-color: #a1c4fd;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.send-btn.active:active {
+  transform: scale(0.9);
+  box-shadow: inset 4px 4px 8px #91b0e4, inset -4px -4px 8px #b1d8ff;
+}
+
+.dot {
+  background-color: #7a8b9e;
+}

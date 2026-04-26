@@ -2,6 +2,6 @@
   "navigationBarTitleText": "资源对接",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
-  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarBackgroundColor": "#f0f3f8",
   "navigationBarTextStyle": "black"
 }

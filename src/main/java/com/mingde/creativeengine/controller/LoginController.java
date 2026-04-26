@@ -26,6 +26,14 @@ public class LoginController {
     
     // 简单的token存储（生产环境建议使用Redis + JWT）
     private static final Map<String, Long> tokenStore = new ConcurrentHashMap<>();
+
+    public static Long resolveUserId(String token) {
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+        return tokenStore.get(cleanToken);
+    }
     
     /**
      * 用户登录
@@ -162,7 +170,8 @@ public class LoginController {
         
         try {
             if (token != null && !token.isEmpty()) {
-                tokenStore.remove(token);
+                String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+                tokenStore.remove(cleanToken);
                 log.info("用户退出登录: token={}", token);
             }
             
@@ -192,7 +201,7 @@ public class LoginController {
                 return result;
             }
             
-            Long userId = tokenStore.get(token);
+            Long userId = resolveUserId(token);
             if (userId == null) {
                 result.put("code", 401);
                 result.put("message", "登录已过期");
@@ -216,6 +225,68 @@ public class LoginController {
             result.put("message", "获取用户信息失败：" + e.getMessage());
         }
         
+        return result;
+    }
+
+    @PutMapping("/userInfo")
+    public Map<String, Object> updateUserInfo(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody Map<String, String> params) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            if (token == null || token.isEmpty()) {
+                result.put("code", 401);
+                result.put("message", "未登录");
+                return result;
+            }
+
+            Long userId = resolveUserId(token);
+            if (userId == null) {
+                result.put("code", 401);
+                result.put("message", "登录已过期");
+                return result;
+            }
+
+            String nickname = params.get("nickname");
+            String phone = params.get("phone");
+            String email = params.get("email");
+            String avatar = params.get("avatar");
+
+            if (nickname == null || nickname.trim().isEmpty()) {
+                result.put("code", 400);
+                result.put("message", "昵称不能为空");
+                return result;
+            }
+
+            if (phone != null && !phone.trim().isEmpty() && !phone.matches("^1\\d{10}$")) {
+                result.put("code", 400);
+                result.put("message", "手机号格式不正确");
+                return result;
+            }
+
+            if (email != null && !email.trim().isEmpty() && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                result.put("code", 400);
+                result.put("message", "邮箱格式不正确");
+                return result;
+            }
+
+            User user = userService.updateUserInfo(userId, nickname, phone, email, avatar);
+            if (user == null) {
+                result.put("code", 404);
+                result.put("message", "用户不存在");
+                return result;
+            }
+
+            result.put("code", 200);
+            result.put("message", "保存成功");
+            result.put("data", user);
+        } catch (Exception e) {
+            log.error("更新用户资料失败", e);
+            result.put("code", 500);
+            result.put("message", "更新用户资料失败：" + e.getMessage());
+        }
+
         return result;
     }
 }

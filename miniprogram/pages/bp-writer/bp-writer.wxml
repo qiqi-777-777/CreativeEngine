@@ -29,6 +29,7 @@
         </view>
         <text class="step-hint">Step {{currentStep + 1}} / 4</text>
       </view>
+      <text class="autosave-hint font-sans" wx:if="{{lastSavedText}}">{{lastSavedText}}</text>
 
       <!-- Step 0: 项目名称 -->
       <view class="form-section" wx:if="{{currentStep === 0}}">
@@ -92,6 +93,7 @@
         <view>
           <text class="result-main-title">{{formData.projectName || '商业计划书'}}</text>
           <text class="result-sub font-sans">BUSINESS PLAN · AI GENERATED</text>
+          <text class="result-save-hint font-sans" wx:if="{{lastSavedText}}">{{lastSavedText}}</text>
         </view>
       </view>
 
@@ -114,6 +116,15 @@
       <view class="result-actions font-sans" wx:if="{{!isGenerating}}">
         <view class="action-btn-outline" bindtap="resetForm">
           <text>重新填写</text>
+        </view>
+        <view class="action-btn-outline" bindtap="saveBPDraft">
+          <text>保存草稿</text>
+        </view>
+        <view class="action-btn-outline" bindtap="exportBP" data-format="word">
+          <text>{{isExporting ? '导出中' : '导出 Word'}}</text>
+        </view>
+        <view class="action-btn-outline" bindtap="exportBP" data-format="pdf">
+          <text>{{isExporting ? '导出中' : '导出 PDF'}}</text>
         </view>
         <view class="action-btn-solid" bindtap="copyBP">
           <text>复制全文</text>

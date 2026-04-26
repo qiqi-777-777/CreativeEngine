@@ -55,7 +55,31 @@ page {
   color: #000000;
   line-height: 1.2;
   text-align: center;
-  margin-bottom: 64rpx;
+  margin-bottom: 28rpx;
+}
+
+.policy-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 56rpx;
+}
+
+.favorite-btn {
+  height: 64rpx;
+  padding: 0 32rpx;
+  border: 2rpx solid #000000;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.favorite-btn.active {
+  background-color: #000000;
+  color: #ffffff;
 }
 
 .tags-wrapper {
@@ -442,4 +466,169 @@ page {
   font-size: 24rpx;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.container,
+.ai-sheet,
+.ai-messages-area,
+.ai-input-bar {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.policy-title,
+.ai-sheet-title,
+.ai-sticky-title,
+.content-paragraph,
+.source-footer,
+.ai-trigger-placeholder,
+.bubble-ai,
+.ai-input,
+.loading-text,
+.error-text {
+  color: #5a6a85;
+}
+
+.policy-en-title,
+.source-footer,
+.ai-sticky-subtitle,
+.ai-input-placeholder {
+  color: #7a8b9e;
+}
+
+.detail-scroll {
+  padding: 64rpx 56rpx 0;
+}
+
+.policy-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.favorite-btn,
+.tag-item,
+.text-container,
+.ai-sticky-bar,
+.ai-trigger-box,
+.ai-send-btn,
+.bubble-user,
+.bubble-ai,
+.retry-btn {
+  border: none;
+  border-radius: 32rpx;
+  background-color: #f0f3f8;
+  box-shadow: 8px 8px 16px #d9dfe9, -8px -8px 16px #ffffff;
+}
+
+.favorite-btn {
+  color: #7a8b9e;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.favorite-btn.active,
+.tag-item {
+  background-color: #ff9a9e;
+  color: #ffffff;
+  box-shadow: inset 4px 4px 8px #e68b8e, inset -4px -4px 8px #ffabae;
+}
+
+.favorite-btn:active {
+  transform: scale(0.95);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.text-container {
+  padding: 44rpx 36rpx;
+}
+
+.text-decorator,
+.dot {
+  background-color: #d9dfe9;
+}
+
+.source-footer {
+  border-top-color: #d9dfe9;
+}
+
+.ai-sticky-bar {
+  left: 56rpx;
+  right: 56rpx;
+  bottom: calc(32rpx + env(safe-area-inset-bottom));
+  padding: 32rpx;
+  color: #5a6a85;
+}
+
+.sparkle-icon,
+.sparkle-icon-dark {
+  color: #ff9a9e;
+}
+
+.ai-trigger-box {
+  height: 96rpx;
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.ai-trigger-box:active {
+  background-color: #f0f3f8;
+  transform: scale(0.98);
+}
+
+.ai-trigger-btn,
+.ai-send-btn {
+  background-color: #a1c4fd;
+  color: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.ai-backdrop {
+  background-color: rgba(240, 243, 248, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.ai-sheet {
+  border-top-left-radius: 64rpx;
+  border-top-right-radius: 64rpx;
+  box-shadow: -12px -12px 24px rgba(255,255,255,0.95), 0 -12px 30px rgba(217,223,233,0.9);
+}
+
+.ai-sheet-header,
+.ai-input-bar {
+  border-color: #d9dfe9;
+}
+
+.ai-sheet-close {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background-color: #f0f3f8;
+  color: #7a8b9e;
+  box-shadow: 4px 4px 8px #d9dfe9, -4px -4px 8px #ffffff;
+}
+
+.bubble-user {
+  background-color: #a1c4fd;
+  color: #ffffff;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.bubble-ai {
+  color: #5a6a85;
+}
+
+.ai-input-wrapper {
+  border-bottom: none;
+  border-radius: 24rpx;
+  padding: 20rpx 24rpx;
+  background-color: #f0f3f8;
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.retry-btn {
+  color: #ffffff;
+  background-color: #a1c4fd;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
 }

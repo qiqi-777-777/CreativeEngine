@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const DEFAULT_KEYWORD = '毕业生,创业,大学生'
+const DEFAULT_KEYWORD = '毕业生,创业,大学生,就业'
 const SEARCH_CODE = '17da70961a7'
 const SEARCH_DATA_TYPE = '107'
 const DEFAULT_OUTPUT = path.join('scripts', 'generated', 'graduate_policies.sql')

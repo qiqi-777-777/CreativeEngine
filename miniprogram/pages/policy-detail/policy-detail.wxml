@@ -6,6 +6,12 @@
       <view class="policy-en-title">POLICY DETAILS</view>
       <view class="policy-title">{{policy.policyName || '加载中...'}}</view>
 
+      <view class="policy-actions">
+        <view class="favorite-btn {{isFavorite ? 'active' : ''}}" bindtap="togglePolicyFavorite">
+          {{isFavorite ? '已收藏' : '收藏政策'}}
+        </view>
+      </view>
+
       <!-- Tags -->
       <view class="tags-wrapper" wx:if="{{keywordList.length > 0}}">
         <block wx:for="{{keywordList}}" wx:key="*this">

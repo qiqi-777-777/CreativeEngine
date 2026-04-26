@@ -107,6 +107,32 @@ public class UserServiceImpl implements UserService {
         
         return user;
     }
+
+    @Override
+    public User updateUserInfo(Long id, String nickname, String phone, String email, String avatar) {
+        User user = userMapper.selectById(id);
+
+        if (user == null) {
+            return null;
+        }
+
+        if (nickname != null) {
+            user.setNickname(nickname.trim());
+        }
+        if (phone != null) {
+            user.setPhone(phone.trim());
+        }
+        if (email != null) {
+            user.setEmail(email.trim());
+        }
+        if (avatar != null) {
+            user.setAvatar(avatar.trim());
+        }
+
+        userMapper.updateById(user);
+        user.setPassword(null);
+        return user;
+    }
     
     /**
      * 密码加密（使用MD5，生产环境建议使用BCrypt）

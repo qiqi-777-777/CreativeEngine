@@ -1,7 +1,6 @@
 <view class="container font-serif">
   <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
 
-  <!-- 顶部导航 -->
   <view class="page-header">
     <text class="page-subtitle font-sans">MY MATCH</text>
     <view class="title-row">
@@ -12,7 +11,6 @@
     </view>
   </view>
 
-  <!-- Tab 切换 -->
   <view class="tab-bar font-sans">
     <view class="tab-item {{activeTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">
       <text>职业匹配</text>
@@ -24,52 +22,100 @@
     </view>
   </view>
 
-  <!-- 内容区域 -->
   <scroll-view scroll-y class="content-scroll no-scrollbar">
-
-    <!-- 职业匹配 Tab -->
     <view wx:if="{{activeTab === 0}}">
-      <view class="result-card font-sans" wx:for="{{careerResults}}" wx:key="id">
-        <view class="result-header">
-          <view class="match-badge">{{item.matchRate}}%</view>
-          <view class="result-title-box">
-            <text class="result-title">{{item.title}}</text>
-            <text class="result-sub">{{item.category}}</text>
-          </view>
+      <view class="match-summary font-sans" wx:if="{{careerResults.length > 0}}">
+        <view>
+          <text class="summary-title">最近一次测评</text>
+          <text class="summary-desc">已根据 {{latestMatchDate}} 的结果更新</text>
         </view>
-        <text class="result-desc">{{item.desc}}</text>
-        <view class="result-tags">
-          <text class="result-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
-        </view>
-        <view class="result-footer">
-          <text class="result-date">匹配于 {{item.date}}</text>
-          <text class="result-arrow">›</text>
+        <view class="summary-count">{{careerResults.length}} 项</view>
+      </view>
+
+      <view wx:if="{{careerResults.length === 0}}" class="empty-state font-sans">
+        <view class="empty-mark">配</view>
+        <text class="empty-title">暂无职业匹配结果</text>
+        <text class="empty-desc">完成一次职业测评后，这里会自动展示最新推荐方向。</text>
+        <view class="bottom-action compact" bindtap="goToCareerMatch">
+          <text class="action-text">开始职业匹配</text>
         </view>
       </view>
 
-      <!-- 重新匹配按钮 -->
-      <view class="bottom-action" bindtap="goToCareerMatch">
-        <text class="action-text">重新进行职业匹配</text>
-        <text class="action-arrow">→</text>
+      <view wx:else>
+        <view class="result-card font-sans" wx:for="{{careerResults}}" wx:key="id" bindtap="openCareerResult" data-index="{{index}}">
+          <view class="result-header">
+            <view class="match-badge">{{item.matchRate}}%</view>
+            <view class="result-title-box">
+              <text class="result-title">{{item.title}}</text>
+              <text class="result-sub">{{item.category}}</text>
+            </view>
+          </view>
+          <text class="result-desc">{{item.desc}}</text>
+          <view class="result-tags">
+            <text class="result-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+          </view>
+          <view class="result-footer">
+            <text class="result-date">匹配于 {{item.date}}</text>
+            <text class="result-arrow">查看详情 ></text>
+          </view>
+        </view>
+
+        <view class="bottom-action" bindtap="goToCareerMatch">
+          <text class="action-text">重新进行职业匹配</text>
+          <text class="action-arrow">→</text>
+        </view>
       </view>
     </view>
 
-    <!-- 适配政策 Tab -->
     <view wx:if="{{activeTab === 1}}">
-      <view class="policy-card font-sans" wx:for="{{policyResults}}" wx:key="id" bindtap="goToPolicyDetail" data-id="{{item.id}}">
-        <view class="policy-top">
-          <text class="policy-title">{{item.title}}</text>
-          <text class="policy-amount">{{item.amount}}</text>
+      <view class="policy-hero font-sans">
+        <view>
+          <text class="policy-hero-title">为你筛出 {{policyResults.length}} 条政策</text>
+          <text class="policy-hero-desc">根据最近职业匹配、就业创业关键词和政策内容综合排序</text>
         </view>
-        <text class="policy-summary">{{item.summary}}</text>
-        <view class="policy-bottom">
-          <text class="policy-source">{{item.source}}</text>
-          <text class="policy-deadline">截止 {{item.deadline}}</text>
+        <view class="policy-refresh" bindtap="loadMatchedPolicies">刷新</view>
+      </view>
+
+      <view class="keyword-row font-sans" wx:if="{{displayPolicyKeywords.length > 0}}">
+        <text class="keyword-chip" wx:for="{{displayPolicyKeywords}}" wx:key="*this">{{item}}</text>
+      </view>
+
+      <view class="loading-state font-sans" wx:if="{{policyLoading}}">
+        <text>正在匹配政策...</text>
+      </view>
+
+      <view wx:if="{{!policyLoading && policyResults.length === 0}}" class="empty-state font-sans">
+        <view class="empty-mark">策</view>
+        <text class="empty-title">暂无适配政策</text>
+        <text class="empty-desc">可以先查看政策库，或完成一次职业匹配后再回来查看。</text>
+        <view class="bottom-action compact" bindtap="goToPolicyList">
+          <text class="action-text">查看政策库</text>
         </view>
       </view>
 
-      <view class="empty-hint font-sans" wx:if="{{policyResults.length === 0}}">
-        <text>暂无适配政策，请完善企业档案以获取更精准的推荐</text>
+      <view wx:if="{{!policyLoading && policyResults.length > 0}}" class="policy-list">
+        <view class="policy-card font-sans" wx:for="{{policyResults}}" wx:key="id" bindtap="goToPolicyDetail" data-id="{{item.id}}">
+          <view class="policy-top">
+            <view class="policy-main">
+              <text class="policy-title">{{item.title}}</text>
+              <text class="policy-source">{{item.source}} · {{item.date}}</text>
+            </view>
+            <view class="policy-score">{{item.matchRate}}%</view>
+          </view>
+
+          <text class="policy-summary">{{item.summary}}</text>
+
+          <view class="policy-reason">
+            <text>{{item.reason}}</text>
+          </view>
+
+          <view class="policy-bottom">
+            <view class="policy-tags">
+              <text class="policy-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+            </view>
+            <text class="policy-arrow">详情 ></text>
+          </view>
+        </view>
       </view>
     </view>
 

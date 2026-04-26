@@ -1,12 +1,12 @@
 <!--pages/policy/policy.wxml-->
 <view class="container">
   <!-- Minimalist Header -->
-  <view class="header-section">
+  <view class="header-section animate-slide-up-fade" style="animation-delay: 0ms">
     <view class="title-wrapper">
-      <view class="page-subtitle">POLICY MATCH</view>
-      <view class="page-title">政策速配.</view>
+      <view class="page-title">政策匹配</view>
+      <view class="page-subtitle">输入关键词，精准匹配政策资源</view>
     </view>
-    <view class="filter-btn">
+    <view class="filter-btn clay-btn-icon">
       <view class="icon-sliders">
         <view class="slider-line"><view class="slider-knob"></view></view>
         <view class="slider-line reverse"><view class="slider-knob"></view></view>
@@ -16,9 +16,9 @@
   </view>
 
   <!-- Search Bar -->
-  <view class="search-section">
-    <view class="search-box">
-      <icon type="search" size="20" color="#9CA3AF" class="search-icon"></icon>
+  <view class="search-section animate-slide-up-fade" style="animation-delay: 100ms">
+    <view class="search-box clay-box">
+      <icon type="search" size="20" color="#7a8b9e" class="search-icon"></icon>
       <input
         class="search-input"
         placeholder="输入关键词匹配..."
@@ -35,15 +35,12 @@
   <scroll-view class="policy-list" scroll-y enable-back-to-top>
     <view class="list-wrapper">
       <block wx:for="{{filteredPolicyList}}" wx:key="id">
-        <view class="policy-article" bindtap="onSelectPolicy" data-id="{{item.id}}">
-          <!-- Index & Date -->
-          <view class="article-meta">
-            <text class="article-index">{{index < 9 ? '0' + (index + 1) : (index + 1)}}</text>
-            <text class="article-date">{{item.publishDate ? item.publishDate : 'LATEST'}}</text>
+        <view class="policy-article clay-card animate-slide-up-fade" style="animation-delay: {{200 + index * 100}}ms" bindtap="onSelectPolicy" data-id="{{item.id}}">
+          <!-- Title & Meta -->
+          <view class="article-header">
+             <view class="article-title">{{item.policyName}}</view>
+             <view class="article-date">{{item.publishDate ? item.publishDate : 'LATEST'}}</view>
           </view>
-
-          <!-- Title -->
-          <view class="article-title">{{item.policyName}}</view>
 
           <!-- Snippet -->
           <view class="article-snippet">
@@ -54,18 +51,18 @@
           <view class="article-footer">
             <view class="article-tags">
               <!-- Using a simple split here if needed, or just display the whole keyword string if it's one string. Assuming backend sends string. -->
-              <view class="tag" wx:if="{{item.keywords}}">{{item.keywords}}</view>
+              <view class="tag clay-tag" wx:if="{{item.keywords}}">{{item.keywords}}</view>
             </view>
-            <view class="article-action">
-              <text class="action-text">READ</text>
+            <view class="article-action clay-btn-small">
+              <text class="action-text">查看</text>
               <text class="arrow-right">→</text>
             </view>
           </view>
         </view>
       </block>
 
-      <view wx:if="{{filteredPolicyList.length === 0}}" class="empty-state">
-        <text class="empty-text">{{searchKeyword ? 'NO RESULTS FOUND.' : 'NO POLICIES AVAILABLE.'}}</text>
+      <view wx:if="{{filteredPolicyList.length === 0}}" class="empty-state animate-slide-up-fade" style="animation-delay: 200ms">
+        <text class="empty-text">{{searchKeyword ? '无匹配结果' : '暂无政策'}}</text>
       </view>
     </view>
     <view class="bottom-spacer"></view>

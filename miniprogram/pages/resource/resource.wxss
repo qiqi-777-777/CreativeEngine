@@ -539,3 +539,191 @@ page {
   transform: translateY(4rpx);
   box-shadow: 8rpx 8rpx 0 rgba(0,0,0,0.1);
 }
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.page-root,
+.view-container,
+.bg-white {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.animate-fade-slide {
+  animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.header-area {
+  padding: 56rpx 56rpx 24rpx;
+  align-items: center;
+}
+
+.header-subtitle,
+.detail-en,
+.info-label,
+.bottom-cat-label,
+.card-status,
+.card-location,
+.rem-label {
+  color: #7a8b9e;
+}
+
+.header-title,
+.detail-title-large,
+.card-title,
+.salary-val,
+.rem-val,
+.bottom-cat-val,
+.info-value,
+.section-title,
+.req-text {
+  color: #5a6a85;
+}
+
+.header-title,
+.detail-title-large {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.search-btn,
+.back-btn,
+.card-arrow {
+  border: none;
+  border-radius: 28rpx;
+  background-color: #f0f3f8;
+  box-shadow: 5px 5px 10px #d9dfe9, -5px -5px 10px #ffffff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.search-btn:active,
+.back-btn:active,
+.card-arrow:active {
+  background-color: #f0f3f8;
+  transform: scale(0.9);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.tabs-area {
+  padding: 32rpx 56rpx 24rpx;
+  border-bottom: none;
+}
+
+.tab-item {
+  padding: 16rpx 28rpx;
+  margin-right: 24rpx;
+  border-radius: 24rpx;
+  background-color: #f0f3f8;
+  color: #7a8b9e;
+  box-shadow: 4px 4px 8px #d9dfe9, -4px -4px 8px #ffffff;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab-item.active {
+  color: #ffffff;
+  background-color: #ff9a9e;
+  box-shadow: inset 4px 4px 8px #e68b8e, inset -4px -4px 8px #ffabae;
+}
+
+.tab-indicator {
+  display: none;
+}
+
+.list-content {
+  padding-top: 28rpx;
+  gap: 40rpx;
+}
+
+.resource-card,
+.detail-header-box,
+.info-item,
+.detail-section {
+  border: none;
+  border-radius: 48rpx;
+  background-color: #f0f3f8;
+  box-shadow: 12px 12px 24px #d9dfe9, -12px -12px 24px #ffffff;
+}
+
+.resource-card {
+  padding: 44rpx 40rpx;
+  margin-bottom: 0;
+}
+
+.resource-card:active {
+  opacity: 1;
+  transform: scale(0.98);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.card-category,
+.status-dot {
+  border: none;
+  color: #ffffff;
+  background-color: #ff9a9e;
+  border-radius: 16rpx;
+  box-shadow: inset 3px 3px 6px #e68b8e, inset -3px -3px 6px #ffabae;
+}
+
+.card-desc,
+.section-desc,
+.req-text,
+.salary-unit,
+.rem-unit {
+  color: #7a8b9e;
+}
+
+.detail-header-box {
+  padding: 48rpx;
+  margin-bottom: 48rpx;
+}
+
+.info-grid {
+  border-bottom: none;
+  gap: 28rpx;
+  padding-bottom: 48rpx;
+  margin-bottom: 48rpx;
+}
+
+.info-item,
+.detail-section {
+  padding: 32rpx;
+}
+
+.req-idx {
+  color: #a5b0c2;
+}
+
+.end-line {
+  width: 256rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background-color: #d9dfe9;
+}
+
+.bottom-action-bar {
+  left: 56rpx;
+  right: 56rpx;
+  bottom: calc(32rpx + env(safe-area-inset-bottom));
+  border-top: none;
+  border-radius: 40rpx;
+  background-color: #f0f3f8;
+  padding: 24rpx;
+  box-shadow: 8px 8px 16px #d9dfe9, -8px -8px 16px #ffffff;
+}
+
+.apply-btn {
+  border-radius: 32rpx;
+  background-color: #a1c4fd;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.apply-btn:active {
+  transform: scale(0.95);
+  box-shadow: inset 4px 4px 8px #91b0e4, inset -4px -4px 8px #b1d8ff;
+}
+
+@keyframes slideUpFade {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

@@ -56,6 +56,13 @@ page { background-color: #ffffff; height: 100vh; overflow: hidden; }
   letter-spacing: 1px;
 }
 
+.autosave-hint {
+  display: block;
+  padding: 8px 24px 0;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
 /* Form */
 .form-section {
   padding: 32px 24px;
@@ -160,6 +167,14 @@ page { background-color: #ffffff; height: 100vh; overflow: hidden; }
   letter-spacing: 2px;
 }
 
+.result-save-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+  letter-spacing: 0;
+}
+
 /* Loading */
 .loading-box {
   display: flex;
@@ -204,26 +219,132 @@ page { background-color: #ffffff; height: 100vh; overflow: hidden; }
 /* Result Actions */
 .result-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   padding-bottom: 24px;
 }
 .action-btn-outline {
-  flex: 1;
+  flex: 1 1 calc(50% - 8px);
   padding: 16px;
   text-align: center;
   border: 1px solid #000;
   font-size: 15px;
   font-weight: 600;
   color: #000;
+  box-sizing: border-box;
 }
 .action-btn-outline:active { background-color: #f9fafb; }
 .action-btn-solid {
-  flex: 1;
+  flex: 1 1 100%;
   padding: 16px;
   text-align: center;
   background-color: #000;
   font-size: 15px;
   font-weight: 600;
   color: #fff;
+  box-sizing: border-box;
 }
 .action-btn-solid:active { opacity: 0.8; }
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.container {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.page-header,
+.step-indicator,
+.form-section,
+.result-section {
+  animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.page-subtitle,
+.step-hint,
+.autosave-hint,
+.form-en,
+.result-sub,
+.result-save-hint,
+.loading-text,
+.bp-text {
+  color: #7a8b9e;
+}
+
+.page-title,
+.form-label,
+.result-main-title {
+  color: #5a6a85;
+}
+
+.back-btn,
+.form-input,
+.form-textarea,
+.nav-btn,
+.action-btn-outline,
+.action-btn-solid {
+  border: none;
+  border-radius: 18px;
+  background-color: #f0f3f8;
+  box-shadow: 6px 6px 12px #d9dfe9, -6px -6px 12px #ffffff;
+}
+
+.back-btn:active,
+.nav-btn:active,
+.action-btn-outline:active,
+.action-btn-solid:active {
+  opacity: 1;
+  transform: scale(0.95);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.back-btn:active .icon-back {
+  color: #7a8b9e;
+}
+
+.icon-back {
+  color: #7a8b9e;
+}
+
+.step-dot.active,
+.step-line.active,
+.loading-dot {
+  background-color: #ff9a9e;
+}
+
+.step-dot,
+.step-line {
+  background-color: #d9dfe9;
+}
+
+.form-input,
+.form-textarea {
+  color: #5a6a85;
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.nav-next,
+.nav-generate,
+.action-btn-solid {
+  background-color: #a1c4fd;
+  color: #ffffff;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.nav-prev,
+.action-btn-outline {
+  color: #7a8b9e;
+}
+
+.result-header-bar {
+  border-bottom: none;
+  padding: 24px;
+  border-radius: 24px;
+  background-color: #f0f3f8;
+  box-shadow: 12px 12px 24px #d9dfe9, -12px -12px 24px #ffffff;
+}
+
+@keyframes slideUpFade {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}

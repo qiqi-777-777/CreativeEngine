@@ -231,6 +231,40 @@ page {
 }
 
 /* Players */
+.competition-insights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.insight-card {
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  min-height: 92px;
+}
+
+.insight-card.wide {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
+.insight-label {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.insight-text {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #000;
+  font-weight: 600;
+}
+
 .player-list {
   border-top: 1px solid #000;
 }
@@ -255,18 +289,44 @@ page {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+.player-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .player-name {
   font-size: 15px;
   font-weight: 600;
   color: #000;
-  margin-bottom: 2px;
+}
+
+.player-role {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .player-desc {
   font-size: 12px;
   color: #9ca3af;
+}
+
+.player-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6b7280;
 }
 
 .player-arrow {
@@ -298,4 +358,126 @@ page {
 
 .bottom-action:active {
   opacity: 0.8;
+}
+
+/* ================= Clay Theme Overrides ================= */
+page,
+.container {
+  background-color: #f0f3f8;
+  color: #5a6a85;
+}
+
+.page-subtitle,
+.category-tag,
+.section-en,
+.overview-text,
+.data-lbl,
+.chain-tag,
+.player-desc,
+.player-meta,
+.player-rank,
+.player-arrow {
+  color: #7a8b9e;
+}
+
+.page-title,
+.section-label,
+.data-val,
+.chain-title,
+.player-name,
+.insight-text,
+.action-text,
+.player-role {
+  color: #5a6a85;
+}
+
+.back-btn,
+.category-tag,
+.section-block,
+.overview-card,
+.insight-card,
+.chain-tag,
+.player-item,
+.bottom-action {
+  border: none;
+  background-color: #f0f3f8;
+  box-shadow: 6px 6px 12px #d9dfe9, -6px -6px 12px #ffffff;
+}
+
+.back-btn {
+  border-radius: 18px;
+}
+
+.back-btn:active,
+.bottom-action:active {
+  opacity: 1;
+  transform: scale(0.96);
+  box-shadow: inset 4px 4px 8px #d9dfe9, inset -4px -4px 8px #ffffff;
+}
+
+.back-btn:active .icon-back,
+.icon-back {
+  color: #7a8b9e;
+}
+
+.category-scroll {
+  border-bottom: none;
+  padding-bottom: 20px;
+}
+
+.category-tag {
+  border-radius: 18px;
+}
+
+.category-tag.active,
+.chain-tag.highlight,
+.player-role {
+  background-color: #ff9a9e;
+  color: #ffffff;
+  border: none;
+  box-shadow: inset 4px 4px 8px #e68b8e, inset -4px -4px 8px #ffabae;
+}
+
+.section-block,
+.overview-card,
+.insight-card,
+.player-item {
+  border-radius: 24px;
+}
+
+.section-block {
+  margin: 18px 24px;
+  padding: 20px;
+}
+
+.overview-card,
+.insight-card {
+  padding: 18px;
+}
+
+.player-list {
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.player-item {
+  padding: 16px;
+  border-bottom: none;
+}
+
+.data-divider {
+  background-color: #d9dfe9;
+}
+
+.bottom-action {
+  border-radius: 24px;
+  background-color: #a1c4fd;
+  box-shadow: 8px 8px 20px #c2d8ff, -8px -8px 20px #ffffff;
+}
+
+.action-text,
+.action-arrow {
+  color: #ffffff;
 }

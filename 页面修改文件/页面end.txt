@@ -1,0 +1,187 @@
+import React, { useState } from 'react';
+import { 
+  ChevronLeft, MoreHorizontal, CircleDot, Signal, Wifi, BatteryFull, ArrowRight
+} from 'lucide-react';
+
+// ==========================================
+// 全局样式与自定义动画
+// ==========================================
+const globalStyles = `
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  button { outline: none; -webkit-tap-highlight-color: transparent; }
+
+  /* 顺滑的错落滑入出场动画 */
+  @keyframes slideUpFade {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-up-fade {
+    animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  /* Q弹的数字气泡弹出动画 */
+  @keyframes popBounce {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-pop-bounce {
+    animation: popBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+`;
+
+// ==========================================
+// 1:1 高保真手机外壳组件
+// ==========================================
+const PhoneFrame = ({ children, title }) => {
+  return (
+    <div className="flex flex-col items-center shrink-0 m-10">
+      <h2 className="text-white text-xl font-bold mb-6 tracking-wider">{title}</h2>
+      <div className="relative bg-black rounded-[55px] p-[10px] shadow-[0_20px_60px_rgba(0,0,0,0.5)]" style={{ width: '450px', height: '952px' }}>
+        {/* 按键模拟 */}
+        <div className="absolute left-[-3px] top-[150px] w-[3px] h-[30px] bg-gray-800 rounded-l-md"></div>
+        <div className="absolute left-[-3px] top-[200px] w-[3px] h-[60px] bg-gray-800 rounded-l-md"></div>
+        <div className="absolute left-[-3px] top-[280px] w-[3px] h-[60px] bg-gray-800 rounded-l-md"></div>
+        <div className="absolute right-[-3px] top-[220px] w-[3px] h-[80px] bg-gray-800 rounded-r-md"></div>
+        
+        {/* 屏幕本体 430x932 */}
+        <div className="relative w-[430px] h-[932px] bg-[#f0f3f8] rounded-[45px] overflow-hidden no-scrollbar isolate flex flex-col">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// iOS 状态栏
+const StatusBar = () => {
+  return (
+    <div className="flex justify-between items-center px-8 pt-4 pb-2 text-[15px] font-semibold z-[100] relative shrink-0 text-[#5a6a85]">
+      <span>09:41</span>
+      <div className="absolute left-1/2 top-3 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-50"></div>
+      <div className="flex items-center gap-1.5">
+        <Signal size={16} />
+        <Wifi size={16} />
+        <BatteryFull size={20} />
+      </div>
+    </div>
+  );
+};
+
+// 胶囊按钮
+const MiniProgramCapsule = () => {
+  return (
+    <div className="absolute top-14 right-4 flex items-center gap-2 rounded-full px-3 py-1.5 z-50 transition-colors border border-black/5 text-[#5a6a85] bg-white/20 backdrop-blur-md">
+      <MoreHorizontal size={20} strokeWidth={1.5} />
+      <div className="w-px h-4 bg-black/10"></div>
+      <CircleDot size={20} strokeWidth={1.5} />
+    </div>
+  );
+};
+
+// 数据源
+const criteriaData = [
+  { id: '01', title: '专业', tags: ['CFP认证', '中文', '产业背景', 'MBA', '产品设计', 'PMP认证'] },
+  { id: '02', title: '技术', tags: ['ACIA资质', 'AWS', 'Bloomberg', 'C++', 'ARM单片机', 'Angular'] },
+  { id: '03', title: '性格', tags: ['AEC型', 'AIC型', 'ERC型', 'IAC型', 'AES型', 'CRI型'] }
+];
+
+// ============================================================================
+// 极简黏土风 (Claymorphism) - 交互极致优化版
+// ============================================================================
+const DesignClay = () => {
+  const [selectedTags, setSelectedTags] = useState([]);
+  const toggle = (t) => setSelectedTags(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
+
+  return (
+    <div className="w-full h-full flex flex-col relative font-sans">
+      <StatusBar />
+      <MiniProgramCapsule />
+
+      {/* 顶部导航 */}
+      <div className="px-6 pt-4 pb-2 flex items-center shrink-0 z-40 relative">
+        <button className="w-12 h-12 flex items-center justify-center -ml-2 cursor-pointer rounded-[18px] bg-[#f0f3f8] shadow-[5px_5px_10px_#d9dfe9,-5px_-5px_10px_#ffffff] text-[#7a8b9e] active:scale-90 active:shadow-[inset_4px_4px_8px_#d9dfe9,inset_-4px_-4px_8px_#ffffff] transition-all duration-300">
+          <ChevronLeft size={24} strokeWidth={2.5}/>
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar px-7 pt-6 pb-40 z-10 relative">
+        <h1 className="text-[34px] font-black text-[#5a6a85] mb-2 tracking-tight animate-slide-up-fade" style={{ animationDelay: '0ms' }}>职业小宇宙</h1>
+        <p className="text-[14px] text-[#7a8b9e] font-medium mb-10 animate-slide-up-fade" style={{ animationDelay: '100ms' }}>轻触模块，构建你的多维画像</p>
+
+        <div className="space-y-8">
+          {criteriaData.map((s, index) => (
+            <div 
+              key={s.id} 
+              className="bg-[#f0f3f8] rounded-[32px] p-7 shadow-[12px_12px_24px_#d9dfe9,-12px_-12px_24px_#ffffff] animate-slide-up-fade"
+              // 让卡片按顺序错落滑入
+              style={{ animationDelay: `${200 + index * 100}ms` }}
+            >
+              <h2 className="text-[18px] font-bold text-[#7a8b9e] mb-5">{s.title}</h2>
+              <div className="flex flex-wrap gap-3.5">
+                {s.tags.map(tag => {
+                  const sel = selectedTags.includes(tag);
+                  return (
+                    <button 
+                      key={tag} 
+                      onClick={() => toggle(tag)} 
+                      className={`px-5 py-3 text-[14px] font-bold rounded-2xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] tracking-wide
+                        /* 增加按压下去时的物理缩放感 */
+                        active:scale-[0.88] 
+                        ${sel 
+                          ? 'bg-[#ff9a9e] text-white shadow-[inset_4px_4px_8px_#e68b8e,inset_-4px_-4px_8px_#ffabae] scale-[0.96] hover:scale-[0.98]' 
+                          : 'bg-[#f0f3f8] text-[#7a8b9e] shadow-[4px_4px_8px_#d9dfe9,-4px_-4px_8px_#ffffff,inset_-2px_-2px_4px_rgba(0,0,0,0.02),inset_2px_2px_4px_#ffffff] hover:text-[#5a6a85] hover:shadow-[6px_6px_12px_#d9dfe9,-6px_-6px_12px_#ffffff] hover:-translate-y-0.5'}
+                      `}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 底部悬浮操作区 */}
+      <div className="absolute bottom-8 left-8 right-8 flex justify-center z-50 animate-slide-up-fade" style={{ animationDelay: '600ms' }}>
+        <button className={`w-full py-4 rounded-[24px] font-black text-lg flex justify-center items-center gap-3 transition-all duration-300 ease-out
+          /* 底部大按钮同样加入物理按压缩放 */
+          active:scale-[0.95]
+          ${selectedTags.length > 0 
+            ? 'bg-[#a1c4fd] text-white shadow-[8px_8px_20px_#c2d8ff,-8px_-8px_20px_#ffffff] active:shadow-[inset_4px_4px_8px_#91b0e4,inset_-4px_-4px_8px_#b1d8ff]' 
+            : 'bg-[#f0f3f8] text-[#7a8b9e] shadow-[8px_8px_16px_#d9dfe9,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d9dfe9,inset_-4px_-4px_8px_#ffffff]'}`}
+        >
+          开始匹配 
+          {selectedTags.length > 0 && (
+            /* 这里使用 key 属性绑定数量，让每次数字变化时都强制重新触发 Q弹的弹出动画 */
+            <span 
+              key={selectedTags.length} 
+              className="bg-white/20 px-2.5 py-0.5 rounded-full text-sm shadow-[inset_1px_1px_2px_rgba(255,255,255,0.4),inset_-1px_-1px_2px_rgba(0,0,0,0.05)] animate-pop-bounce inline-block"
+            >
+              {selectedTags.length}
+            </span>
+          )}
+        </button>
+      </div>
+      
+      {/* 底部横线 */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#d9dfe9] rounded-full z-[100]"></div>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+        <PhoneFrame title="极简黏土风 (交互动效提升版)">
+          <DesignClay />
+        </PhoneFrame>
+      </div>
+    </>
+  );
+}

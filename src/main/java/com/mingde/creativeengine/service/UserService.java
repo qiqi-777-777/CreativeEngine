@@ -37,4 +37,6 @@ public interface UserService {
      * @return 用户信息
      */
     User getUserById(Long id);
+
+    User updateUserInfo(Long id, String nickname, String phone, String email, String avatar);
 }

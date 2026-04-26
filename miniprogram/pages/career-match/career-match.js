@@ -43,6 +43,7 @@ Page({
     selectedPersonalities: [],
 
     totalSelected: 0,
+    badgeAnimateClass: '',
 
     // 性格详情弹窗
     showPersonalityModal: false,
@@ -85,6 +86,13 @@ Page({
 
   goBack() {
     wx.navigateBack()
+  },
+
+  onUnload() {
+    if (this.badgeTimer) {
+      clearTimeout(this.badgeTimer)
+      this.badgeTimer = null
+    }
   },
 
   // 加载数据
@@ -316,7 +324,28 @@ Page({
       this.data.selectedSkills.length +
       this.data.selectedPersonalities.length
 
-    this.setData({ totalSelected: total })
+    const shouldReplayBadge = total > 0 && total !== this.data.totalSelected
+
+    if (this.badgeTimer) {
+      clearTimeout(this.badgeTimer)
+      this.badgeTimer = null
+    }
+
+    if (shouldReplayBadge) {
+      this.setData({
+        totalSelected: total,
+        badgeAnimateClass: ''
+      })
+      this.badgeTimer = setTimeout(() => {
+        this.setData({ badgeAnimateClass: 'animate-pop-bounce' })
+      }, 20)
+      return
+    }
+
+    this.setData({
+      totalSelected: total,
+      badgeAnimateClass: total > 0 ? 'animate-pop-bounce' : ''
+    })
   },
 
   // 重置选择

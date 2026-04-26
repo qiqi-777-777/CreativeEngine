@@ -1,0 +1,60 @@
+<view class="module-page font-serif">
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="module-header">
+    <view class="header-top">
+      <view class="back-btn font-sans" bindtap="goBack">←</view>
+      <view>
+        <text class="module-eyebrow font-sans">SETTINGS</text>
+        <text class="module-title">设置</text>
+      </view>
+    </view>
+    <text class="module-desc font-sans">管理消息提醒、账号资料、隐私协议和本地缓存。</text>
+  </view>
+
+  <scroll-view scroll-y class="module-scroll no-scrollbar">
+    <view class="content font-sans">
+      <view class="setting-list">
+        <view class="setting-item">
+          <view class="setting-main">
+            <text class="setting-title">消息提醒</text>
+            <text class="setting-desc">开启后可接收政策、测评和草稿相关提醒</text>
+          </view>
+          <switch checked="{{settings.messageEnabled}}" color="#000000" bindchange="toggleMessage" />
+        </view>
+
+        <view class="setting-item" bindtap="goProfile">
+          <view class="setting-main">
+            <text class="setting-title">账号资料</text>
+            <text class="setting-desc">{{profileDesc}}</text>
+          </view>
+          <text class="setting-action">></text>
+        </view>
+
+        <view class="setting-item" bindtap="goPrivacy">
+          <view class="setting-main">
+            <text class="setting-title">隐私政策</text>
+            <text class="setting-desc">查看信息收集、使用和保护说明</text>
+          </view>
+          <text class="setting-action">></text>
+        </view>
+
+        <view class="setting-item" bindtap="goAgreement">
+          <view class="setting-main">
+            <text class="setting-title">用户协议</text>
+            <text class="setting-desc">查看平台服务使用规则</text>
+          </view>
+          <text class="setting-action">></text>
+        </view>
+
+        <view class="setting-item" bindtap="clearCache">
+          <view class="setting-main">
+            <text class="setting-title danger">清理本地记录</text>
+            <text class="setting-desc">清空收藏、测评记录、草稿箱和消息，当前约 {{storageSize}} KB</text>
+          </view>
+          <text class="setting-action">></text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
