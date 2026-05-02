@@ -48,3 +48,15 @@ CREATE TABLE IF NOT EXISTS user_notification (
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   KEY idx_user_notification_user_read (user_id, is_read)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS agent_session_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NULL,
+  agent_type VARCHAR(40) NOT NULL,
+  input_text LONGTEXT,
+  output_text LONGTEXT,
+  related_id VARCHAR(64),
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_agent_session_user_time (user_id, create_time),
+  KEY idx_agent_session_type_time (agent_type, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

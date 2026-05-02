@@ -30,7 +30,8 @@ App({
     token: '',
     userInfo: null,
     systemInfo: null,
-    // 后端API地址（请根据实际情况修改）
+    // 后端API地址（请根据实际情况修改）'http://localhost:8080/api'本地地址
+    //apiBase: 'https://6d8d54fb.r1.cpolar.top/api'
     apiBase: 'http://localhost:8080/api'
   }
 })

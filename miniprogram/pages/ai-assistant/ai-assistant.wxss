@@ -207,6 +207,18 @@ page {
   white-space: pre-wrap; /* 保留换行符，优化 Markdown 原始显示 */
 }
 
+.agent-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: #e7eefc;
+  color: #4f6fbc;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .message-user .message-content {
   background-color: #F3F4F6;
   color: #111827;

@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 26/04/2026 11:59:34
+ Date: 28/04/2026 14:38:09
 */
 
 SET NAMES utf8mb4;
@@ -30,7 +30,7 @@ CREATE TABLE `banner`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '轮播图表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '轮播图表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of banner
@@ -173,7 +173,7 @@ CREATE TABLE `policy_data`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_policy_name`(`policy_name` ASC) USING BTREE,
   INDEX `idx_create_time`(`create_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 38 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '政策数据表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 38 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '政策数据表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of policy_data
@@ -220,7 +220,7 @@ INSERT INTO `policy_data` VALUES (37, '关于开展“科技创业带动高质�
 -- Table structure for user_bp_draft
 -- ----------------------------
 DROP TABLE IF EXISTS `user_bp_draft`;
-CREATE TABLE `user_bp_draft` (
+CREATE TABLE `user_bp_draft`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `draft_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -233,13 +233,17 @@ CREATE TABLE `user_bp_draft` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_bp_draft_key`(`user_id` ASC, `draft_key` ASC) USING BTREE,
   INDEX `idx_user_bp_draft_user`(`user_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户BP草稿表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户BP草稿表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of user_bp_draft
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for user_career_record
 -- ----------------------------
 DROP TABLE IF EXISTS `user_career_record`;
-CREATE TABLE `user_career_record` (
+CREATE TABLE `user_career_record`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `record_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -249,13 +253,37 @@ CREATE TABLE `user_career_record` (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_career_record_key`(`user_id` ASC, `record_key` ASC) USING BTREE,
   INDEX `idx_user_career_record_user`(`user_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户职业测评记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户职业测评记录表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of user_career_record
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for user_notification
+-- ----------------------------
+DROP TABLE IF EXISTS `user_notification`;
+CREATE TABLE `user_notification`  (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `title` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `content` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `is_read` tinyint NULL DEFAULT 0,
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_user_notification_user_read`(`user_id` ASC, `is_read` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户通知表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of user_notification
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for user_policy_favorite
 -- ----------------------------
 DROP TABLE IF EXISTS `user_policy_favorite`;
-CREATE TABLE `user_policy_favorite` (
+CREATE TABLE `user_policy_favorite`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `user_id` bigint NOT NULL,
   `policy_id` bigint NULL DEFAULT NULL,
@@ -266,23 +294,11 @@ CREATE TABLE `user_policy_favorite` (
   UNIQUE INDEX `uk_user_policy_favorite`(`user_id` ASC, `policy_name` ASC) USING BTREE,
   INDEX `idx_user_policy_favorite_user`(`user_id` ASC) USING BTREE,
   INDEX `idx_user_policy_favorite_policy`(`policy_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户政策收藏表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户政策收藏表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Table structure for user_notification
+-- Records of user_policy_favorite
 -- ----------------------------
-DROP TABLE IF EXISTS `user_notification`;
-CREATE TABLE `user_notification` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint NOT NULL,
-  `title` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `content` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `is_read` tinyint NULL DEFAULT 0,
-  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_user_notification_user_read`(`user_id` ASC, `is_read` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户通知表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for users
@@ -303,7 +319,7 @@ CREATE TABLE `users`  (
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE,
   UNIQUE INDEX `uk_phone`(`phone` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of users

@@ -202,39 +202,19 @@ Page({
     this.setData({ showResult: true, isGenerating: true, bpContent: '' })
 
     wx.request({
-      url: `${app.globalData.apiBase}/ai/session/create`,
+      url: `${app.globalData.apiBase}/agent/bp/generate`,
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
         'Authorization': app.globalData.token ? `Bearer ${app.globalData.token}` : ''
       },
-      success: (sessionRes) => {
-        const sessionId = sessionRes.statusCode === 200 && sessionRes.data.code === 200
-          ? sessionRes.data.data.sessionId
-          : ''
-
-        wx.request({
-          url: `${app.globalData.apiBase}/ai/chat`,
-          method: 'POST',
-          header: {
-            'Content-Type': 'application/json',
-            'Authorization': app.globalData.token ? `Bearer ${app.globalData.token}` : ''
-          },
-          data: {
-            sessionId,
-            message: this.buildPrompt()
-          },
-          success: (res) => {
-            if (res.statusCode === 200 && res.data.code === 200) {
-              this.finishBP(res.data.data.response)
-            } else {
-              this.finishBP(buildFallbackBP(this.data.formData))
-            }
-          },
-          fail: () => {
-            this.finishBP(buildFallbackBP(this.data.formData))
-          }
-        })
+      data: this.data.formData,
+      success: (res) => {
+        if (res.statusCode === 200 && res.data.code === 0) {
+          this.finishBP(res.data.data.content)
+        } else {
+          this.finishBP(buildFallbackBP(this.data.formData))
+        }
       },
       fail: () => {
         this.finishBP(buildFallbackBP(this.data.formData))

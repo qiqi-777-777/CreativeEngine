@@ -213,15 +213,15 @@ Page({
 
     // 调用AI问答API
     wx.request({
-      url: `${app.globalData.apiBase}/policy-data/ask`,
+      url: `${app.globalData.apiBase}/agent/policy/ask`,
       method: 'POST',
       data: {
         policyId: policyId,
         question: questionText
       },
       success: (res) => {
-        if (res.data.code === 200) {
-          const answer = res.data.data
+        if (res.data.code === 0) {
+          const answer = res.data.data.answer
           // 清理Markdown格式符号
           const cleanAnswer = this.cleanMarkdown(answer)
 

@@ -63,6 +63,9 @@
 
             <!-- 消息内容 -->
             <view class="message-content">
+              <view class="agent-label" wx:if="{{item.role === 'assistant' && item.agentLabel}}">
+                {{item.agentLabel}}
+              </view>
               <text user-select>{{item.content}}</text>
             </view>
           </view>

@@ -22,8 +22,8 @@ Page({
       statusBarHeight: sysInfo.statusBarHeight
     });
 
-    // 创建AI会话
-    this.createSession();
+    // Use Router Agent as the unified AI entry.
+    this.setData({ sessionId: 'router-agent' });
   },
 
   onShow() {
@@ -108,23 +108,30 @@ Page({
     const baseUrl = app.globalData.apiBase;
 
     wx.request({
-      url: baseUrl + '/ai/chat',
+      url: baseUrl + '/agent/router/chat',
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
         'Authorization': app.globalData.token ? `Bearer ${app.globalData.token}` : ''
       },
       data: {
-        sessionId: this.data.sessionId,
-        message: content
+        question: content,
+        history: currentMessages.slice(-8)
       },
       success: (res) => {
-        if (res.statusCode === 200 && res.data.code === 200) {
+        if (res.statusCode === 200 && res.data.code === 0) {
           // 成功获取 AI 回复
-          const aiContent = res.data.data.response;
+          const responseData = res.data.data || {};
+          const aiContent = responseData.response || responseData.answer;
+          const agentLabel = this.formatAgentLabel(responseData.route);
           this.setData({
             isTyping: false,
-            messages: [...currentMessages, { role: 'assistant', content: aiContent }],
+            messages: [...currentMessages, {
+              role: 'assistant',
+              content: aiContent,
+              route: responseData.route || 'startup',
+              agentLabel
+            }],
             scrollToView: 'scroll-bottom'
           });
         } else if (res.data.code === 404) {
@@ -198,6 +205,16 @@ Page({
         });
       }
     });
+  },
+
+  formatAgentLabel(route) {
+    const labels = {
+      policy: '政策解读 Agent',
+      career: '职业规划 Agent',
+      bp: 'BP 写作 Agent',
+      startup: '创业咨询 Agent'
+    }
+    return labels[route] || '创业咨询 Agent'
   },
 
   handleSuggestionClick(e) {
