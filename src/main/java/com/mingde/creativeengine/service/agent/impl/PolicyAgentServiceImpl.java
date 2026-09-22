@@ -1,25 +1,28 @@
 package com.mingde.creativeengine.service.agent.impl;
 
 import com.mingde.creativeengine.entity.PolicyData;
-import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.PolicyDataService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mingde.creativeengine.service.agent.aiservice.PolicyAiService;
+
 import org.springframework.stereotype.Service;
 
 /**
- * Policy agent based on stored policy data and DeepSeek.
+ * 政策解读 Agent 实现：查询政策业务数据后交给 LangChain4j 的
+ * {@link PolicyAiService} 完成模型调用与结果解析。
  */
 @Service
 public class PolicyAgentServiceImpl implements PolicyAgentService {
 
     private static final int MAX_POLICY_CONTENT_LENGTH = 4000;
 
-    @Autowired
-    private PolicyDataService policyDataService;
+    private final PolicyDataService policyDataService;
+    private final PolicyAiService policyAiService;
 
-    @Autowired
-    private DeepSeekService deepSeekService;
+    public PolicyAgentServiceImpl(PolicyDataService policyDataService, PolicyAiService policyAiService) {
+        this.policyDataService = policyDataService;
+        this.policyAiService = policyAiService;
+    }
 
     @Override
     public String askPolicy(Long policyId, String question) {
@@ -35,26 +38,12 @@ public class PolicyAgentServiceImpl implements PolicyAgentService {
             return "未找到对应政策，请确认政策是否存在。";
         }
 
-        String prompt = buildPrompt(policy, question);
-        return deepSeekService.chat(prompt);
-    }
-
-    private String buildPrompt(PolicyData policy, String question) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是一个面向大学生和青年创业者的政策解读助手。\n");
-        prompt.append("请严格基于给定政策内容回答用户问题，不要编造政策中不存在的信息。\n");
-        prompt.append("如果政策内容无法支持结论，请明确说明需要以官方文件或主管部门解释为准。\n\n");
-        prompt.append("政策标题：").append(defaultValue(policy.getPolicyName())).append("\n");
-        prompt.append("政策关键词：").append(defaultValue(policy.getKeywords())).append("\n");
-        prompt.append("政策内容：").append(truncate(defaultValue(policy.getContent()), MAX_POLICY_CONTENT_LENGTH)).append("\n\n");
-        prompt.append("用户问题：").append(question.trim()).append("\n\n");
-        prompt.append("请按照以下结构回答：\n");
-        prompt.append("1. 政策含义\n");
-        prompt.append("2. 适用对象\n");
-        prompt.append("3. 用户可能匹配的条件\n");
-        prompt.append("4. 申报建议\n");
-        prompt.append("5. 注意事项\n");
-        return prompt.toString();
+        return policyAiService.askByPolicy(
+                defaultValue(policy.getPolicyName()),
+                defaultValue(policy.getKeywords()),
+                truncate(defaultValue(policy.getContent()), MAX_POLICY_CONTENT_LENGTH),
+                question.trim()
+        );
     }
 
     private boolean isBlank(String value) {

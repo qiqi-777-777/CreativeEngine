@@ -112,8 +112,13 @@ public class AgentController {
             return Result.error(ResultCode.PARAM_MISSING.getCode(), "question is required");
         }
 
-        String answer = startupAgentService.chatWithHistory(question, getHistory(request));
-        agentLogService.saveLog(currentUserId(token), "startup", question, answer, "");
+        // 带 sessionId 时由 LangChain4j 的 ChatMemory 维护多轮上下文；
+        // 未带时退化为「按请求传入历史」的无状态模式
+        String sessionId = getString(request, "sessionId");
+        String answer = isBlank(sessionId)
+                ? startupAgentService.chatWithHistory(question, getHistory(request))
+                : startupAgentService.chatWithSession(sessionId, question, getHistory(request));
+        agentLogService.saveLog(currentUserId(token), "startup", question, answer, sessionId);
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);

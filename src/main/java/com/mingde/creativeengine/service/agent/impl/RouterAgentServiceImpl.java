@@ -1,13 +1,16 @@
 package com.mingde.creativeengine.service.agent.impl;
 
 import com.mingde.creativeengine.entity.PolicyData;
-import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.PolicyDataService;
 import com.mingde.creativeengine.service.agent.BpAgentService;
 import com.mingde.creativeengine.service.agent.CareerAgentService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
 import com.mingde.creativeengine.service.agent.RouterAgentService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
+import com.mingde.creativeengine.service.agent.aiservice.BpAiService;
+import com.mingde.creativeengine.service.agent.aiservice.CareerAiService;
+import com.mingde.creativeengine.service.agent.aiservice.PolicyAiService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Rule-first router agent. It keeps routing fast and avoids an extra LLM call
- * before the selected scene agent handles the real task.
+ * 规则优先的任务路由 Agent。
+ *
+ * <p>路由阶段先根据结构化上下文（policyId、专业/技能标签、项目字段）和关键词做判定，
+ * 再分发给对应的场景 Agent，不额外调用一次大模型做意图识别，避免一次问答产生两次
+ * 模型往返。各分支只负责准备业务数据，提示词与模型调用统一交给 LangChain4j 的
+ * AiService 处理。</p>
  */
 @Service
 public class RouterAgentServiceImpl implements RouterAgentService {
@@ -56,7 +63,13 @@ public class RouterAgentServiceImpl implements RouterAgentService {
     private PolicyDataService policyDataService;
 
     @Autowired
-    private DeepSeekService deepSeekService;
+    private PolicyAiService policyAiService;
+
+    @Autowired
+    private CareerAiService careerAiService;
+
+    @Autowired
+    private BpAiService bpAiService;
 
     @Override
     public Map<String, Object> route(String question, Map<String, Object> context) {
@@ -143,29 +156,26 @@ public class RouterAgentServiceImpl implements RouterAgentService {
 
         List<PolicyData> policies = policyDataService.searchPolicies(question);
         if (policies == null || policies.isEmpty()) {
-            return startupAgentService.chat("用户正在咨询政策问题，但数据库中没有检索到相关政策。请回答：" + question);
+            return policyAiService.answerWithoutPolicy(question);
         }
 
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是一个面向大学生和青年创业者的政策解读 Agent。\n");
-        prompt.append("请基于以下政策数据库检索结果回答用户问题，不要编造材料中不存在的政策细节。\n");
-        prompt.append("如果材料不足，请说明需要继续查看官方文件或主管部门通知。\n\n");
-        prompt.append("用户问题：").append(question).append("\n\n");
-        prompt.append("政策检索结果：\n");
+        return policyAiService.askBySearchResult(question, buildPoliciesDigest(policies));
+    }
 
+    /**
+     * 把政策检索结果整理成数据块（只做数据整形，提示词结构由 AiService 注解维护）。
+     */
+    private String buildPoliciesDigest(List<PolicyData> policies) {
+        StringBuilder digest = new StringBuilder();
         for (int i = 0; i < Math.min(MAX_POLICY_COUNT, policies.size()); i++) {
             PolicyData policy = policies.get(i);
-            prompt.append(i + 1).append(". 标题：").append(defaultValue(policy.getPolicyName())).append("\n");
-            prompt.append("关键词：").append(defaultValue(policy.getKeywords())).append("\n");
-            prompt.append("内容摘要：").append(truncate(defaultValue(policy.getContent()), MAX_POLICY_CONTENT_LENGTH)).append("\n\n");
+            digest.append(i + 1).append(". 标题：").append(defaultValue(policy.getPolicyName())).append("\n");
+            digest.append("关键词：").append(defaultValue(policy.getKeywords())).append("\n");
+            digest.append("内容摘要：")
+                    .append(truncate(defaultValue(policy.getContent()), MAX_POLICY_CONTENT_LENGTH))
+                    .append("\n\n");
         }
-
-        prompt.append("请输出：\n");
-        prompt.append("1. 相关政策方向\n");
-        prompt.append("2. 用户可能关注的条件\n");
-        prompt.append("3. 申报或查询建议\n");
-        prompt.append("4. 风险提示\n");
-        return deepSeekService.chat(prompt.toString());
+        return digest.toString().trim();
     }
 
     private String handleCareer(String question, Map<String, Object> context) {
@@ -177,7 +187,7 @@ public class RouterAgentServiceImpl implements RouterAgentService {
             return careerAgentService.suggestCareer(majors, skills, personalities);
         }
 
-        return startupAgentService.chat("请以职业规划顾问身份回答以下问题，并给出适合大学生的可执行建议：" + question);
+        return careerAiService.answerQuestion(question);
     }
 
     private String handleBp(String question, Map<String, Object> context) {
@@ -188,7 +198,7 @@ public class RouterAgentServiceImpl implements RouterAgentService {
             return bpAgentService.generateBp(bpInfo);
         }
 
-        return startupAgentService.chat("请以商业计划书写作顾问身份回答以下问题：" + question);
+        return bpAiService.answerQuestion(question);
     }
 
     private String routeReason(String route) {

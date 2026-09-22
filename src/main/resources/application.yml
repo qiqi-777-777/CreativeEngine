@@ -20,11 +20,19 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
-# DeepSeek AI配置
+# DeepSeek AI配置（通过 LangChain4j 的 OpenAI 兼容客户端接入）
 deepseek:
   api-key: ${DEEPSEEK_API_KEY:}
+  # base-url 为服务根地址；未配置时会自动从 api-url 中截取
+  base-url: https://api.deepseek.com/v1
   api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
+  temperature: 0.7
+  max-tokens: 2000
+  timeout-seconds: 60
+  max-retries: 1
+  log-requests: false
+  log-responses: false
 
 # MyBatis Plus配置
 mybatis-plus:

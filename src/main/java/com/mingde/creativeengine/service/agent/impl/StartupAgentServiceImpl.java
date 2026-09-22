@@ -1,73 +1,116 @@
 package com.mingde.creativeengine.service.agent.impl;
 
-import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mingde.creativeengine.service.agent.aiservice.StartupAiService;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * Startup consulting agent based on DeepSeek.
+ * 创业咨询 Agent 实现：多轮上下文交给 LangChain4j 的 ChatMemory 管理，
+ * 由 MessageWindowChatMemory 自动做窗口裁剪；前端显式传入的历史记录
+ * 只在会话记忆为空时用于初始化，避免覆盖服务端已有上下文。
  */
 @Service
 public class StartupAgentServiceImpl implements StartupAgentService {
 
-    private static final int MAX_HISTORY_SIZE = 8;
+    private static final Logger log = LoggerFactory.getLogger(StartupAgentServiceImpl.class);
+    private static final int MAX_SEED_MESSAGES = 8;
+    private static final String FAILURE_REPLY = "抱歉，AI 服务暂时不可用，请稍后再试。";
 
-    @Autowired
-    private DeepSeekService deepSeekService;
+    private final StartupAiService startupAiService;
+    private final ChatMemoryStore chatMemoryStore;
+
+    public StartupAgentServiceImpl(StartupAiService startupAiService, ChatMemoryStore chatMemoryStore) {
+        this.startupAiService = startupAiService;
+        this.chatMemoryStore = chatMemoryStore;
+    }
 
     @Override
     public String chat(String question) {
-        return chatWithHistory(question, Collections.emptyList());
+        return chatWithSession(newSessionId(), question, Collections.emptyList());
     }
 
     @Override
     public String chatWithHistory(String question, List<Map<String, Object>> history) {
+        return chatWithSession(newSessionId(), question, history);
+    }
+
+    @Override
+    public String chatWithSession(String sessionId, String question, List<Map<String, Object>> history) {
         if (question == null || question.trim().isEmpty()) {
             return "请先输入你想咨询的创业问题。";
         }
 
-        String prompt = buildPrompt(question, history);
-        return deepSeekService.chat(prompt);
+        String memoryId = (sessionId == null || sessionId.trim().isEmpty()) ? newSessionId() : sessionId.trim();
+
+        try {
+            seedMemoryFromHistory(memoryId, history);
+            String answer = startupAiService.chat(memoryId, question.trim());
+            if (answer == null || answer.trim().isEmpty()) {
+                return "抱歉，我暂时无法回答这个问题。";
+            }
+            return answer;
+        } catch (Exception e) {
+            log.error("创业咨询 Agent 调用失败: {}", e.getMessage(), e);
+            return FAILURE_REPLY;
+        }
     }
 
-    private String buildPrompt(String question, List<Map<String, Object>> history) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是 CreativeEngine 的创业咨询 Agent，服务对象是大学生、青年创业者和早期项目团队。\n");
-        prompt.append("请用清晰、可执行的方式回答用户问题，避免空泛口号。\n");
-        prompt.append("如果问题更适合系统中的政策匹配、职业匹配或 BP 智写功能，请主动引导用户使用对应功能。\n\n");
-
-        appendHistory(prompt, history);
-
-        prompt.append("用户当前问题：").append(question.trim()).append("\n\n");
-        prompt.append("请按照以下结构回答：\n");
-        prompt.append("1. 直接回答\n");
-        prompt.append("2. 具体行动步骤\n");
-        prompt.append("3. 可使用的系统功能\n");
-        prompt.append("4. 后续建议\n");
-        return prompt.toString();
-    }
-
-    private void appendHistory(StringBuilder prompt, List<Map<String, Object>> history) {
+    /**
+     * 用请求携带的历史记录初始化会话记忆（仅在记忆为空时执行）。
+     */
+    private void seedMemoryFromHistory(String memoryId, List<Map<String, Object>> history) {
         if (history == null || history.isEmpty()) {
             return;
         }
 
-        prompt.append("最近对话历史：\n");
-        int startIndex = Math.max(0, history.size() - MAX_HISTORY_SIZE);
+        List<ChatMessage> existing = chatMemoryStore.getMessages(memoryId);
+        if (existing != null && !existing.isEmpty()) {
+            return;
+        }
+
+        List<ChatMessage> messages = new ArrayList<>();
+        int startIndex = Math.max(0, history.size() - MAX_SEED_MESSAGES);
         for (int i = startIndex; i < history.size(); i++) {
             Map<String, Object> item = history.get(i);
-            Object role = item.get("role");
-            Object content = item.get("content");
-            if (role == null || content == null || content.toString().trim().isEmpty()) {
+            if (item == null) {
                 continue;
             }
-            prompt.append(role).append("：").append(content.toString().trim()).append("\n");
+            Object role = item.get("role");
+            Object content = item.get("content");
+            if (role == null || content == null) {
+                continue;
+            }
+            String text = content.toString().trim();
+            if (text.isEmpty()) {
+                continue;
+            }
+            if ("user".equals(role.toString())) {
+                messages.add(UserMessage.from(text));
+            } else if ("assistant".equals(role.toString())) {
+                messages.add(AiMessage.from(text));
+            }
         }
-        prompt.append("\n");
+
+        if (!messages.isEmpty()) {
+            chatMemoryStore.updateMessages(memoryId, messages);
+        }
+    }
+
+    private String newSessionId() {
+        return "startup-" + UUID.randomUUID();
     }
 }

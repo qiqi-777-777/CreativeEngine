@@ -1,20 +1,24 @@
 package com.mingde.creativeengine.service.agent.impl;
 
-import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.agent.BpAgentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mingde.creativeengine.service.agent.aiservice.BpAiService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
 /**
- * Business plan writing agent based on DeepSeek.
+ * BP 写作 Agent 实现：先把项目字段整理成数据块，再交给
+ * {@link BpAiService} 按声明好的章节结构生成内容。
  */
 @Service
 public class BpAgentServiceImpl implements BpAgentService {
 
-    @Autowired
-    private DeepSeekService deepSeekService;
+    private final BpAiService bpAiService;
+
+    public BpAgentServiceImpl(BpAiService bpAiService) {
+        this.bpAiService = bpAiService;
+    }
 
     @Override
     public String generateBp(Map<String, Object> projectInfo) {
@@ -22,35 +26,27 @@ public class BpAgentServiceImpl implements BpAgentService {
             return "请先填写项目名称、所属行业、目标用户、核心痛点和解决方案等信息。";
         }
 
-        String prompt = buildPrompt(projectInfo);
-        return deepSeekService.chat(prompt);
+        return bpAiService.generateBp(buildProjectBrief(projectInfo),
+                value(projectInfo, "question", "requirement"));
     }
 
-    private String buildPrompt(Map<String, Object> projectInfo) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是一名商业计划书写作助手，服务对象是大学生创业团队和早期项目团队。\n");
-        prompt.append("请根据用户提供的项目信息，生成结构清晰、表达专业、适合课程答辩或创业展示的 BP 内容。\n");
-        prompt.append("如果某些信息缺失，请基于已知信息谨慎补全，不要编造具体财务数据。\n\n");
-        prompt.append("项目名称：").append(value(projectInfo, "projectName")).append("\n");
-        prompt.append("一句话描述：").append(value(projectInfo, "oneLiner", "description")).append("\n");
-        prompt.append("所属行业：").append(value(projectInfo, "industry")).append("\n");
-        prompt.append("目标用户：").append(value(projectInfo, "targetUsers")).append("\n");
-        prompt.append("核心痛点：").append(value(projectInfo, "painPoint", "painPoints")).append("\n");
-        prompt.append("解决方案：").append(value(projectInfo, "solution", "oneLiner")).append("\n");
-        prompt.append("核心竞争优势：").append(value(projectInfo, "competitiveEdge", "advantage")).append("\n");
-        prompt.append("团队情况：").append(value(projectInfo, "team")).append("\n");
-        prompt.append("商业模式：").append(value(projectInfo, "businessModel")).append("\n");
-        prompt.append("融资需求：").append(value(projectInfo, "fundingNeeds")).append("\n\n");
-        prompt.append("补充要求：").append(value(projectInfo, "question", "requirement")).append("\n\n");
-        prompt.append("请输出以下章节：\n");
-        prompt.append("1. 项目概述\n");
-        prompt.append("2. 市场痛点\n");
-        prompt.append("3. 产品方案\n");
-        prompt.append("4. 商业模式\n");
-        prompt.append("5. 竞争优势\n");
-        prompt.append("6. 团队优势\n");
-        prompt.append("7. 发展规划\n");
-        return prompt.toString();
+    /**
+     * 项目字段本身存在多种别名，统一在这里整理为「字段：取值」的数据块，
+     * 提示词的语气与输出结构由 @SystemMessage / @UserMessage 维护。
+     */
+    private String buildProjectBrief(Map<String, Object> projectInfo) {
+        StringBuilder brief = new StringBuilder();
+        brief.append("项目名称：").append(value(projectInfo, "projectName")).append("\n");
+        brief.append("一句话描述：").append(value(projectInfo, "oneLiner", "description")).append("\n");
+        brief.append("所属行业：").append(value(projectInfo, "industry")).append("\n");
+        brief.append("目标用户：").append(value(projectInfo, "targetUsers")).append("\n");
+        brief.append("核心痛点：").append(value(projectInfo, "painPoint", "painPoints")).append("\n");
+        brief.append("解决方案：").append(value(projectInfo, "solution", "oneLiner")).append("\n");
+        brief.append("核心竞争优势：").append(value(projectInfo, "competitiveEdge", "advantage")).append("\n");
+        brief.append("团队情况：").append(value(projectInfo, "team")).append("\n");
+        brief.append("商业模式：").append(value(projectInfo, "businessModel")).append("\n");
+        brief.append("融资需求：").append(value(projectInfo, "fundingNeeds"));
+        return brief.toString();
     }
 
     private String value(Map<String, Object> data, String... keys) {

@@ -1,10 +1,10 @@
 package com.mingde.creativeengine.service.agent.impl;
 
 import com.mingde.creativeengine.entity.Occupation;
-import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.OccupationService;
 import com.mingde.creativeengine.service.agent.CareerAgentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mingde.creativeengine.service.agent.aiservice.CareerAiService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -12,16 +12,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Career planning agent based on occupation matching and DeepSeek.
+ * 职业规划 Agent 实现：先用数据库匹配得到初步结果，再作为业务数据
+ * 注入 {@link CareerAiService} 的提示词模板，由 LangChain4j 完成调用。
  */
 @Service
 public class CareerAgentServiceImpl implements CareerAgentService {
 
-    @Autowired
-    private OccupationService occupationService;
+    private final OccupationService occupationService;
+    private final CareerAiService careerAiService;
 
-    @Autowired
-    private DeepSeekService deepSeekService;
+    public CareerAgentServiceImpl(OccupationService occupationService, CareerAiService careerAiService) {
+        this.occupationService = occupationService;
+        this.careerAiService = careerAiService;
+    }
 
     @Override
     public String suggestCareer(List<String> majors, List<String> skills, List<String> personalities) {
@@ -34,30 +37,13 @@ public class CareerAgentServiceImpl implements CareerAgentService {
         }
 
         List<Occupation> matches = occupationService.matchOccupations(safeMajors, safeSkills, safePersonalities);
-        String prompt = buildPrompt(safeMajors, safeSkills, safePersonalities, matches);
-        return deepSeekService.chat(prompt);
-    }
 
-    private String buildPrompt(
-            List<String> majors,
-            List<String> skills,
-            List<String> personalities,
-            List<Occupation> matches
-    ) {
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("你是一个面向大学生和青年创业者的职业规划顾问。\n");
-        prompt.append("请根据用户的专业、技能和性格特征，给出清晰、具体、可执行的职业方向建议。\n\n");
-        prompt.append("专业：").append(formatList(majors)).append("\n");
-        prompt.append("技能：").append(formatList(skills)).append("\n");
-        prompt.append("性格：").append(formatList(personalities)).append("\n");
-        prompt.append("数据库初步匹配结果：").append(formatOccupations(matches)).append("\n\n");
-        prompt.append("请按照以下结构回答：\n");
-        prompt.append("1. 综合分析\n");
-        prompt.append("2. 推荐职业方向\n");
-        prompt.append("3. 匹配原因\n");
-        prompt.append("4. 能力提升建议\n");
-        prompt.append("5. 可延伸的创业方向\n");
-        return prompt.toString();
+        return careerAiService.suggestCareer(
+                formatList(safeMajors),
+                formatList(safeSkills),
+                formatList(safePersonalities),
+                formatOccupations(matches)
+        );
     }
 
     private List<String> safeList(List<String> values) {
