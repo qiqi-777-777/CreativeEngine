@@ -1,19 +1,30 @@
 package com.mingde.creativeengine.config;
 
+import com.mingde.creativeengine.entity.Occupation;
+import com.mingde.creativeengine.entity.PolicyData;
+import com.mingde.creativeengine.service.OccupationService;
+import com.mingde.creativeengine.service.PolicyDataService;
 import com.mingde.creativeengine.service.agent.aiservice.BpAiService;
 import com.mingde.creativeengine.service.agent.aiservice.CareerAiService;
 import com.mingde.creativeengine.service.agent.aiservice.OccupationAiService;
 import com.mingde.creativeengine.service.agent.aiservice.PolicyAiService;
 import com.mingde.creativeengine.service.agent.aiservice.StartupAiService;
+import com.mingde.creativeengine.service.agent.tool.OccupationTools;
+import com.mingde.creativeengine.service.agent.tool.PolicyTools;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +49,12 @@ class LangChain4jContextWiringTest {
 
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setEnvironment(environment);
-        context.register(LangChain4jConfig.class);
+        // 工具 Bean 是 AiService 的依赖，这里连同它们的数据服务一起装配
+        context.register(LangChain4jConfig.class, PolicyTools.class, OccupationTools.class);
+        context.registerBean(PolicyDataService.class, LangChain4jContextWiringTest::stubPolicyDataService);
+        context.registerBean(OccupationService.class, LangChain4jContextWiringTest::stubOccupationService);
+        // 指标组件依赖 MeterRegistry，生产环境由 actuator 提供，这里注册一个内存实现
+        context.registerBean(MeterRegistry.class, SimpleMeterRegistry::new);
 
         try {
             context.refresh();
@@ -54,8 +70,64 @@ class LangChain4jContextWiringTest {
             assertNotNull(context.getBean(OccupationAiService.class));
             assertNotNull(context.getBean(StartupAiService.class));
             assertNotNull(context.getBean(ChatMemoryStore.class));
+
+            assertNotNull(context.getBean(PolicyTools.class), "政策工具应注册为 Bean");
+            assertNotNull(context.getBean(OccupationTools.class), "职业工具应注册为 Bean");
         } finally {
             context.close();
         }
+    }
+
+    private static PolicyDataService stubPolicyDataService() {
+        return new PolicyDataService() {
+            @Override
+            public List<PolicyData> getAllPolicies() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public PolicyData getPolicyById(Long id) {
+                return null;
+            }
+
+            @Override
+            public PolicyData getPolicyByName(String policyName) {
+                return null;
+            }
+
+            @Override
+            public List<PolicyData> searchPolicies(String keyword) {
+                return Collections.emptyList();
+            }
+        };
+    }
+
+    private static OccupationService stubOccupationService() {
+        return new OccupationService() {
+            @Override
+            public List<String> getAllMajors() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<String> getAllSkills() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<String> getAllPersonalities() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<Occupation> matchOccupations(List<String> majors, List<String> skills, List<String> personalities) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<Occupation> matchFromDatabase(List<String> majors, List<String> skills, List<String> personalities) {
+                return Collections.emptyList();
+            }
+        };
     }
 }

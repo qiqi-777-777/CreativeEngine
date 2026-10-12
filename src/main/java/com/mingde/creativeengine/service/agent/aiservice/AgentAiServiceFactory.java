@@ -1,9 +1,17 @@
 package com.mingde.creativeengine.service.agent.aiservice;
 
+import com.mingde.creativeengine.observability.AgentTelemetry;
+import com.mingde.creativeengine.service.agent.tool.OccupationTools;
+import com.mingde.creativeengine.service.agent.tool.PolicyTools;
+
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+
+import java.util.function.Function;
 
 /**
  * AiService 工厂：集中构建各场景 Agent 的 LangChain4j 代理。
@@ -15,18 +23,40 @@ public final class AgentAiServiceFactory {
     /** 创业咨询 Agent 保留的对话窗口条数。 */
     public static final int STARTUP_MEMORY_MAX_MESSAGES = 8;
 
+    /**
+     * 单次问答内最多允许的连续工具调用次数。
+     *
+     * <p>不设上限的话，模型有可能在两个工具之间来回调用（查了正文又去检索、检索完又查正文），
+     * 既浪费时间也浪费 token，这里给一个硬上限。</p>
+     */
+    public static final int MAX_SEQUENTIAL_TOOL_INVOCATIONS = 5;
+
     private AgentAiServiceFactory() {
     }
 
-    public static PolicyAiService policyAiService(ChatModel chatModel) {
+    /**
+     * 政策解读 Agent：注册政策检索与正文查询工具，由模型决定检索关键词与要解读哪一条。
+     */
+    public static PolicyAiService policyAiService(ChatModel chatModel, PolicyTools policyTools, AgentTelemetry telemetry) {
         return AiServices.builder(PolicyAiService.class)
                 .chatModel(chatModel)
+                .tools(policyTools)
+                .maxSequentialToolsInvocations(MAX_SEQUENTIAL_TOOL_INVOCATIONS)
+                .hallucinatedToolNameStrategy(hallucinatedToolStrategy("searchPolicies", "getPolicyDetail"))
+                .afterToolExecution(telemetry.toolExecutionRecorder())
                 .build();
     }
 
-    public static CareerAiService careerAiService(ChatModel chatModel) {
+    /**
+     * 职业规划 Agent：注册职业标签与匹配工具。
+     */
+    public static CareerAiService careerAiService(ChatModel chatModel, OccupationTools occupationTools, AgentTelemetry telemetry) {
         return AiServices.builder(CareerAiService.class)
                 .chatModel(chatModel)
+                .tools(occupationTools)
+                .maxSequentialToolsInvocations(MAX_SEQUENTIAL_TOOL_INVOCATIONS)
+                .hallucinatedToolNameStrategy(hallucinatedToolStrategy("getOccupationTags", "matchOccupations"))
+                .afterToolExecution(telemetry.toolExecutionRecorder())
                 .build();
     }
 
@@ -55,5 +85,15 @@ public final class AgentAiServiceFactory {
                         .chatMemoryStore(chatMemoryStore)
                         .build())
                 .build();
+    }
+
+    /**
+     * 模型幻觉出一个不存在的工具名时，默认行为会抛异常直接中断整次问答。
+     * 这里改成把"工具不存在 + 当前可用工具"作为工具结果回灌给模型，让它改用正确工具继续推理。
+     */
+    private static Function<ToolExecutionRequest, ToolExecutionResultMessage> hallucinatedToolStrategy(String... toolNames) {
+        String available = String.join("、", toolNames);
+        return request -> ToolExecutionResultMessage.from(request,
+                "工具「" + request.name() + "」不存在。当前可用的工具是：" + available + "，请改用可用工具重试。");
     }
 }

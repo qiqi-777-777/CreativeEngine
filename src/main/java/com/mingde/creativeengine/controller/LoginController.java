@@ -2,6 +2,7 @@ package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.entity.User;
 import com.mingde.creativeengine.service.UserService;
+import com.mingde.creativeengine.storage.TokenStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 登录控制器
@@ -23,17 +23,10 @@ public class LoginController {
     
     @Autowired
     private UserService userService;
-    
-    // 简单的token存储（生产环境建议使用Redis + JWT）
-    private static final Map<String, Long> tokenStore = new ConcurrentHashMap<>();
 
-    public static Long resolveUserId(String token) {
-        if (token == null || token.isEmpty()) {
-            return null;
-        }
-        String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-        return tokenStore.get(cleanToken);
-    }
+    // 登录 token 存储：默认单机内存，开启 Redis 后多实例共享并自动过期
+    @Autowired
+    private TokenStore tokenStore;
     
     /**
      * 用户登录
@@ -70,7 +63,7 @@ public class LoginController {
             
             // 生成token
             String token = UUID.randomUUID().toString().replace("-", "");
-            tokenStore.put(token, user.getId());
+            tokenStore.save(token, user.getId());
             
             // 返回用户信息和token
             Map<String, Object> data = new HashMap<>();
@@ -140,7 +133,7 @@ public class LoginController {
             
             // 自动登录，生成token
             String token = UUID.randomUUID().toString().replace("-", "");
-            tokenStore.put(token, user.getId());
+            tokenStore.save(token, user.getId());
             
             Map<String, Object> data = new HashMap<>();
             data.put("token", token);
@@ -170,8 +163,7 @@ public class LoginController {
         
         try {
             if (token != null && !token.isEmpty()) {
-                String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
-                tokenStore.remove(cleanToken);
+                tokenStore.revoke(token);
                 log.info("用户退出登录: token={}", token);
             }
             
@@ -201,7 +193,7 @@ public class LoginController {
                 return result;
             }
             
-            Long userId = resolveUserId(token);
+            Long userId = tokenStore.resolve(token);
             if (userId == null) {
                 result.put("code", 401);
                 result.put("message", "登录已过期");
@@ -241,7 +233,7 @@ public class LoginController {
                 return result;
             }
 
-            Long userId = resolveUserId(token);
+            Long userId = tokenStore.resolve(token);
             if (userId == null) {
                 result.put("code", 401);
                 result.put("message", "登录已过期");

@@ -20,6 +20,26 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
+  # Redis 连接（app.redis.enabled=false 时不建立连接，仅保留配置）
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2s
+
+# Redis 应用开关与过期时间：关闭时全部退化为单机内存实现，便于本地零依赖启动
+app:
+  redis:
+    enabled: ${REDIS_ENABLED:false}
+    # 登录 token 有效期
+    token-ttl: 7d
+    # AI 会话记忆有效期（超过该时间未活跃则自动回收）
+    chat-memory-ttl: 30m
+    # 热点数据（政策列表、职业标签）缓存有效期
+    hot-data-ttl: 10m
+
 # DeepSeek AI配置（通过 LangChain4j 的 OpenAI 兼容客户端接入）
 deepseek:
   api-key: ${DEEPSEEK_API_KEY:}
@@ -44,11 +64,32 @@ mybatis-plus:
       id-type: auto
   mapper-locations: classpath*:/mapper/**/*.xml
 
-# 日志配置
+# 日志配置：控制台模板带上 traceId，便于把一次问答里的多次模型/工具调用串起来
 logging:
   level:
     com.mingde.creativeengine: debug
     org.springframework.web: info
-#  pattern:
-#    console: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n'
+    # 工具与模型调用由 AgentTelemetry 统一打印（INFO），这里不再重复开 debug
+    dev.langchain4j: warn
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:--}] [%15.15t] %-40.40logger{39} : %m%n'
+
+# 运行指标：模型调用耗时/token、工具调用次数通过 Prometheus 暴露
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # 让模型调用耗时可算 P95/P99，而不只是平均值
+      percentiles-histogram:
+        agent.model.call: true
+        agent.tool.call: true
+
 

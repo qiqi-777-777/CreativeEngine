@@ -1,11 +1,15 @@
 package com.mingde.creativeengine.config;
 
+import com.mingde.creativeengine.observability.AgentTelemetry;
 import com.mingde.creativeengine.service.agent.aiservice.AgentAiServiceFactory;
 import com.mingde.creativeengine.service.agent.aiservice.BpAiService;
 import com.mingde.creativeengine.service.agent.aiservice.CareerAiService;
 import com.mingde.creativeengine.service.agent.aiservice.OccupationAiService;
 import com.mingde.creativeengine.service.agent.aiservice.PolicyAiService;
 import com.mingde.creativeengine.service.agent.aiservice.StartupAiService;
+import com.mingde.creativeengine.service.agent.tool.OccupationTools;
+import com.mingde.creativeengine.service.agent.tool.PolicyTools;
+import com.mingde.creativeengine.storage.RedisChatMemoryStore;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ResponseFormat;
@@ -13,11 +17,15 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.Duration;
 
@@ -66,8 +74,8 @@ public class LangChain4jConfig {
      */
     @Primary
     @Bean
-    public ChatModel deepSeekChatModel() {
-        return buildChatModel(null);
+    public ChatModel deepSeekChatModel(AgentTelemetry agentTelemetry) {
+        return buildChatModel(null, agentTelemetry);
     }
 
     /**
@@ -75,26 +83,45 @@ public class LangChain4jConfig {
      * 因此需要结构化结果时单独使用这个实例，避免影响自然语言回复的 Agent。
      */
     @Bean
-    public ChatModel deepSeekJsonChatModel() {
-        return buildChatModel(ResponseFormat.JSON);
+    public ChatModel deepSeekJsonChatModel(AgentTelemetry agentTelemetry) {
+        return buildChatModel(ResponseFormat.JSON, agentTelemetry);
     }
 
     /**
-     * 会话记忆存储：当前为进程内实现，后续可替换为 Redis 等实现而不影响 Agent 代码。
+     * 可观测组件：模型调用与工具调用的指标、带 traceId 的调用日志。
      */
     @Bean
-    public ChatMemoryStore chatMemoryStore() {
+    public AgentTelemetry agentTelemetry(MeterRegistry meterRegistry) {
+        return new AgentTelemetry(meterRegistry);
+    }
+
+    /**
+     * 会话记忆存储：开启 Redis 时用 {@code RedisChatMemoryStore} 让多实例共享会话、重启不丢，
+     * 否则退回进程内实现，保证本地零依赖即可运行。
+     */
+    @Bean
+    public ChatMemoryStore chatMemoryStore(ObjectProvider<StringRedisTemplate> redisTemplates,
+                                           @Value("${app.redis.enabled:false}") boolean redisEnabled,
+                                           @Value("${app.redis.chat-memory-ttl:30m}") String chatMemoryTtl) {
+        StringRedisTemplate redisTemplate = redisTemplates.getIfAvailable();
+        if (redisEnabled && redisTemplate != null) {
+            return new RedisChatMemoryStore(redisTemplate, RedisConfig.parseTtl(chatMemoryTtl, Duration.ofMinutes(30)));
+        }
         return new InMemoryChatMemoryStore();
     }
 
     @Bean
-    public PolicyAiService policyAiService(@Qualifier("deepSeekChatModel") ChatModel chatModel) {
-        return AgentAiServiceFactory.policyAiService(chatModel);
+    public PolicyAiService policyAiService(@Qualifier("deepSeekChatModel") ChatModel chatModel,
+                                           PolicyTools policyTools,
+                                           AgentTelemetry agentTelemetry) {
+        return AgentAiServiceFactory.policyAiService(chatModel, policyTools, agentTelemetry);
     }
 
     @Bean
-    public CareerAiService careerAiService(@Qualifier("deepSeekChatModel") ChatModel chatModel) {
-        return AgentAiServiceFactory.careerAiService(chatModel);
+    public CareerAiService careerAiService(@Qualifier("deepSeekChatModel") ChatModel chatModel,
+                                           OccupationTools occupationTools,
+                                           AgentTelemetry agentTelemetry) {
+        return AgentAiServiceFactory.careerAiService(chatModel, occupationTools, agentTelemetry);
     }
 
     @Bean
@@ -113,7 +140,7 @@ public class LangChain4jConfig {
         return AgentAiServiceFactory.startupAiService(chatModel, chatMemoryStore);
     }
 
-    private ChatModel buildChatModel(ResponseFormat responseFormat) {
+    private ChatModel buildChatModel(ResponseFormat responseFormat, AgentTelemetry agentTelemetry) {
         OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
                 .apiKey(apiKey)
                 .baseUrl(resolveBaseUrl())
@@ -126,6 +153,10 @@ public class LangChain4jConfig {
                 .logResponses(logResponses);
         if (responseFormat != null) {
             builder.responseFormat(responseFormat);
+        }
+        // 挂上模型调用监听器：耗时、token、异常统一进指标与日志
+        if (agentTelemetry != null) {
+            builder.listeners(agentTelemetry.chatModelListener());
         }
         return builder.build();
     }

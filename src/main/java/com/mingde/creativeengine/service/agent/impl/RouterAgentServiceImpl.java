@@ -1,7 +1,5 @@
 package com.mingde.creativeengine.service.agent.impl;
 
-import com.mingde.creativeengine.entity.PolicyData;
-import com.mingde.creativeengine.service.PolicyDataService;
 import com.mingde.creativeengine.service.agent.BpAgentService;
 import com.mingde.creativeengine.service.agent.CareerAgentService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
@@ -32,9 +30,6 @@ import java.util.Map;
 @Service
 public class RouterAgentServiceImpl implements RouterAgentService {
 
-    private static final int MAX_POLICY_COUNT = 3;
-    private static final int MAX_POLICY_CONTENT_LENGTH = 900;
-
     private static final List<String> POLICY_KEYWORDS = Arrays.asList(
             "政策", "补贴", "扶持", "申报", "申请", "税收", "减免", "资助", "贷款", "创业补助", "大学生创业"
     );
@@ -58,9 +53,6 @@ public class RouterAgentServiceImpl implements RouterAgentService {
 
     @Autowired
     private StartupAgentService startupAgentService;
-
-    @Autowired
-    private PolicyDataService policyDataService;
 
     @Autowired
     private PolicyAiService policyAiService;
@@ -151,31 +143,13 @@ public class RouterAgentServiceImpl implements RouterAgentService {
     private String handlePolicy(String question, Map<String, Object> context) {
         Long policyId = getLong(context, "policyId");
         if (policyId != null) {
+            // 用户已选定具体政策，上下文是确定的，直接解读即可
             return policyAgentService.askPolicy(policyId, question);
         }
 
-        List<PolicyData> policies = policyDataService.searchPolicies(question);
-        if (policies == null || policies.isEmpty()) {
-            return policyAiService.answerWithoutPolicy(question);
-        }
-
-        return policyAiService.askBySearchResult(question, buildPoliciesDigest(policies));
-    }
-
-    /**
-     * 把政策检索结果整理成数据块（只做数据整形，提示词结构由 AiService 注解维护）。
-     */
-    private String buildPoliciesDigest(List<PolicyData> policies) {
-        StringBuilder digest = new StringBuilder();
-        for (int i = 0; i < Math.min(MAX_POLICY_COUNT, policies.size()); i++) {
-            PolicyData policy = policies.get(i);
-            digest.append(i + 1).append(". 标题：").append(defaultValue(policy.getPolicyName())).append("\n");
-            digest.append("关键词：").append(defaultValue(policy.getKeywords())).append("\n");
-            digest.append("内容摘要：")
-                    .append(truncate(defaultValue(policy.getContent()), MAX_POLICY_CONTENT_LENGTH))
-                    .append("\n\n");
-        }
-        return digest.toString().trim();
+        // 只有自然语言问题：检索关键词与要看哪条政策都需要判断，
+        // 交给政策 Agent 的工具自己完成（先 searchPolicies 再 getPolicyDetail）
+        return policyAiService.askWithTools(question);
     }
 
     private String handleCareer(String question, Map<String, Object> context) {
@@ -307,12 +281,5 @@ public class RouterAgentServiceImpl implements RouterAgentService {
 
     private String defaultValue(String value) {
         return value == null || value.trim().isEmpty() ? "未提供" : value.trim();
-    }
-
-    private String truncate(String value, int maxLength) {
-        if (value.length() <= maxLength) {
-            return value;
-        }
-        return value.substring(0, maxLength) + "\n[内容过长，已截取前 " + maxLength + " 字]";
     }
 }

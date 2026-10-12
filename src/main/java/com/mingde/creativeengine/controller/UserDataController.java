@@ -12,6 +12,7 @@ import com.mingde.creativeengine.mapper.UserBpDraftMapper;
 import com.mingde.creativeengine.mapper.UserCareerRecordMapper;
 import com.mingde.creativeengine.mapper.UserNotificationMapper;
 import com.mingde.creativeengine.mapper.UserPolicyFavoriteMapper;
+import com.mingde.creativeengine.storage.TokenStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +50,9 @@ public class UserDataController {
 
     @Autowired
     private UserNotificationMapper notificationMapper;
+
+    @Autowired
+    private TokenStore tokenStore;
 
     @GetMapping("/stats")
     public Map<String, Object> stats(@RequestHeader(value = "Authorization", required = false) String token) {
@@ -324,7 +328,7 @@ public class UserDataController {
     }
 
     private Long currentUserId(String token) {
-        return LoginController.resolveUserId(token);
+        return tokenStore.resolve(token);
     }
 
     private QueryWrapper<UserBpDraft> bpDraftQuery(Long userId) {

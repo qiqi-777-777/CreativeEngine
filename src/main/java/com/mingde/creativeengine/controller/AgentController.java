@@ -2,12 +2,15 @@ package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
+import com.mingde.creativeengine.observability.AgentTelemetry;
+import com.mingde.creativeengine.observability.TraceContext;
 import com.mingde.creativeengine.service.agent.AgentLogService;
 import com.mingde.creativeengine.service.agent.BpAgentService;
 import com.mingde.creativeengine.service.agent.CareerAgentService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
 import com.mingde.creativeengine.service.agent.RouterAgentService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
+import com.mingde.creativeengine.storage.TokenStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +50,12 @@ public class AgentController {
     @Autowired
     private AgentLogService agentLogService;
 
+    @Autowired
+    private AgentTelemetry agentTelemetry;
+
+    @Autowired
+    private TokenStore tokenStore;
+
     @PostMapping("/policy/ask")
     public Result<Map<String, Object>> askPolicy(
             @RequestHeader(value = "Authorization", required = false) String token,
@@ -63,7 +72,7 @@ public class AgentController {
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
-        return Result.success(data);
+        return Result.success(withTraceId(data));
     }
 
     @PostMapping("/career/suggest")
@@ -84,7 +93,7 @@ public class AgentController {
         Map<String, Object> data = new HashMap<>();
         data.put("summary", suggestion);
         data.put("suggestion", suggestion);
-        return Result.success(data);
+        return Result.success(withTraceId(data));
     }
 
     @PostMapping("/bp/generate")
@@ -100,7 +109,7 @@ public class AgentController {
 
         Map<String, Object> data = new HashMap<>();
         data.put("content", content);
-        return Result.success(data);
+        return Result.success(withTraceId(data));
     }
 
     @PostMapping("/startup/chat")
@@ -123,7 +132,7 @@ public class AgentController {
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
         data.put("response", answer);
-        return Result.success(data);
+        return Result.success(withTraceId(data));
     }
 
     @PostMapping("/router/chat")
@@ -139,7 +148,7 @@ public class AgentController {
         String route = getString(data, "route");
         String answer = getString(data, "answer");
         agentLogService.saveLog(currentUserId(token), route.isEmpty() ? "router" : route, question, answer, "");
-        return Result.success(data);
+        return Result.success(withTraceId(data));
     }
 
     @GetMapping("/logs")
@@ -153,6 +162,25 @@ public class AgentController {
         return Result.success(agentLogService.listRecentLogs(userId, limit));
     }
 
+    /**
+     * 模型与工具调用的运行指标快照。
+     *
+     * <p>完整指标在 {@code /actuator/prometheus}，这里给一个便于人工核对的精简视图，
+     * 例如上线后确认"模型调用成功率、平均耗时、工具调用次数"是否符合预期。</p>
+     */
+    @GetMapping("/metrics")
+    public Result<Map<String, Object>> metrics() {
+        return Result.success(agentTelemetry.snapshot());
+    }
+
+    /**
+     * 把 traceId 放进响应，用户报错时可以直接提供该编号，便于在日志里定位整条链路。
+     */
+    private Map<String, Object> withTraceId(Map<String, Object> data) {
+        data.put("traceId", TraceContext.current());
+        return data;
+    }
+
     private String getQuestion(Map<String, Object> request) {
         String question = getString(request, "question");
         if (isBlank(question)) {
@@ -162,7 +190,7 @@ public class AgentController {
     }
 
     private Long currentUserId(String token) {
-        return LoginController.resolveUserId(token);
+        return tokenStore.resolve(token);
     }
 
     private Long getLong(Map<String, Object> request, String key) {

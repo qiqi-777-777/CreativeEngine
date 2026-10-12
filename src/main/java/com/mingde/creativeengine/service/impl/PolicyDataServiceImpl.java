@@ -5,6 +5,7 @@ import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.mapper.PolicyDataMapper;
 import com.mingde.creativeengine.service.PolicyDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +16,10 @@ import java.util.Set;
 
 /**
  * Policy data service implementation.
+ *
+ * <p>政策数据读多写少且由外部脚本批量导入，最新政策列表与单条详情是最常被
+ * 首页、政策页与 Agent 工具读取的数据，这里加上缓存：默认走进程内实现，
+ * 开启 Redis 后由 {@code RedisCacheManager} 承载，多实例共享同一份缓存。</p>
  */
 @Service
 public class PolicyDataServiceImpl implements PolicyDataService {
@@ -30,6 +35,7 @@ public class PolicyDataServiceImpl implements PolicyDataService {
     private PolicyDataMapper policyDataMapper;
 
     @Override
+    @Cacheable(cacheNames = "policyList")
     public List<PolicyData> getAllPolicies() {
         LambdaQueryWrapper<PolicyData> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(PolicyData::getCreateTime);
@@ -37,6 +43,7 @@ public class PolicyDataServiceImpl implements PolicyDataService {
     }
 
     @Override
+    @Cacheable(cacheNames = "policyDetail", key = "#id")
     public PolicyData getPolicyById(Long id) {
         return policyDataMapper.selectById(id);
     }

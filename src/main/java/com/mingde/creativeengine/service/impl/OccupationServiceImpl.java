@@ -8,6 +8,7 @@ import com.mingde.creativeengine.service.OccupationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,16 +31,19 @@ public class OccupationServiceImpl implements OccupationService {
     private DeepSeekService deepSeekService;
 
     @Override
+    @Cacheable(cacheNames = "occupationMajors")
     public List<String> getAllMajors() {
         return occupationMapper.getAllMajors();
     }
 
     @Override
+    @Cacheable(cacheNames = "occupationSkills")
     public List<String> getAllSkills() {
         return occupationMapper.getAllSkills();
     }
 
     @Override
+    @Cacheable(cacheNames = "occupationPersonalities")
     public List<String> getAllPersonalities() {
         return occupationMapper.getAllPersonalities();
     }
@@ -91,9 +95,10 @@ public class OccupationServiceImpl implements OccupationService {
     }
 
     /**
-     * 从数据库匹配职业
+     * 从数据库匹配职业（只查库，不调用大模型）
      */
-    private List<Occupation> matchFromDatabase(List<String> majors, List<String> skills, List<String> personalities) {
+    @Override
+    public List<Occupation> matchFromDatabase(List<String> majors, List<String> skills, List<String> personalities) {
         // 获取所有职业
         QueryWrapper<Occupation> queryWrapper = new QueryWrapper<>();
         List<Occupation> allOccupations = occupationMapper.selectList(queryWrapper);

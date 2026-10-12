@@ -7,9 +7,13 @@ import dev.langchain4j.service.V;
 /**
  * 政策解读 Agent（LangChain4j AiService）。
  *
- * <p>系统提示与用户提示全部以注解声明，业务数据通过 {@code @V} 占位符注入，
- * 不再在 Java 代码里拼接提示词；模型调用、消息组装和返回值解析由
- * LangChain4j 的 {@code AiServices} 统一处理。</p>
+ * <p>两种入口对应两类上下文：</p>
+ * <ul>
+ *   <li>{@link #askByPolicy} —— 用户在界面上已经选定某条政策，上下文是确定的，
+ *       直接注入正文即可，没必要让模型再去检索；</li>
+ *   <li>{@link #askWithTools} —— 只有一句自然语言问题，查谁、看哪一条都需要判断，
+ *       交给模型调用 {@code PolicyTools} 自己决定（先检索、再取正文）。</li>
+ * </ul>
  */
 public interface PolicyAiService {
 
@@ -41,36 +45,23 @@ public interface PolicyAiService {
                        @V("question") String question);
 
     /**
-     * 基于政策库检索结果回答用户问题（未指定具体政策 ID 时使用）。
+     * 只有自然语言问题时的政策咨询：由模型自行调用工具检索并取证。
      */
     @SystemMessage({
             "你是一个面向大学生和青年创业者的政策解读 Agent。",
-            "请基于给定的政策数据库检索结果回答用户问题，不要编造材料中不存在的政策细节。",
-            "如果材料不足，请说明需要继续查看官方文件或主管部门通知。"
+            "你可以调用工具检索政策库、获取政策正文。回答政策问题前必须先调用工具查证，",
+            "不要凭记忆编造政策条款、补贴金额、申报时间或主管部门名称。",
+            "如果工具返回没有相关内容，请明确说明政策库中没有检索到，并建议用户以官方文件和主管部门通知为准。"
     })
     @UserMessage({
             "用户问题：{{question}}",
             "",
-            "政策检索结果：",
-            "{{policiesDigest}}",
-            "",
-            "请输出：",
+            "请先调用工具查证，再按以下结构回答：",
             "1. 相关政策方向",
             "2. 用户可能关注的条件",
             "3. 申报或查询建议",
-            "4. 风险提示"
+            "4. 风险提示",
+            "5. 你实际引用到的政策标题（必须来自工具返回结果，没有就说明未检索到）"
     })
-    String askBySearchResult(@V("question") String question,
-                             @V("policiesDigest") String policiesDigest);
-
-    /**
-     * 政策库中没有检索到相关政策时的兜底回答。
-     */
-    @SystemMessage({
-            "你是一个面向大学生和青年创业者的政策解读 Agent。",
-            "当前政策库中没有检索到与该问题直接相关的政策。",
-            "请注意提示用户以官方文件和主管部门通知为准，不要编造具体政策条款。"
-    })
-    @UserMessage("用户问题：{{question}}")
-    String answerWithoutPolicy(@V("question") String question);
+    String askWithTools(@V("question") String question);
 }
