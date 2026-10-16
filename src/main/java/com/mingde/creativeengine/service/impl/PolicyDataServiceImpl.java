@@ -6,6 +6,7 @@ import com.mingde.creativeengine.mapper.PolicyDataMapper;
 import com.mingde.creativeengine.service.PolicyDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,6 +35,17 @@ public class PolicyDataServiceImpl implements PolicyDataService {
     @Autowired
     private PolicyDataMapper policyDataMapper;
 
+    /**
+     * 自我引用（延迟注入，避免循环依赖）。
+     *
+     * <p>{@code @Cacheable} 依赖 Spring 代理生效，类内部直接 {@code this.getAllPolicies()}
+     * 会绕过代理，导致 {@link #searchPolicies} 在无关键词时走的是没缓存的版本。
+     * 通过代理引用调用，缓存才会命中。</p>
+     */
+    @Lazy
+    @Autowired
+    private PolicyDataService self;
+
     @Override
     @Cacheable(cacheNames = "policyList")
     public List<PolicyData> getAllPolicies() {
@@ -58,12 +70,12 @@ public class PolicyDataServiceImpl implements PolicyDataService {
     @Override
     public List<PolicyData> searchPolicies(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
-            return getAllPolicies();
+            return self.getAllPolicies();
         }
 
         List<String> terms = parseSearchTerms(keyword);
         if (terms.isEmpty()) {
-            return getAllPolicies();
+            return self.getAllPolicies();
         }
 
         LambdaQueryWrapper<PolicyData> wrapper = new LambdaQueryWrapper<>();

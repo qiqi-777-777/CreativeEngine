@@ -1,12 +1,12 @@
 package com.mingde.creativeengine.config;
 
+import com.mingde.creativeengine.cache.TwoLevelCacheManager;
 import com.mingde.creativeengine.storage.InMemoryTokenStore;
 import com.mingde.creativeengine.storage.RedisTokenStore;
 import com.mingde.creativeengine.storage.TokenStore;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -29,9 +30,26 @@ class RedisConfigTest {
         try (AnnotationConfigApplicationContext context = context("false")) {
             assertTrue(context.getBean(TokenStore.class) instanceof InMemoryTokenStore,
                     "关闭 Redis 时应使用内存版 token 存储");
-            assertTrue(context.getBean(CacheManager.class) instanceof ConcurrentMapCacheManager,
-                    "关闭 Redis 时应使用进程内缓存管理器");
+            CacheManager cacheManager = context.getBean(CacheManager.class);
+            assertTrue(cacheManager instanceof TwoLevelCacheManager,
+                    "缓存管理器应是 L1 本地 + L2 远端的组合");
+            assertNotNull(cacheManager.getCache("policyList"), "缓存名应按需创建");
         }
+    }
+
+    @Test
+    void jitterKeepsTtlWithinTenPercent() {
+        Duration base = Duration.ofMinutes(10);
+
+        for (int i = 0; i < 100; i++) {
+            Duration jittered = RedisConfig.jitter(base);
+            assertTrue(jittered.compareTo(Duration.ofMinutes(9)) >= 0,
+                    "抖动后不应低于基准的 90%，实际：" + jittered);
+            assertTrue(jittered.compareTo(Duration.ofMinutes(11)) <= 0,
+                    "抖动后不应高于基准的 110%，实际：" + jittered);
+        }
+
+        assertEquals(Duration.ZERO, RedisConfig.jitter(Duration.ZERO), "过短的 TTL 不做抖动");
     }
 
     @Test

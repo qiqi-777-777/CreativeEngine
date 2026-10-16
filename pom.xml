@@ -76,6 +76,16 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- 多级缓存的 L1：Caffeine 进程内缓存，挡住绝大多数热点读取，省掉一次 Redis 网络往返 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- LangChain4j：大模型应用开发框架（ChatModel 抽象 + AiServices 声明式 Agent） -->
         <dependency>
             <groupId>dev.langchain4j</groupId>

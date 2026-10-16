@@ -45,6 +45,12 @@ app:
     # 热点数据（政策列表、职业标签）缓存有效期
     hot-data-ttl: 10m
 
+  # 多级缓存的 L1（进程内 Caffeine）：TTL 比 Redis 短，既能挡住绝大多数重复读，
+  # 又能在多实例场景下较快感知到数据变化
+  cache:
+    local-ttl: 60s
+    local-max-size: 1000
+
 # DeepSeek AI配置（通过 LangChain4j 的 OpenAI 兼容客户端接入）
 deepseek:
   api-key: ${DEEPSEEK_API_KEY:}
