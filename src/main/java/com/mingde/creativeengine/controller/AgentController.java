@@ -2,6 +2,7 @@ package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
+import com.mingde.creativeengine.dto.PolicyAskRequest;
 import com.mingde.creativeengine.mq.AgentLogMessage;
 import com.mingde.creativeengine.mq.AgentLogPublisher;
 import com.mingde.creativeengine.observability.AgentTelemetry;
@@ -14,6 +15,7 @@ import com.mingde.creativeengine.service.agent.PolicyAgentService;
 import com.mingde.creativeengine.service.agent.RouterAgentService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,13 +63,10 @@ public class AgentController {
     private AgentTelemetry agentTelemetry;
 
     @PostMapping("/policy/ask")
-    public Result<Map<String, Object>> askPolicy(@RequestBody Map<String, Object> request) {
-        Long policyId = getLong(request, "policyId");
-        String question = getString(request, "question");
-
-        if (policyId == null || isBlank(question)) {
-            return Result.error(ResultCode.PARAM_MISSING.getCode(), "policyId and question are required");
-        }
+    public Result<Map<String, Object>> askPolicy(@Valid @RequestBody PolicyAskRequest request) {
+        // 必填校验交给 @Valid + PolicyAskRequest
+        Long policyId = request.policyId();
+        String question = request.question();
 
         String answer = policyAgentService.askPolicy(policyId, question);
         agentLogPublisher.publish(new AgentLogMessage(
@@ -180,24 +179,6 @@ public class AgentController {
             question = getString(request, "message");
         }
         return question;
-    }
-
-    private Long getLong(Map<String, Object> request, String key) {
-        if (request == null) {
-            return null;
-        }
-        Object value = request.get(key);
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        try {
-            return Long.valueOf(value.toString().trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     private String getString(Map<String, Object> request, String key) {

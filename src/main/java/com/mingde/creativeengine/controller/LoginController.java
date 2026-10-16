@@ -1,10 +1,14 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.dto.LoginRequest;
+import com.mingde.creativeengine.dto.RegisterRequest;
+import com.mingde.creativeengine.dto.UpdateUserProfileRequest;
 import com.mingde.creativeengine.entity.User;
 import com.mingde.creativeengine.security.UserContext;
 import com.mingde.creativeengine.service.UserService;
 import com.mingde.creativeengine.storage.TokenStore;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,28 +39,12 @@ public class LoginController {
      * 用户登录
      */
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> params) {
+    public Map<String, Object> login(@Valid @RequestBody LoginRequest request) {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            String username = params.get("username");
-            String password = params.get("password");
-            
-            // 参数校验
-            if (username == null || username.trim().isEmpty()) {
-                result.put("code", 400);
-                result.put("message", "用户名不能为空");
-                return result;
-            }
-            
-            if (password == null || password.trim().isEmpty()) {
-                result.put("code", 400);
-                result.put("message", "密码不能为空");
-                return result;
-            }
-            
-            // 验证登录
-            User user = userService.login(username, password);
+            // 必填校验交给 @Valid + LoginRequest，方法体只关心业务
+            User user = userService.login(request.username(), request.password());
             
             if (user == null) {
                 result.put("code", 401);
@@ -77,7 +65,7 @@ public class LoginController {
             result.put("message", "登录成功");
             result.put("data", data);
             
-            log.info("用户登录成功: {}, token: {}", username, maskToken(token));
+            log.info("用户登录成功: {}, token: {}", request.username(), maskToken(token));
             
         } catch (Exception e) {
             log.error("登录失败", e);
@@ -92,41 +80,12 @@ public class LoginController {
      * 用户注册
      */
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody Map<String, String> params) {
+    public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            String username = params.get("username");
-            String password = params.get("password");
-            String nickname = params.get("nickname");
-            
-            // 参数校验
-            if (username == null || username.trim().isEmpty()) {
-                result.put("code", 400);
-                result.put("message", "用户名不能为空");
-                return result;
-            }
-            
-            if (password == null || password.trim().isEmpty()) {
-                result.put("code", 400);
-                result.put("message", "密码不能为空");
-                return result;
-            }
-            
-            if (username.length() < 3 || username.length() > 20) {
-                result.put("code", 400);
-                result.put("message", "用户名长度必须在3-20个字符之间");
-                return result;
-            }
-            
-            if (password.length() < 6) {
-                result.put("code", 400);
-                result.put("message", "密码长度不能少于6位");
-                return result;
-            }
-            
-            // 注册用户
-            User user = userService.register(username, password, nickname);
+            // 用户名/密码的必填与长度规则写在 RegisterRequest 上
+            User user = userService.register(request.username(), request.password(), request.nickname());
             
             if (user == null) {
                 result.put("code", 400);
@@ -146,7 +105,7 @@ public class LoginController {
             result.put("message", "注册成功");
             result.put("data", data);
             
-            log.info("用户注册成功: {}", username);
+            log.info("用户注册成功: {}", request.username());
             
         } catch (Exception e) {
             log.error("注册失败", e);
@@ -167,7 +126,7 @@ public class LoginController {
         try {
             if (token != null && !token.isEmpty()) {
                 tokenStore.revoke(token);
-                log.info("用户退出登录: token={}", token);
+                log.info("用户退出登录: token={}", maskToken(token));
             }
             
             result.put("code", 200);
@@ -214,37 +173,16 @@ public class LoginController {
     }
 
     @PutMapping("/userInfo")
-    public Map<String, Object> updateUserInfo(@RequestBody Map<String, String> params) {
+    public Map<String, Object> updateUserInfo(@Valid @RequestBody UpdateUserProfileRequest request) {
         Map<String, Object> result = new HashMap<>();
 
         try {
             // 登录态已由 AuthInterceptor 统一校验，这里直接取
             Long userId = UserContext.getUserId();
 
-            String nickname = params.get("nickname");
-            String phone = params.get("phone");
-            String email = params.get("email");
-            String avatar = params.get("avatar");
-
-            if (nickname == null || nickname.trim().isEmpty()) {
-                result.put("code", 400);
-                result.put("message", "昵称不能为空");
-                return result;
-            }
-
-            if (phone != null && !phone.trim().isEmpty() && !phone.matches("^1\\d{10}$")) {
-                result.put("code", 400);
-                result.put("message", "手机号格式不正确");
-                return result;
-            }
-
-            if (email != null && !email.trim().isEmpty() && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-                result.put("code", 400);
-                result.put("message", "邮箱格式不正确");
-                return result;
-            }
-
-            User user = userService.updateUserInfo(userId, nickname, phone, email, avatar);
+            // 昵称必填、手机号与邮箱格式规则写在 UpdateUserProfileRequest 上
+            User user = userService.updateUserInfo(userId, request.nickname(), request.phone(),
+                    request.email(), request.avatar());
             if (user == null) {
                 result.put("code", 404);
                 result.put("message", "用户不存在");

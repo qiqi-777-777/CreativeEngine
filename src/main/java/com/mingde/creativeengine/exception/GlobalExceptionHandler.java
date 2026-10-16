@@ -9,9 +9,12 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Objects;
 
 /**
  * 全局异常处理器
@@ -33,12 +36,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 参数校验异常
+     * 参数校验异常（{@code @Valid} 校验失败）。
+     *
+     * <p>把第一个字段错误信息回给调用方，而不是笼统的「参数错误」——
+     * 前端可以直接把这句话弹给用户。</p>
      */
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
-    public Result<Void> handleValidException(Exception e) {
-        log.error("参数校验异常：{}", e.getMessage());
-        return Result.error(ResultCode.PARAM_ERROR);
+    public Result<Void> handleValidException(BindException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(ResultCode.PARAM_ERROR.getMessage());
+        log.warn("参数校验失败：{}", message);
+        return Result.error(ResultCode.PARAM_ERROR.getCode(), message);
     }
 
     /**
