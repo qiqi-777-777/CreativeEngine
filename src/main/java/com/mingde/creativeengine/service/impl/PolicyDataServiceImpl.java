@@ -1,6 +1,8 @@
 package com.mingde.creativeengine.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.mapper.PolicyDataMapper;
 import com.mingde.creativeengine.service.PolicyDataService;
@@ -90,6 +92,26 @@ public class PolicyDataServiceImpl implements PolicyDataService {
         }
         wrapper.orderByDesc(PolicyData::getCreateTime);
         return policyDataMapper.selectList(wrapper);
+    }
+
+    @Override
+    public PageResult<PolicyData> pagePolicies(String keyword, int page, int size) {
+        // 刻意不走 getAllPolicies 的缓存：单页查询复用全量缓存就又变成全量加载了，
+        // 那就等于没分页。翻页交给数据库，代价是每次回源，换来的是内存与响应体都只跟页大小有关
+        LambdaQueryWrapper<PolicyData> wrapper = new LambdaQueryWrapper<>();
+        for (String term : parseSearchTerms(keyword == null ? "" : keyword)) {
+            wrapper.and(w -> w
+                .like(PolicyData::getPolicyName, term)
+                .or()
+                .like(PolicyData::getKeywords, term)
+                .or()
+                .like(PolicyData::getContent, term)
+            );
+        }
+        wrapper.orderByDesc(PolicyData::getCreateTime);
+
+        Page<PolicyData> result = policyDataMapper.selectPage(new Page<>(page, size), wrapper);
+        return PageResult.of(result.getRecords(), result.getTotal(), page, size);
     }
 
     private List<String> parseSearchTerms(String keyword) {

@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.service.agent.tool;
 
+import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.rag.KeywordPolicyRetriever;
 import com.mingde.creativeengine.service.PolicyDataService;
@@ -50,6 +51,11 @@ class PolicyToolsTest {
                 throw failure;
             }
             return searchResult;
+        }
+
+        @Override
+        public PageResult<PolicyData> pagePolicies(String keyword, int page, int size) {
+            return PageResult.of(searchPolicies(keyword), searchResult.size(), page, size);
         }
     }
 

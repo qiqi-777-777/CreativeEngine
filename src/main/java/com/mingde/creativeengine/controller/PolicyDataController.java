@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.PolicyDataService;
@@ -22,6 +23,9 @@ import java.util.Map;
 public class PolicyDataController {
 
     private static final Logger log = LoggerFactory.getLogger(PolicyDataController.class);
+
+    /** 单页最多返回条数，避免调用方传 size=100000 把这个接口当成全量导出用。 */
+    private static final int MAX_PAGE_SIZE = 100;
 
     @Autowired
     private PolicyDataService policyDataService;
@@ -46,6 +50,37 @@ public class PolicyDataController {
             result.put("message", "获取政策列表失败：" + e.getMessage());
         }
         return result;
+    }
+
+    /**
+     * 政策列表（分页）
+     *
+     * <p>与 {@code /list} 并存：{@code /list} 是历史接口，小程序依赖它的 {@code data}
+     * 是数组并且在客户端自己过滤关键词，直接改返回结构会打断它。
+     * 新接入的调用方（以及数据量变大以后的小程序）用这个接口。</p>
+     */
+    @GetMapping("/page")
+    public Map<String, Object> getPolicyPage(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "keyword", required = false) String keyword) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            PageResult<PolicyData> policies =
+                    policyDataService.pagePolicies(keyword, Math.max(page, 1), clampSize(size));
+            result.put("code", 200);
+            result.put("message", "success");
+            result.put("data", policies);
+        } catch (Exception e) {
+            log.error("分页获取政策列表失败", e);
+            result.put("code", 500);
+            result.put("message", "获取政策列表失败：" + e.getMessage());
+        }
+        return result;
+    }
+
+    private int clampSize(int size) {
+        return Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
     }
 
     /**

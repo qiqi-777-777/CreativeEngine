@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.config;
 
 import com.mingde.creativeengine.entity.Occupation;
+import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.service.OccupationService;
 import com.mingde.creativeengine.service.PolicyDataService;
@@ -104,6 +105,11 @@ class LangChain4jContextWiringTest {
             @Override
             public List<PolicyData> searchPolicies(String keyword) {
                 return Collections.emptyList();
+            }
+
+            @Override
+            public PageResult<PolicyData> pagePolicies(String keyword, int page, int size) {
+                return PageResult.of(Collections.emptyList(), 0, page, size);
             }
         };
     }

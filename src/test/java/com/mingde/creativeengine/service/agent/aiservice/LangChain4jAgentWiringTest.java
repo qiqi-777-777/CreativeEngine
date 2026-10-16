@@ -2,6 +2,7 @@ package com.mingde.creativeengine.service.agent.aiservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mingde.creativeengine.entity.Occupation;
+import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.observability.AgentTelemetry;
 import com.mingde.creativeengine.rag.KeywordPolicyRetriever;
@@ -345,6 +346,11 @@ class LangChain4jAgentWiringTest {
             @Override
             public List<PolicyData> searchPolicies(String keyword) {
                 return List.of(policy(9L));
+            }
+
+            @Override
+            public PageResult<PolicyData> pagePolicies(String keyword, int page, int size) {
+                return PageResult.of(List.of(policy(9L)), 1, page, size);
             }
         };
         return new PolicyTools(policyDataService, new KeywordPolicyRetriever(policyDataService));
