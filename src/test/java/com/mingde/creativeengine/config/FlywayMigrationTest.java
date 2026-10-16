@@ -20,10 +20,16 @@ class FlywayMigrationTest {
 
     private static final String BASELINE = "db/migration/V1__init_schema.sql";
 
+    private static final String AGENT_LOG_MIGRATION = "db/migration/V2__add_agent_session_log.sql";
+
     private static final List<String> TABLES = List.of(
             "banner", "occupation", "policy_data",
             "user_bp_draft", "user_career_record", "user_notification",
             "user_policy_favorite", "users");
+
+    /** AgentSessionLog 实体用到的列，迁移脚本里必须都有。 */
+    private static final List<String> AGENT_LOG_COLUMNS = List.of(
+            "user_id", "agent_type", "input_text", "output_text", "related_id", "create_time");
 
     @Test
     void baselineMigrationCreatesEveryTable() throws Exception {
@@ -32,6 +38,17 @@ class FlywayMigrationTest {
         for (String table : TABLES) {
             assertTrue(sql.contains("CREATE TABLE `" + table + "`"),
                     "V1 应包含 " + table + " 的建表语句");
+        }
+    }
+
+    @Test
+    void agentLogMigrationCreatesTableWithAllEntityColumns() throws Exception {
+        String sql = read(AGENT_LOG_MIGRATION);
+
+        assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS `agent_session_log`"),
+                "V2 应创建 agent_session_log 表");
+        for (String column : AGENT_LOG_COLUMNS) {
+            assertTrue(sql.contains("`" + column + "`"), "V2 应包含列 " + column);
         }
     }
 
