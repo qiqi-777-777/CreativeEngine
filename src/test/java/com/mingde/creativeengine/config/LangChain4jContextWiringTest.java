@@ -52,7 +52,8 @@ class LangChain4jContextWiringTest {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setEnvironment(environment);
         // 工具 Bean 是 AiService 的依赖，这里连同它们的数据服务一起装配
-        context.register(LangChain4jConfig.class, ResilienceConfig.class, PolicyTools.class, OccupationTools.class);
+        context.register(LangChain4jConfig.class, ResilienceConfig.class, RagConfig.class,
+                PolicyTools.class, OccupationTools.class);
         context.registerBean(PolicyDataService.class, LangChain4jContextWiringTest::stubPolicyDataService);
         context.registerBean(OccupationService.class, LangChain4jContextWiringTest::stubOccupationService);
         // 指标组件依赖 MeterRegistry，生产环境由 actuator 提供，这里注册一个内存实现

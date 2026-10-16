@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.service.agent.tool;
 
 import com.mingde.creativeengine.entity.PolicyData;
+import com.mingde.creativeengine.rag.PolicyRetriever;
 import com.mingde.creativeengine.service.PolicyDataService;
 
 import dev.langchain4j.agent.tool.P;
@@ -37,23 +38,26 @@ public class PolicyTools {
 
     private final PolicyDataService policyDataService;
 
-    public PolicyTools(PolicyDataService policyDataService) {
+    /** 检索入口：默认走关键词，开启 RAG 后是「语义 + 关键词」混合召回，工具本身不感知差异。 */
+    private final PolicyRetriever policyRetriever;
+
+    public PolicyTools(PolicyDataService policyDataService, PolicyRetriever policyRetriever) {
         this.policyDataService = policyDataService;
+        this.policyRetriever = policyRetriever;
     }
 
-    @Tool("按关键词检索创业政策库，返回匹配政策的 ID、标题与关键词。回答政策问题前应先调用本工具查证。")
-    public String searchPolicies(@P("检索关键词，例如：大学生创业补贴、税收减免、场地扶持") String keyword) {
+    @Tool("按问题检索创业政策库，返回最相关政策（语义 + 关键词混合召回）的 ID、标题与关键词。回答政策问题前应先调用本工具查证。")
+    public String searchPolicies(@P("用户想了解的问题或关键词，例如：大学生创业补贴怎么申请、应届生能领哪些钱、税收减免") String keyword) {
         String trimmed = keyword == null ? "" : keyword.trim();
         try {
-            List<PolicyData> policies = policyDataService.searchPolicies(trimmed);
-            if (policies == null || policies.isEmpty()) {
+            List<PolicyData> policies = policyRetriever.retrieve(trimmed, MAX_SEARCH_RESULT);
+            if (policies.isEmpty()) {
                 return "政策库中没有检索到与「" + trimmed + "」相关的政策。";
             }
 
-            int count = Math.min(MAX_SEARCH_RESULT, policies.size());
             StringBuilder result = new StringBuilder();
-            result.append("共检索到 ").append(policies.size()).append(" 条政策，以下为前 ").append(count).append(" 条：\n");
-            for (int i = 0; i < count; i++) {
+            result.append("按相关度检索到 ").append(policies.size()).append(" 条政策：\n");
+            for (int i = 0; i < policies.size(); i++) {
                 PolicyData policy = policies.get(i);
                 result.append(i + 1)
                         .append(". [政策ID=").append(policy.getId()).append("] ")

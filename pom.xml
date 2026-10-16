@@ -32,6 +32,8 @@
              这里显式对齐，避免运行期出现 Jackson API 不兼容 -->
         <jackson-bom.version>2.22.1</jackson-bom.version>
         <langchain4j.version>1.20.0</langchain4j.version>
+        <!-- Embedding 模型与主框架不同版本线，这里单独记一个 -->
+        <langchain4j.embeddings.version>1.20.0-beta30</langchain4j.embeddings.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <resilience4j.version>2.3.0</resilience4j.version>
         <redisson.version>3.52.0</redisson.version>
@@ -116,6 +118,14 @@
             <artifactId>langchain4j</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
+        <!-- 本地中文 Embedding 模型（BGE small zh，ONNX 离线推理）：
+             模型文件随 jar 一起打包，不依赖外部接口，政策正文也不需要出网 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-bge-small-zh-v15</artifactId>
+            <version>${langchain4j.embeddings.version}</version>
+        </dependency>
+
         <!-- OpenAI 兼容协议接入（DeepSeek 使用 OpenAI 兼容接口） -->
         <dependency>
             <groupId>dev.langchain4j</groupId>

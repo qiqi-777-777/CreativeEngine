@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mingde.creativeengine.entity.Occupation;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.observability.AgentTelemetry;
+import com.mingde.creativeengine.rag.KeywordPolicyRetriever;
 import com.mingde.creativeengine.service.OccupationService;
 import com.mingde.creativeengine.service.PolicyDataService;
 import com.mingde.creativeengine.service.agent.tool.OccupationTools;
@@ -346,7 +347,7 @@ class LangChain4jAgentWiringTest {
                 return List.of(policy(9L));
             }
         };
-        return new PolicyTools(policyDataService);
+        return new PolicyTools(policyDataService, new KeywordPolicyRetriever(policyDataService));
     }
 
     /**

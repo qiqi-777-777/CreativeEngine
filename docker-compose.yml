@@ -97,6 +97,8 @@ services:
       MQ_ENABLED: "true"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
+      # 打开 RAG：加载随 jar 打包的本地 Embedding 模型，政策检索走混合召回
+      RAG_ENABLED: "true"
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       TZ: Asia/Shanghai
     ports:

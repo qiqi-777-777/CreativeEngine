@@ -74,6 +74,19 @@ app:
   mq:
     enabled: ${MQ_ENABLED:false}
 
+  # RAG 开关：关闭（默认）时政策检索只走关键词，不加载模型；
+  # 打开后加载本地中文 Embedding 模型（BGE small zh，模型随 jar 打包），
+  # 检索变为「语义 + 关键词」混合召回，用 RRF 融合两路排名
+  rag:
+    enabled: ${RAG_ENABLED:false}
+    # 语义召回的候选分片数（融合前）
+    candidate-size: 10
+    # 余弦相似度下限，低于该值的分片不参与召回
+    min-score: 0.6
+    # 正文切分长度与重叠，避免长政策语义被稀释
+    chunk-size: 500
+    chunk-overlap: 50
+
 # DeepSeek AI配置（通过 LangChain4j 的 OpenAI 兼容客户端接入）
 deepseek:
   api-key: ${DEEPSEEK_API_KEY:}
