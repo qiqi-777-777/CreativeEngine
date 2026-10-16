@@ -23,3 +23,9 @@ scripts/
 *.log
 .env
 .env.*
+
+# 本地密钥文件（含 API Key 与本机数据库密码），绝不进镜像：
+# 一是镜像里会残留明文密钥，二是 secret 是激活的 profile，
+# 它写死的 spring.datasource.password 会盖掉容器传入的 DB_PASSWORD，
+# 导致应用用本机密码去连容器里的 MySQL，直接 Access denied。
+src/main/resources/application-secret.yml
