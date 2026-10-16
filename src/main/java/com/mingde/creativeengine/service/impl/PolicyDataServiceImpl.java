@@ -56,8 +56,15 @@ public class PolicyDataServiceImpl implements PolicyDataService {
         return policyDataMapper.selectList(wrapper);
     }
 
+    /**
+     * 按 id 查政策，结果进 L1/L2 缓存。
+     *
+     * <p>{@code unless = "#result == null"} 不能省：Redis 的缓存实现不允许存 null，
+     * 查一个不存在的 id 会直接抛 {@code IllegalArgumentException} 把请求打成 500，
+     * 「政策不存在」这个正常分支就走不到了。顺带也避免了把「不存在」这个瞬时状态缓存成 10 分钟。</p>
+     */
     @Override
-    @Cacheable(cacheNames = "policyDetail", key = "#id")
+    @Cacheable(cacheNames = "policyDetail", key = "#id", unless = "#result == null")
     public PolicyData getPolicyById(Long id) {
         return policyDataMapper.selectById(id);
     }
