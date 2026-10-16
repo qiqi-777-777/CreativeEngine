@@ -6,12 +6,15 @@ import com.mingde.creativeengine.entity.User;
 import com.mingde.creativeengine.exception.BusinessException;
 import com.mingde.creativeengine.mapper.UserMapper;
 import com.mingde.creativeengine.security.LoginAttemptGuard;
+import com.mingde.creativeengine.security.UserRole;
 import com.mingde.creativeengine.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -19,6 +22,15 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * 用户服务实现类
+ *
+ * <p><b>事务约定</b>：服务层的写方法默认加 {@code @Transactional(rollbackFor = Exception.class)}。
+ * 目前这些方法都只写一张表，事务还看不出效果；但一旦以后出现「注册用户 + 初始化偏好」这类多表写，
+ * 就不会因为漏加注解留下半截数据。显式写 {@code rollbackFor} 的原因：默认只回滚
+ * {@link RuntimeException}，受检异常不会回滚。</p>
+ *
+ * <p><b>为什么 {@link #login} 刻意不加事务</b>：BCrypt 校验是故意设计成慢操作的
+ * （几十到上百毫秒），把它包在事务里会一直占着数据库连接，并发登录时容易把连接池耗光。
+ * 登录里唯一的写是「存量 MD5 升级为 BCrypt」，单条 UPDATE 自带原子性，不需要事务。</p>
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -90,33 +102,41 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public User register(String username, String password, String nickname) {
-        // 检查用户名是否已存在
+        // 先查一次是为了给出友好的「用户名已存在」；
+        // 真正的并发兜底是 users 表上的 uk_username 唯一索引（见下面 catch）
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
-        User existUser = userMapper.selectOne(queryWrapper);
-        
-        if (existUser != null) {
+        if (userMapper.selectOne(queryWrapper) != null) {
             log.warn("用户名已存在: {}", username);
             return null;
         }
-        
+
         // 创建新用户
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(nickname != null && !nickname.isEmpty() ? nickname : username);
         user.setStatus(1);
-        
-        int result = userMapper.insert(user);
-        
-        if (result > 0) {
-            log.info("用户注册成功: {}", username);
-            user.setPassword(null);
-            return user;
+        // 角色由服务端固定为普通用户：注册接口不允许客户端指定，否则就是提权漏洞
+        user.setRole(UserRole.USER.name());
+
+        try {
+            if (userMapper.insert(user) <= 0) {
+                log.warn("用户写入未生效: {}", username);
+                return null;
+            }
+        } catch (DuplicateKeyException e) {
+            // 并发提交同名账号时唯一索引会拦下，转成与「已存在」一致的返回，
+            // 否则用户看到的是笼统的 5000 系统错误
+            log.warn("用户名并发注册冲突: {}", username);
+            return null;
         }
-        
-        return null;
+
+        log.info("用户注册成功: {}", username);
+        user.setPassword(null);
+        return user;
     }
     
     @Override
@@ -144,6 +164,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public User updateUserInfo(Long id, String nickname, String phone, String email, String avatar) {
         User user = userMapper.selectById(id);
 

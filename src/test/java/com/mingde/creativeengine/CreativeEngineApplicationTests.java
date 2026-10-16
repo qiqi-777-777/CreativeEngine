@@ -9,6 +9,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,6 +23,15 @@ class CreativeEngineApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    /**
+     * {@code @Transactional} 依赖事务管理器：少了它，注解写了也不生效，而且要到运行期调用时才报错。
+     */
+    @Test
+    void transactionManagerIsAvailable() {
+        assertNotNull(context.getBean(PlatformTransactionManager.class),
+                "缺少事务管理器时 @Transactional 会在运行期才报错");
     }
 
     /**

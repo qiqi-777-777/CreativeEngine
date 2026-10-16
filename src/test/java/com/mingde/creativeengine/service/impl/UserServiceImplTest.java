@@ -5,8 +5,10 @@ import com.mingde.creativeengine.exception.BusinessException;
 import com.mingde.creativeengine.mapper.UserMapper;
 import com.mingde.creativeengine.security.CaffeineLoginAttemptGuard;
 import com.mingde.creativeengine.security.LoginAttemptGuard;
+import com.mingde.creativeengine.security.UserRole;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -105,6 +107,31 @@ class UserServiceImplTest {
         assertNotNull(stored);
         assertTrue(stored.startsWith("$2"), "新密码必须是 BCrypt，实际：" + stored);
         assertTrue(stored.length() >= 60, "BCrypt 哈希长度为 60 位");
+    }
+
+    @Test
+    void registerForcesNormalUserRole() {
+        when(userMapper.selectOne(any())).thenReturn(null);
+        AtomicReference<User> inserted = new AtomicReference<>();
+        when(userMapper.insert(any(User.class))).thenAnswer(invocation -> {
+            inserted.set(invocation.getArgument(0));
+            return 1;
+        });
+
+        service.register("alice", "secret123", "Alice");
+
+        assertEquals(UserRole.USER.name(), inserted.get().getRole(),
+                "角色必须由服务端固定，注册接口不允许客户端指定，否则就是提权漏洞");
+    }
+
+    @Test
+    void registerReturnsNullWhenUniqueIndexRejectsDuplicate() {
+        when(userMapper.selectOne(any())).thenReturn(null);
+        when(userMapper.insert(any(User.class)))
+                .thenThrow(new DuplicateKeyException("Duplicate entry 'alice' for key 'uk_username'"));
+
+        assertNull(service.register("alice", "secret123", "Alice"),
+                "并发注册撞唯一索引时应与「用户名已存在」返回一致，而不是抛出笼统的 5000");
     }
 
     @Test
