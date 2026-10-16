@@ -14,6 +14,7 @@ import com.mingde.creativeengine.mapper.UserCareerRecordMapper;
 import com.mingde.creativeengine.mapper.UserNotificationMapper;
 import com.mingde.creativeengine.mapper.UserPolicyFavoriteMapper;
 import com.mingde.creativeengine.security.UserContext;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Tag(name = "用户数据", description = "BP 草稿、职业匹配记录、政策收藏与通知")
 @RestController
 @RequestMapping("/api/user-data")
 public class UserDataController {

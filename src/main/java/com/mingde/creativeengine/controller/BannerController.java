@@ -2,6 +2,7 @@ package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.entity.Banner;
 import com.mingde.creativeengine.service.BannerService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import java.util.UUID;
 /**
  * 轮播图控制器
  */
+@Tag(name = "首页 Banner", description = "首页轮播图的查询与管理")
 @RestController
 @RequestMapping("/api/banner")
 public class BannerController {

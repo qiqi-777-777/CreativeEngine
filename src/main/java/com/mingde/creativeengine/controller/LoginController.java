@@ -4,6 +4,7 @@ import com.mingde.creativeengine.entity.User;
 import com.mingde.creativeengine.security.UserContext;
 import com.mingde.creativeengine.service.UserService;
 import com.mingde.creativeengine.storage.TokenStore;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.util.UUID;
 /**
  * 登录控制器
  */
+@Tag(name = "登录与账号", description = "登录、注册、退出与个人资料")
 @RestController
 @RequestMapping("/api/auth")
 public class LoginController {

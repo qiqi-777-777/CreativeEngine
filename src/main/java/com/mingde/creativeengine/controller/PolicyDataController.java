@@ -3,6 +3,7 @@ package com.mingde.creativeengine.controller;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.service.DeepSeekService;
 import com.mingde.creativeengine.service.PolicyDataService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.util.Map;
 /**
  * 政策数据控制器
  */
+@Tag(name = "政策数据", description = "政策列表、详情与政策问答")
 @RestController
 @RequestMapping("/api/policy-data")
 public class PolicyDataController {

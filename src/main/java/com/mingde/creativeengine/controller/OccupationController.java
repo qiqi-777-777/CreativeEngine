@@ -3,6 +3,7 @@ package com.mingde.creativeengine.controller;
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.entity.Occupation;
 import com.mingde.creativeengine.service.OccupationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.util.Map;
  *
  * @author CreativeEngine Team
  */
+@Tag(name = "职业匹配", description = "专业/技能/性格标签与职业匹配")
 @RestController
 @RequestMapping("/api/occupation")
 public class OccupationController {

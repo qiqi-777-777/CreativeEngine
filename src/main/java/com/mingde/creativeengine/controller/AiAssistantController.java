@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.service.DeepSeekService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author CreativeEngine Team
  */
+@Tag(name = "AI 助手", description = "小程序内的通用 AI 问答与会话历史")
 @RestController
 @RequestMapping("/api/ai")
 public class AiAssistantController {

@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 /**
  * 基础测试控制器 - 不依赖任何外部服务
  */
+@Tag(name = "健康探针", description = "不依赖外部服务的基础连通性检查")
 @RestController
 public class BasicTestController {
 

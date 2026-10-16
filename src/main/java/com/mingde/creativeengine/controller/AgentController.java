@@ -13,6 +13,7 @@ import com.mingde.creativeengine.service.agent.CareerAgentService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
 import com.mingde.creativeengine.service.agent.RouterAgentService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +30,7 @@ import java.util.Map;
 /**
  * Unified entry for lightweight scene agents.
  */
+@Tag(name = "场景 Agent", description = "政策解读、职业规划、BP 写作、创业咨询的统一入口")
 @RestController
 @RequestMapping("/api/agent")
 public class AgentController {

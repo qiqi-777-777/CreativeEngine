@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "BP 导出", description = "把生成的商业计划书导出为 PDF / HTML")
 @RestController
 @RequestMapping("/api/bp")
 public class BpExportController {
