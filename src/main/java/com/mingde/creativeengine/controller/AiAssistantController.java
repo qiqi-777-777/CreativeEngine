@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.aop.Idempotent;
 import com.mingde.creativeengine.service.DeepSeekService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ public class AiAssistantController {
     /**
      * AI对话
      */
+    @Idempotent
     @PostMapping("/chat")
     public Map<String, Object> chat(@RequestBody Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();

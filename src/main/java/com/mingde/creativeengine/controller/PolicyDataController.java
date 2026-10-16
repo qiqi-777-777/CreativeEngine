@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.aop.Idempotent;
 import com.mingde.creativeengine.common.PageResult;
 import com.mingde.creativeengine.entity.PolicyData;
 import com.mingde.creativeengine.service.DeepSeekService;
@@ -110,6 +111,7 @@ public class PolicyDataController {
     /**
      * 政策问答
      */
+    @Idempotent
     @PostMapping("/ask")
     public Map<String, Object> askPolicy(@RequestBody Map<String, Object> params) {
         Map<String, Object> result = new HashMap<>();

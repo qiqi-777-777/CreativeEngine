@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.aop.AgentCallLog;
+import com.mingde.creativeengine.aop.Idempotent;
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.dto.PolicyAskRequest;
@@ -57,6 +58,7 @@ public class AgentController {
     @Autowired
     private AgentTelemetry agentTelemetry;
 
+    @Idempotent
     @AgentCallLog(agentType = "policy", inputSpel = "#request.question()", relatedSpel = "#request.policyId()")
     @PostMapping("/policy/ask")
     public Result<Map<String, Object>> askPolicy(@Valid @RequestBody PolicyAskRequest request) {
@@ -71,6 +73,7 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @Idempotent
     @AgentCallLog(agentType = "career", inputSpel = "#request.toString()", answerKey = "suggestion")
     @PostMapping("/career/suggest")
     public Result<Map<String, Object>> suggestCareer(@RequestBody Map<String, Object> request) {
@@ -90,6 +93,7 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @Idempotent
     @AgentCallLog(agentType = "bp", inputSpel = "#request.toString()",
             relatedSpel = "#request.get('projectName')", answerKey = "content")
     @PostMapping("/bp/generate")
@@ -105,6 +109,7 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @Idempotent
     @AgentCallLog(agentType = "startup",
             inputSpel = "#request.get('question') ?: #request.get('message')",
             relatedSpel = "#request.get('sessionId')")
@@ -128,6 +133,7 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @Idempotent
     @AgentCallLog(agentType = "router", agentTypeKey = "route",
             inputSpel = "#request.get('question') ?: #request.get('message')")
     @PostMapping("/router/chat")
