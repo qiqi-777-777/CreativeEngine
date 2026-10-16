@@ -1,21 +1,11 @@
 package com.mingde.creativeengine.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.mingde.creativeengine.entity.UserBpDraft;
-import com.mingde.creativeengine.entity.UserCareerRecord;
-import com.mingde.creativeengine.entity.UserNotification;
-import com.mingde.creativeengine.entity.UserPolicyFavorite;
-import com.mingde.creativeengine.lock.DistributedLock;
-import com.mingde.creativeengine.mapper.UserBpDraftMapper;
-import com.mingde.creativeengine.mapper.UserCareerRecordMapper;
-import com.mingde.creativeengine.mapper.UserNotificationMapper;
-import com.mingde.creativeengine.mapper.UserPolicyFavoriteMapper;
 import com.mingde.creativeengine.security.UserContext;
+import com.mingde.creativeengine.service.UserDataService;
+import com.mingde.creativeengine.service.view.UserDataViews;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,383 +16,108 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+/**
+ * 用户个人数据接口：BP 草稿、职业匹配记录、政策收藏、通知。
+ *
+ * <p>这里只做三件事：取登录用户、调服务、套响应结构。
+ * 数据的查询与「先查后写」的并发互斥都在 {@link UserDataService} 里。</p>
+ */
 @Tag(name = "用户数据", description = "BP 草稿、职业匹配记录、政策收藏与通知")
 @RestController
 @RequestMapping("/api/user-data")
 public class UserDataController {
 
-    private static final Gson gson = new Gson();
+    private final UserDataService userDataService;
 
-    /** 抢锁最长等待时间：用户连点两次的间隔量级。 */
-    private static final Duration LOCK_WAIT = Duration.ofSeconds(3);
-
-    /** 持锁上限：即使业务线程异常退出也能自动释放，避免死锁。 */
-    private static final Duration LOCK_LEASE = Duration.ofSeconds(10);
-
-    @Autowired
-    private UserBpDraftMapper bpDraftMapper;
-
-    @Autowired
-    private UserCareerRecordMapper careerRecordMapper;
-
-    @Autowired
-    private UserPolicyFavoriteMapper policyFavoriteMapper;
-
-    @Autowired
-    private UserNotificationMapper notificationMapper;
-
-    @Autowired
-    private DistributedLock distributedLock;
+    public UserDataController(UserDataService userDataService) {
+        this.userDataService = userDataService;
+    }
 
     @GetMapping("/stats")
     public Map<String, Object> stats() {
         // 登录态已由 AuthInterceptor 统一校验，这里直接取
-        Long userId = UserContext.getUserId();
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("policyFavorites", policyFavoriteMapper.selectCount(policyFavoriteQuery(userId)));
-        data.put("careerRecords", careerRecordMapper.selectCount(careerRecordQuery(userId)));
-        data.put("bpDrafts", bpDraftMapper.selectCount(bpDraftQuery(userId)));
-        data.put("notifications", notificationMapper.selectCount(notificationQuery(userId)));
-        data.put("unreadNotifications", notificationMapper.selectCount(
-                notificationQuery(userId).eq("is_read", 0)
-        ));
-        return success(data);
+        return success(UserDataViews.stats(userDataService.stats(UserContext.getUserId())));
     }
 
     @GetMapping("/bp-drafts")
     public Map<String, Object> listBpDrafts() {
-        Long userId = UserContext.getUserId();
-
-        List<Map<String, Object>> rows = bpDraftMapper.selectList(
-                bpDraftQuery(userId).orderByDesc("update_time").orderByDesc("id")
-        ).stream().map(this::toBpDraft).collect(Collectors.toList());
-        return success(rows);
+        return success(UserDataViews.bpDrafts(userDataService.listBpDrafts(UserContext.getUserId())));
     }
 
     @PostMapping("/bp-drafts")
     public Map<String, Object> saveBpDraft(@RequestBody Map<String, Object> data) {
-        Long userId = UserContext.getUserId();
-        String draftKey = text(data.get("id"), "bp-" + System.currentTimeMillis());
-
-        // 「先查后写」是临界区：并发点两次会各查到空、各插一条，用分布式锁互斥
-        return success(distributedLock.execute(
-                "ce:lock:user-data:bp-draft:" + userId + ":" + draftKey,
-                LOCK_WAIT, LOCK_LEASE,
-                () -> doSaveBpDraft(userId, draftKey, data)));
-    }
-
-    private Map<String, Object> doSaveBpDraft(Long userId, String draftKey, Map<String, Object> data) {
-        UserBpDraft draft = bpDraftMapper.selectOne(
-                bpDraftQuery(userId).eq("draft_key", draftKey).last("LIMIT 1")
-        );
-        LocalDateTime now = LocalDateTime.now();
-        boolean isNew = draft == null;
-        if (isNew) {
-            draft = new UserBpDraft();
-            draft.setUserId(userId);
-            draft.setDraftKey(draftKey);
-            draft.setCreateTime(now);
-        }
-
-        Object formData = data.get("formData");
-        draft.setProjectName(text(data.get("projectName"), "未命名项目"));
-        draft.setOneLiner(text(data.get("oneLiner"), ""));
-        draft.setFormData(gson.toJson(formData == null ? new HashMap<>() : formData));
-        draft.setContent(text(data.get("content"), ""));
-        draft.setUpdateTime(now);
-
-        if (isNew) {
-            bpDraftMapper.insert(draft);
-        } else {
-            bpDraftMapper.updateById(draft);
-        }
-
-        return toBpDraft(draft);
+        return success(UserDataViews.bpDraft(userDataService.saveBpDraft(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/bp-drafts/{draftKey}")
     public Map<String, Object> deleteBpDraft(@PathVariable String draftKey) {
-        Long userId = UserContext.getUserId();
-
-        bpDraftMapper.delete(bpDraftQuery(userId).eq("draft_key", draftKey));
+        userDataService.deleteBpDraft(UserContext.getUserId(), draftKey);
         return success(true);
     }
 
     @GetMapping("/career-records")
     public Map<String, Object> listCareerRecords() {
-        Long userId = UserContext.getUserId();
-
-        List<Map<String, Object>> rows = careerRecordMapper.selectList(
-                careerRecordQuery(userId).orderByDesc("create_time").orderByDesc("id")
-        ).stream().map(this::toCareerRecord).collect(Collectors.toList());
-        return success(rows);
+        return success(UserDataViews.careerRecords(userDataService.listCareerRecords(UserContext.getUserId())));
     }
 
     @PostMapping("/career-records")
     public Map<String, Object> saveCareerRecord(@RequestBody Map<String, Object> data) {
-        Long userId = UserContext.getUserId();
-        String recordKey = text(data.get("id"), "career-" + System.currentTimeMillis());
-
-        // 同上：先查后写需要互斥，否则并发提交会写出多条记录
-        return success(distributedLock.execute(
-                "ce:lock:user-data:career-record:" + userId + ":" + recordKey,
-                LOCK_WAIT, LOCK_LEASE,
-                () -> doSaveCareerRecord(userId, recordKey, data)));
-    }
-
-    private Map<String, Object> doSaveCareerRecord(Long userId, String recordKey, Map<String, Object> data) {
-        UserCareerRecord record = careerRecordMapper.selectOne(
-                careerRecordQuery(userId).eq("record_key", recordKey).last("LIMIT 1")
-        );
-        LocalDateTime now = LocalDateTime.now();
-        boolean isNew = record == null;
-        if (isNew) {
-            record = new UserCareerRecord();
-            record.setUserId(userId);
-            record.setRecordKey(recordKey);
-            record.setCreateTime(now);
-        }
-
-        Object results = data.get("results");
-        record.setResultData(gson.toJson(results == null ? new ArrayList<>() : results));
-        record.setUpdateTime(now);
-
-        if (isNew) {
-            careerRecordMapper.insert(record);
-        } else {
-            careerRecordMapper.updateById(record);
-        }
-
-        return toCareerRecord(record);
+        return success(UserDataViews.careerRecord(userDataService.saveCareerRecord(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/career-records/{recordKey}")
     public Map<String, Object> deleteCareerRecord(@PathVariable String recordKey) {
-        Long userId = UserContext.getUserId();
-
-        careerRecordMapper.delete(careerRecordQuery(userId).eq("record_key", recordKey));
+        userDataService.deleteCareerRecord(UserContext.getUserId(), recordKey);
         return success(true);
     }
 
     @GetMapping("/policy-favorites")
     public Map<String, Object> listPolicyFavorites() {
-        Long userId = UserContext.getUserId();
-
-        List<Map<String, Object>> rows = policyFavoriteMapper.selectList(
-                policyFavoriteQuery(userId).orderByDesc("create_time").orderByDesc("id")
-        ).stream().map(this::toPolicyFavorite).collect(Collectors.toList());
-        return success(rows);
+        return success(UserDataViews.policyFavorites(userDataService.listPolicyFavorites(UserContext.getUserId())));
     }
 
     @PostMapping("/policy-favorites")
     public Map<String, Object> savePolicyFavorite(@RequestBody Map<String, Object> data) {
-        Long userId = UserContext.getUserId();
-        String policyName = text(data.get("policyName"), "政策详情");
-
-        // 同一用户对同一政策的收藏也是「先查后写」，同样需要互斥
-        return success(distributedLock.execute(
-                "ce:lock:user-data:policy-favorite:" + userId + ":" + policyName,
-                LOCK_WAIT, LOCK_LEASE,
-                () -> doSavePolicyFavorite(userId, policyName, data)));
-    }
-
-    private Map<String, Object> doSavePolicyFavorite(Long userId, String policyName, Map<String, Object> data) {
-        UserPolicyFavorite favorite = policyFavoriteMapper.selectOne(
-                policyFavoriteQuery(userId).eq("policy_name", policyName).last("LIMIT 1")
-        );
-        LocalDateTime now = LocalDateTime.now();
-        boolean isNew = favorite == null;
-        if (isNew) {
-            favorite = new UserPolicyFavorite();
-            favorite.setUserId(userId);
-            favorite.setCreateTime(now);
-        }
-
-        favorite.setPolicyId(toLong(data.get("id")));
-        favorite.setPolicyName(policyName);
-        favorite.setPolicySnapshot(gson.toJson(data));
-
-        if (isNew) {
-            policyFavoriteMapper.insert(favorite);
-        } else {
-            policyFavoriteMapper.updateById(favorite);
-        }
-
-        return toPolicyFavorite(favorite);
+        return success(UserDataViews.policyFavorite(
+                userDataService.savePolicyFavorite(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/policy-favorites")
     public Map<String, Object> deletePolicyFavorite(@RequestParam String key) {
-        Long userId = UserContext.getUserId();
-
-        QueryWrapper<UserPolicyFavorite> wrapper = policyFavoriteQuery(userId);
-        wrapper.and((query) -> {
-            query.eq("policy_name", key);
-            Long policyId = toLong(key);
-            if (policyId != null) {
-                query.or().eq("policy_id", policyId);
-            }
-        });
-        policyFavoriteMapper.delete(wrapper);
+        userDataService.deletePolicyFavorite(UserContext.getUserId(), key);
         return success(true);
     }
 
     @GetMapping("/notifications")
     public Map<String, Object> listNotifications() {
-        Long userId = UserContext.getUserId();
-
-        List<Map<String, Object>> rows = notificationMapper.selectList(
-                notificationQuery(userId).orderByDesc("create_time").orderByDesc("id")
-        ).stream().map(this::toNotification).collect(Collectors.toList());
-        return success(rows);
+        return success(UserDataViews.notifications(userDataService.listNotifications(UserContext.getUserId())));
     }
 
     @PostMapping("/notifications")
     public Map<String, Object> saveNotification(@RequestBody Map<String, Object> data) {
-        Long userId = UserContext.getUserId();
-
-        UserNotification notification = new UserNotification();
-        notification.setUserId(userId);
-        notification.setTitle(text(data.get("title"), "系统通知"));
-        notification.setType(text(data.get("type"), "通知"));
-        notification.setContent(text(data.get("content"), ""));
-        notification.setReadStatus(Boolean.TRUE.equals(data.get("read")) ? 1 : 0);
-        notification.setCreateTime(LocalDateTime.now());
-        notificationMapper.insert(notification);
-        return success(toNotification(notification));
+        return success(UserDataViews.notification(userDataService.saveNotification(UserContext.getUserId(), data)));
     }
 
     @PutMapping("/notifications/{id}/read")
     public Map<String, Object> markNotificationRead(@PathVariable Long id) {
-        Long userId = UserContext.getUserId();
-
-        notificationMapper.update(null, new UpdateWrapper<UserNotification>()
-                .eq("user_id", userId)
-                .eq("id", id)
-                .set("is_read", 1));
+        userDataService.markNotificationRead(UserContext.getUserId(), id);
         return success(true);
     }
 
     @PutMapping("/notifications/read-all")
     public Map<String, Object> markAllNotificationsRead() {
-        Long userId = UserContext.getUserId();
-
-        notificationMapper.update(null, new UpdateWrapper<UserNotification>()
-                .eq("user_id", userId)
-                .set("is_read", 1));
+        userDataService.markAllNotificationsRead(UserContext.getUserId());
         return success(true);
     }
 
-    private QueryWrapper<UserBpDraft> bpDraftQuery(Long userId) {
-        return new QueryWrapper<UserBpDraft>().eq("user_id", userId);
-    }
-
-    private QueryWrapper<UserCareerRecord> careerRecordQuery(Long userId) {
-        return new QueryWrapper<UserCareerRecord>().eq("user_id", userId);
-    }
-
-    private QueryWrapper<UserPolicyFavorite> policyFavoriteQuery(Long userId) {
-        return new QueryWrapper<UserPolicyFavorite>().eq("user_id", userId);
-    }
-
-    private QueryWrapper<UserNotification> notificationQuery(Long userId) {
-        return new QueryWrapper<UserNotification>().eq("user_id", userId);
-    }
-
-    private Map<String, Object> toBpDraft(UserBpDraft draft) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", draft.getDraftKey());
-        data.put("projectName", draft.getProjectName());
-        data.put("oneLiner", draft.getOneLiner());
-        data.put("formData", parseJson(draft.getFormData(), new HashMap<>()));
-        data.put("content", draft.getContent());
-        data.put("createdAt", timeText(draft.getCreateTime()));
-        data.put("updatedAt", timeText(draft.getUpdateTime()));
-        return data;
-    }
-
-    private Map<String, Object> toCareerRecord(UserCareerRecord record) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", record.getRecordKey());
-        data.put("createdAt", timeText(record.getCreateTime()));
-        data.put("updatedAt", timeText(record.getUpdateTime()));
-        data.put("results", parseJson(record.getResultData(), new ArrayList<>()));
-        return data;
-    }
-
-    private Map<String, Object> toPolicyFavorite(UserPolicyFavorite favorite) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        Object snapshot = parseJson(favorite.getPolicySnapshot(), new HashMap<>());
-        if (snapshot instanceof Map<?, ?> snapshotMap) {
-            snapshotMap.forEach((key, value) -> data.put(String.valueOf(key), value));
-        }
-        data.put("favoriteId", favorite.getId());
-        if (favorite.getPolicyId() != null) {
-            data.put("id", favorite.getPolicyId());
-        }
-        data.put("policyName", favorite.getPolicyName());
-        data.put("savedAt", timeText(favorite.getCreateTime()));
-        return data;
-    }
-
-    private Map<String, Object> toNotification(UserNotification notification) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", notification.getId());
-        data.put("title", notification.getTitle());
-        data.put("type", notification.getType());
-        data.put("content", notification.getContent());
-        data.put("read", notification.getReadStatus() != null && notification.getReadStatus() == 1);
-        data.put("createdAt", timeText(notification.getCreateTime()));
-        return data;
-    }
-
-    private Object parseJson(String json, Object fallback) {
-        if (json == null || json.isBlank()) {
-            return fallback;
-        }
-        try {
-            return gson.fromJson(json, Object.class);
-        } catch (JsonSyntaxException e) {
-            return fallback;
-        }
-    }
-
-    private String text(Object value, String fallback) {
-        if (value == null) {
-            return fallback;
-        }
-        String text = String.valueOf(value).trim();
-        return text.isEmpty() ? fallback : text;
-    }
-
-    private Long toLong(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-        try {
-            return Long.parseLong(String.valueOf(value));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private String timeText(LocalDateTime value) {
-        return value == null ? "" : value.toString();
-    }
-
+    /**
+     * 本控制器的成功码是 200，而 {@code Result.success()} 用的是 0（ResultCode.SUCCESS），
+     * 两者在项目里并存。小程序按 200 判断这个模块，所以这里保持原样；
+     * 统一响应码是另一件事，需要前后端一起改，不能在后端悄悄换掉。
+     */
     private Map<String, Object> success(Object data) {
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);
