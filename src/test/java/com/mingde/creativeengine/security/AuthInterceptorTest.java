@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.when;
  */
 class AuthInterceptorTest {
 
-    private final TokenStore tokenStore = new InMemoryTokenStore();
+    private final TokenStore tokenStore = new InMemoryTokenStore(Duration.ofMinutes(10));
     private final AuthInterceptor interceptor = new AuthInterceptor(tokenStore, new ObjectMapper());
 
     @AfterEach

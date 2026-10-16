@@ -1,17 +1,34 @@
 package com.mingde.creativeengine.storage;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import java.time.Duration;
 
 /**
  * 单机内存版 token 存储，作为未开启 Redis 时的默认实现。
  *
- * <p>保留原有的进程内行为，保证本地零依赖也能正常启动和联调；缺点同样是重启失效、
- * 多实例不共享，因此生产环境应开启 {@code app.redis.enabled}。</p>
+ * <p>改造前是裸 {@code ConcurrentHashMap}，读写都不带过期，于是
+ * {@code app.redis.enabled=false}（默认）时登录凭证永久有效——只能靠重启服务失效。
+ * 现在换成 Caffeine：TTL 与 Redis 版保持一致，同时带上容量上限，避免长期运行下无限增长。</p>
+ *
+ * <p>用 {@code expireAfterWrite} 而不是 {@code expireAfterAccess}，是为了和
+ * {@code RedisTokenStore} 的 {@code SET ... EX} 语义对齐：都是「从签发时刻起算到底」，
+ * 不会因为用户一直活跃就无限续期。</p>
  */
 public class InMemoryTokenStore implements TokenStore {
 
-    private final Map<String, Long> tokenStore = new ConcurrentHashMap<>();
+    /** 单机内存里的 token 条数上限，纯兜底，防止异常流量把内存吃满。 */
+    private static final int MAX_ENTRIES = 10_000;
+
+    private final Cache<String, Long> tokenStore;
+
+    public InMemoryTokenStore(Duration ttl) {
+        this.tokenStore = Caffeine.newBuilder()
+                .expireAfterWrite(ttl)
+                .maximumSize(MAX_ENTRIES)
+                .build();
+    }
 
     @Override
     public void save(String token, Long userId) {
@@ -26,7 +43,7 @@ public class InMemoryTokenStore implements TokenStore {
         if (token == null || token.isEmpty()) {
             return null;
         }
-        return tokenStore.get(stripBearer(token));
+        return tokenStore.getIfPresent(stripBearer(token));
     }
 
     @Override
@@ -34,7 +51,7 @@ public class InMemoryTokenStore implements TokenStore {
         if (token == null || token.isEmpty()) {
             return;
         }
-        tokenStore.remove(stripBearer(token));
+        tokenStore.invalidate(stripBearer(token));
     }
 
     static String stripBearer(String token) {

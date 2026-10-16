@@ -41,17 +41,19 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RedisConfig {
 
     /**
-     * 登录 token 存储：开启 Redis 时多实例共享登录态并自动过期。
+     * 登录 token 存储：开启 Redis 时多实例共享登录态并自动过期；
+     * 未开启时用内存实现，TTL 语义与 Redis 版保持一致（同样会过期）。
      */
     @Bean
     public TokenStore tokenStore(ObjectProvider<StringRedisTemplate> redisTemplates,
                                  @Value("${app.redis.enabled:false}") boolean redisEnabled,
                                  @Value("${app.redis.token-ttl:7d}") String tokenTtl) {
+        Duration ttl = parseTtl(tokenTtl, Duration.ofDays(7));
         StringRedisTemplate redisTemplate = redisTemplates.getIfAvailable();
         if (redisEnabled && redisTemplate != null) {
-            return new RedisTokenStore(redisTemplate, parseTtl(tokenTtl, Duration.ofDays(7)));
+            return new RedisTokenStore(redisTemplate, ttl);
         }
-        return new InMemoryTokenStore();
+        return new InMemoryTokenStore(ttl);
     }
 
     /**
