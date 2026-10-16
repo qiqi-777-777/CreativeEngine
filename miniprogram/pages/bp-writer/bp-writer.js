@@ -210,7 +210,7 @@ Page({
       },
       data: this.data.formData,
       success: (res) => {
-        if (res.statusCode === 200 && res.data.code === 0) {
+        if (res.statusCode === 200 && res.data.code === 200) {
           this.finishBP(res.data.data.content)
         } else {
           this.finishBP(buildFallbackBP(this.data.formData))

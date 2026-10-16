@@ -123,7 +123,7 @@ Page({
         url: app.globalData.apiBase + '/occupation/majors',
         method: 'GET',
         success: (res) => {
-          if (res.data.code === 0) {
+          if (res.data.code === 200) {
             this.setData({
               majorOptions: res.data.data || []
             })
@@ -146,7 +146,7 @@ Page({
         url: app.globalData.apiBase + '/occupation/skills',
         method: 'GET',
         success: (res) => {
-          if (res.data.code === 0) {
+          if (res.data.code === 200) {
             const allSkills = res.data.data || []
             this.setData({
               skillOptions: allSkills
@@ -203,7 +203,7 @@ Page({
         url: app.globalData.apiBase + '/occupation/personalities',
         method: 'GET',
         success: (res) => {
-          if (res.data.code === 0) {
+          if (res.data.code === 200) {
             this.setData({
               personalityOptions: res.data.data || []
             })
@@ -392,7 +392,7 @@ Page({
       success: (res) => {
         wx.hideLoading()
 
-        if (res.data.code === 0) {
+        if (res.data.code === 200) {
           const matchedOccupations = res.data.data || []
 
           if (matchedOccupations.length === 0) {

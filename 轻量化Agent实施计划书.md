@@ -287,8 +287,8 @@ POST /api/agent/policy/ask
 
 ```json
 {
-  "code": 0,
-  "message": "success",
+  "code": 200,
+  "message": "操作成功",
   "data": {
     "answer": "根据该政策内容，大学生创业可重点关注创业补贴、场地支持和税费减免等方向……"
   }
@@ -315,8 +315,8 @@ POST /api/agent/career/suggest
 
 ```json
 {
-  "code": 0,
-  "message": "success",
+  "code": 200,
+  "message": "操作成功",
   "data": {
     "summary": "你的专业和技能更适合技术产品、数据分析和软件开发相关方向。",
     "suggestions": []
@@ -346,8 +346,8 @@ POST /api/agent/bp/generate
 
 ```json
 {
-  "code": 0,
-  "message": "success",
+  "code": 200,
+  "message": "操作成功",
   "data": {
     "content": "一、项目概述……"
   }
@@ -372,8 +372,8 @@ POST /api/agent/startup/chat
 
 ```json
 {
-  "code": 0,
-  "message": "success",
+  "code": 200,
+  "message": "操作成功",
   "data": {
     "answer": "建议先从问题验证开始，明确目标用户、痛点和现有替代方案……"
   }

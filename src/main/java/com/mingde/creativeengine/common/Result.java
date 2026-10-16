@@ -5,6 +5,9 @@ import java.io.Serializable;
 /**
  * 统一响应结果
  *
+ * <p>所有接口（含拦截器与全局异常处理器）都返回这个结构，
+ * 调用方只需要判断 {@code code == 200}，失败时看 {@code code} 定位分类、看 {@code message} 提示用户。</p>
+ *
  * @author CreativeEngine Team
  */
 public class Result<T> implements Serializable {
@@ -12,7 +15,7 @@ public class Result<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 状态码：0-成功，其他-失败
+     * 状态码：200-成功，其他-失败（取值见 {@link ResultCode}）
      */
     private Integer code;
 

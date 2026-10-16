@@ -19,8 +19,8 @@ function request(options) {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          // 请求成功
-          if (res.data.code === 0 || res.data.success) {
+          // 请求成功：全项目成功码统一为 200（见后端 ResultCode.SUCCESS）
+          if (res.data.code === 200) {
             resolve(res.data)
           } else {
             // 业务错误
@@ -130,7 +130,7 @@ function uploadFile(filePath, url, name = 'file', formData = {}) {
       },
       success: (res) => {
         const data = JSON.parse(res.data)
-        if (data.code === 0 || data.success) {
+        if (data.code === 200) {
           resolve(data)
         } else {
           wx.showToast({

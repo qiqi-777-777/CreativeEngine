@@ -119,7 +119,7 @@ Page({
         history: currentMessages.slice(-8)
       },
       success: (res) => {
-        if (res.statusCode === 200 && res.data.code === 0) {
+        if (res.statusCode === 200 && res.data.code === 200) {
           // 成功获取 AI 回复
           const responseData = res.data.data || {};
           const aiContent = responseData.response || responseData.answer;
@@ -134,8 +134,8 @@ Page({
             }],
             scrollToView: 'scroll-bottom'
           });
-        } else if (res.data.code === 404) {
-          // 会话过期，重新创建
+        } else if (res.data.code === 3001) {
+          // 会话不存在或已过期（ResultCode.DATA_NOT_EXIST），重新创建
           console.warn('会话已过期，重新创建...');
           this._createSessionAndSend(content, currentMessages);
         } else {

@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.common.Result;
+import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.dto.LoginRequest;
 import com.mingde.creativeengine.dto.RegisterRequest;
 import com.mingde.creativeengine.dto.UpdateUserProfileRequest;
@@ -74,7 +75,18 @@ class ValidationHandlingTest {
         mockMvc.perform(put("/probe/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nickname\":\"小明\",\"phone\":\"\",\"email\":\"\"}"))
-                .andExpect(jsonPath("$.code").value(0));
+                .andExpect(jsonPath("$.code").value(ResultCode.SUCCESS.getCode()));
+    }
+
+    /**
+     * 请求体不是合法 JSON 属于调用方写错，要按参数错误回，不能落到 5000「系统错误」。
+     */
+    @Test
+    void malformedJsonIsReportedAsParamError() throws Exception {
+        mockMvc.perform(post("/probe/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"alice\" \"password\":\"secret123\"}"))
+                .andExpect(jsonPath("$.code").value(ResultCode.PARAM_INVALID.getCode()));
     }
 
     /**

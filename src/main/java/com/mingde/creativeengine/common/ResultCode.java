@@ -3,24 +3,30 @@ package com.mingde.creativeengine.common;
 /**
  * 响应状态码枚举
  *
+ * <p><b>全项目只有这一套码。</b>成功固定 200；失败按用途分段：
+ * 1xxx 参数、2xxx 用户与权限、3xxx 业务、4xxx 文件、5xxx 系统。
+ * 早前有两套并在（{@code Result.success()} 给 0、手拼的 Map 给 200），
+ * 现在统一到 200，新接口不要再自己写数字，一律引用这里的枚举。</p>
+ *
  * @author CreativeEngine Team
  */
 public enum ResultCode {
 
-    SUCCESS(0, "操作成功"),
+    SUCCESS(200, "操作成功"),
     ERROR(1, "操作失败"),
-    
+
     // 参数相关 1xxx
     PARAM_ERROR(1001, "参数错误"),
     PARAM_MISSING(1002, "缺少必要参数"),
     PARAM_INVALID(1003, "参数格式不正确"),
-    
+
     // 用户相关 2xxx
     USER_NOT_EXIST(2001, "用户不存在"),
     USER_NOT_LOGIN(2002, "用户未登录"),
     TOKEN_INVALID(2003, "Token无效"),
     TOKEN_EXPIRED(2004, "Token已过期"),
     PERMISSION_DENIED(2005, "权限不足"),
+    LOGIN_FAILED(2006, "用户名或密码错误"),
     
     // 业务相关 3xxx
     DATA_NOT_EXIST(3001, "数据不存在"),

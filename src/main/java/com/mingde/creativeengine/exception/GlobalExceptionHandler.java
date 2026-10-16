@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -62,6 +63,17 @@ public class GlobalExceptionHandler {
     public Result<Void> handleModelCallRejected(Exception e) {
         log.warn("大模型调用被限流或熔断：{}", e.getMessage());
         return Result.error(ResultCode.AI_SERVICE_BUSY);
+    }
+
+    /**
+     * 请求体不是合法 JSON（或字段类型对不上）。
+     *
+     * <p>这是调用方写错了，不该按 5000「系统错误」报——按参数错误回，前端也好提示。</p>
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public Result<Void> handleUnreadableBody(HttpMessageNotReadableException e) {
+        log.warn("请求体解析失败：{}", e.getMessage());
+        return Result.error(ResultCode.PARAM_INVALID.getCode(), "请求体格式不正确");
     }
 
     /**

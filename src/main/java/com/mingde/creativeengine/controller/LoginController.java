@@ -1,5 +1,7 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.common.Result;
+import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.dto.LoginRequest;
 import com.mingde.creativeengine.dto.RegisterRequest;
 import com.mingde.creativeengine.dto.UpdateUserProfileRequest;
@@ -37,168 +39,90 @@ public class LoginController {
     
     /**
      * 用户登录
+     *
+     * <p>刻意不吞异常：登录被防爆破拦下时 {@code UserServiceImpl} 抛的是带业务码的
+     * {@code BusinessException}，交给 {@link com.mingde.creativeengine.exception.GlobalExceptionHandler}
+     * 才能原样透出 2005 而不是被裹成 5000。</p>
      */
     @PostMapping("/login")
-    public Map<String, Object> login(@Valid @RequestBody LoginRequest request) {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 必填校验交给 @Valid + LoginRequest，方法体只关心业务
-            User user = userService.login(request.username(), request.password());
-            
-            if (user == null) {
-                result.put("code", 401);
-                result.put("message", "用户名或密码错误");
-                return result;
-            }
-            
-            // 生成token
-            String token = UUID.randomUUID().toString().replace("-", "");
-            tokenStore.save(token, user.getId());
-            
-            // 返回用户信息和token
-            Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
-            data.put("userInfo", user);
-            
-            result.put("code", 200);
-            result.put("message", "登录成功");
-            result.put("data", data);
-            
-            log.info("用户登录成功: {}, token: {}", request.username(), maskToken(token));
-            
-        } catch (Exception e) {
-            log.error("登录失败", e);
-            result.put("code", 500);
-            result.put("message", "登录失败：" + e.getMessage());
+    public Result<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
+        // 必填校验交给 @Valid + LoginRequest，方法体只关心业务
+        User user = userService.login(request.username(), request.password());
+
+        if (user == null) {
+            return Result.error(ResultCode.LOGIN_FAILED);
         }
-        
-        return result;
+
+        // 生成token
+        String token = UUID.randomUUID().toString().replace("-", "");
+        tokenStore.save(token, user.getId());
+
+        log.info("用户登录成功: {}, token: {}", request.username(), maskToken(token));
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("userInfo", user);
+        return Result.success(data);
     }
-    
+
     /**
      * 用户注册
      */
     @PostMapping("/register")
-    public Map<String, Object> register(@Valid @RequestBody RegisterRequest request) {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 用户名/密码的必填与长度规则写在 RegisterRequest 上
-            User user = userService.register(request.username(), request.password(), request.nickname());
-            
-            if (user == null) {
-                result.put("code", 400);
-                result.put("message", "用户名已存在");
-                return result;
-            }
-            
-            // 自动登录，生成token
-            String token = UUID.randomUUID().toString().replace("-", "");
-            tokenStore.save(token, user.getId());
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
-            data.put("userInfo", user);
-            
-            result.put("code", 200);
-            result.put("message", "注册成功");
-            result.put("data", data);
-            
-            log.info("用户注册成功: {}", request.username());
-            
-        } catch (Exception e) {
-            log.error("注册失败", e);
-            result.put("code", 500);
-            result.put("message", "注册失败：" + e.getMessage());
+    public Result<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
+        // 用户名/密码的必填与长度规则写在 RegisterRequest 上
+        User user = userService.register(request.username(), request.password(), request.nickname());
+
+        if (user == null) {
+            return Result.error(ResultCode.DATA_EXISTED.getCode(), "用户名已存在");
         }
-        
-        return result;
+
+        // 自动登录，生成token
+        String token = UUID.randomUUID().toString().replace("-", "");
+        tokenStore.save(token, user.getId());
+
+        log.info("用户注册成功: {}", request.username());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("userInfo", user);
+        return Result.success(data);
     }
-    
+
     /**
      * 退出登录
      */
     @PostMapping("/logout")
-    public Map<String, Object> logout(@RequestHeader(value = "Authorization", required = false) String token) {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            if (token != null && !token.isEmpty()) {
-                tokenStore.revoke(token);
-                log.info("用户退出登录: token={}", maskToken(token));
-            }
-            
-            result.put("code", 200);
-            result.put("message", "退出成功");
-            
-        } catch (Exception e) {
-            log.error("退出登录失败", e);
-            result.put("code", 500);
-            result.put("message", "退出失败：" + e.getMessage());
+    public Result<Void> logout(@RequestHeader(value = "Authorization", required = false) String token) {
+        if (token != null && !token.isEmpty()) {
+            tokenStore.revoke(token);
+            log.info("用户退出登录: token={}", maskToken(token));
         }
-        
-        return result;
+        return Result.success();
     }
-    
+
     /**
      * 获取当前用户信息
      */
     @GetMapping("/userInfo")
-    public Map<String, Object> getUserInfo() {
-        Map<String, Object> result = new HashMap<>();
-        
-        try {
-            // 登录态已由 AuthInterceptor 统一校验，这里直接取
-            Long userId = UserContext.getUserId();
-
-            User user = userService.getUserById(userId);
-            if (user == null) {
-                result.put("code", 404);
-                result.put("message", "用户不存在");
-                return result;
-            }
-            
-            result.put("code", 200);
-            result.put("message", "success");
-            result.put("data", user);
-            
-        } catch (Exception e) {
-            log.error("获取用户信息失败", e);
-            result.put("code", 500);
-            result.put("message", "获取用户信息失败：" + e.getMessage());
+    public Result<User> getUserInfo() {
+        // 登录态已由 AuthInterceptor 统一校验，这里直接取
+        User user = userService.getUserById(UserContext.getUserId());
+        if (user == null) {
+            return Result.error(ResultCode.USER_NOT_EXIST);
         }
-        
-        return result;
+        return Result.success(user);
     }
 
     @PutMapping("/userInfo")
-    public Map<String, Object> updateUserInfo(@Valid @RequestBody UpdateUserProfileRequest request) {
-        Map<String, Object> result = new HashMap<>();
-
-        try {
-            // 登录态已由 AuthInterceptor 统一校验，这里直接取
-            Long userId = UserContext.getUserId();
-
-            // 昵称必填、手机号与邮箱格式规则写在 UpdateUserProfileRequest 上
-            User user = userService.updateUserInfo(userId, request.nickname(), request.phone(),
-                    request.email(), request.avatar());
-            if (user == null) {
-                result.put("code", 404);
-                result.put("message", "用户不存在");
-                return result;
-            }
-
-            result.put("code", 200);
-            result.put("message", "保存成功");
-            result.put("data", user);
-        } catch (Exception e) {
-            log.error("更新用户资料失败", e);
-            result.put("code", 500);
-            result.put("message", "更新用户资料失败：" + e.getMessage());
+    public Result<User> updateUserInfo(@Valid @RequestBody UpdateUserProfileRequest request) {
+        // 昵称必填、手机号与邮箱格式规则写在 UpdateUserProfileRequest 上
+        User user = userService.updateUserInfo(UserContext.getUserId(), request.nickname(),
+                request.phone(), request.email(), request.avatar());
+        if (user == null) {
+            return Result.error(ResultCode.USER_NOT_EXIST);
         }
-
-        return result;
+        return Result.success(user);
     }
 
     /**

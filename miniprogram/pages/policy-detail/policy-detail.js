@@ -220,7 +220,7 @@ Page({
         question: questionText
       },
       success: (res) => {
-        if (res.data.code === 0) {
+        if (res.data.code === 200) {
           const answer = res.data.data.answer
           // 清理Markdown格式符号
           const cleanAnswer = this.cleanMarkdown(answer)

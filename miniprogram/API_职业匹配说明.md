@@ -10,8 +10,8 @@
 
 ```json
 {
-  "code": 0,
-  "message": "success",
+  "code": 200,
+  "message": "操作成功",
   "data": [
     {
       "id": "occupation_001",

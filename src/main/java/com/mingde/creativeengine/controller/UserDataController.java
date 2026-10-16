@@ -1,5 +1,6 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.security.UserContext;
 import com.mingde.creativeengine.service.UserDataService;
 import com.mingde.creativeengine.service.view.UserDataViews;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,92 +38,84 @@ public class UserDataController {
     }
 
     @GetMapping("/stats")
-    public Map<String, Object> stats() {
+    public Result<Map<String, Object>> stats() {
         // 登录态已由 AuthInterceptor 统一校验，这里直接取
-        return success(UserDataViews.stats(userDataService.stats(UserContext.getUserId())));
+        return Result.success(UserDataViews.stats(userDataService.stats(UserContext.getUserId())));
     }
 
     @GetMapping("/bp-drafts")
-    public Map<String, Object> listBpDrafts() {
-        return success(UserDataViews.bpDrafts(userDataService.listBpDrafts(UserContext.getUserId())));
+    public Result<List<Map<String, Object>>> listBpDrafts() {
+        return Result.success(UserDataViews.bpDrafts(userDataService.listBpDrafts(UserContext.getUserId())));
     }
 
     @PostMapping("/bp-drafts")
-    public Map<String, Object> saveBpDraft(@RequestBody Map<String, Object> data) {
-        return success(UserDataViews.bpDraft(userDataService.saveBpDraft(UserContext.getUserId(), data)));
+    public Result<Map<String, Object>> saveBpDraft(@RequestBody Map<String, Object> data) {
+        return Result.success(UserDataViews.bpDraft(userDataService.saveBpDraft(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/bp-drafts/{draftKey}")
-    public Map<String, Object> deleteBpDraft(@PathVariable String draftKey) {
+    public Result<Boolean> deleteBpDraft(@PathVariable String draftKey) {
         userDataService.deleteBpDraft(UserContext.getUserId(), draftKey);
-        return success(true);
+        return Result.success(true);
     }
 
     @GetMapping("/career-records")
-    public Map<String, Object> listCareerRecords() {
-        return success(UserDataViews.careerRecords(userDataService.listCareerRecords(UserContext.getUserId())));
+    public Result<List<Map<String, Object>>> listCareerRecords() {
+        return Result.success(UserDataViews.careerRecords(
+                userDataService.listCareerRecords(UserContext.getUserId())));
     }
 
     @PostMapping("/career-records")
-    public Map<String, Object> saveCareerRecord(@RequestBody Map<String, Object> data) {
-        return success(UserDataViews.careerRecord(userDataService.saveCareerRecord(UserContext.getUserId(), data)));
+    public Result<Map<String, Object>> saveCareerRecord(@RequestBody Map<String, Object> data) {
+        return Result.success(UserDataViews.careerRecord(
+                userDataService.saveCareerRecord(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/career-records/{recordKey}")
-    public Map<String, Object> deleteCareerRecord(@PathVariable String recordKey) {
+    public Result<Boolean> deleteCareerRecord(@PathVariable String recordKey) {
         userDataService.deleteCareerRecord(UserContext.getUserId(), recordKey);
-        return success(true);
+        return Result.success(true);
     }
 
     @GetMapping("/policy-favorites")
-    public Map<String, Object> listPolicyFavorites() {
-        return success(UserDataViews.policyFavorites(userDataService.listPolicyFavorites(UserContext.getUserId())));
+    public Result<List<Map<String, Object>>> listPolicyFavorites() {
+        return Result.success(UserDataViews.policyFavorites(
+                userDataService.listPolicyFavorites(UserContext.getUserId())));
     }
 
     @PostMapping("/policy-favorites")
-    public Map<String, Object> savePolicyFavorite(@RequestBody Map<String, Object> data) {
-        return success(UserDataViews.policyFavorite(
+    public Result<Map<String, Object>> savePolicyFavorite(@RequestBody Map<String, Object> data) {
+        return Result.success(UserDataViews.policyFavorite(
                 userDataService.savePolicyFavorite(UserContext.getUserId(), data)));
     }
 
     @DeleteMapping("/policy-favorites")
-    public Map<String, Object> deletePolicyFavorite(@RequestParam String key) {
+    public Result<Boolean> deletePolicyFavorite(@RequestParam String key) {
         userDataService.deletePolicyFavorite(UserContext.getUserId(), key);
-        return success(true);
+        return Result.success(true);
     }
 
     @GetMapping("/notifications")
-    public Map<String, Object> listNotifications() {
-        return success(UserDataViews.notifications(userDataService.listNotifications(UserContext.getUserId())));
+    public Result<List<Map<String, Object>>> listNotifications() {
+        return Result.success(UserDataViews.notifications(
+                userDataService.listNotifications(UserContext.getUserId())));
     }
 
     @PostMapping("/notifications")
-    public Map<String, Object> saveNotification(@RequestBody Map<String, Object> data) {
-        return success(UserDataViews.notification(userDataService.saveNotification(UserContext.getUserId(), data)));
+    public Result<Map<String, Object>> saveNotification(@RequestBody Map<String, Object> data) {
+        return Result.success(UserDataViews.notification(
+                userDataService.saveNotification(UserContext.getUserId(), data)));
     }
 
     @PutMapping("/notifications/{id}/read")
-    public Map<String, Object> markNotificationRead(@PathVariable Long id) {
+    public Result<Boolean> markNotificationRead(@PathVariable Long id) {
         userDataService.markNotificationRead(UserContext.getUserId(), id);
-        return success(true);
+        return Result.success(true);
     }
 
     @PutMapping("/notifications/read-all")
-    public Map<String, Object> markAllNotificationsRead() {
+    public Result<Boolean> markAllNotificationsRead() {
         userDataService.markAllNotificationsRead(UserContext.getUserId());
-        return success(true);
-    }
-
-    /**
-     * 本控制器的成功码是 200，而 {@code Result.success()} 用的是 0（ResultCode.SUCCESS），
-     * 两者在项目里并存。小程序按 200 判断这个模块，所以这里保持原样；
-     * 统一响应码是另一件事，需要前后端一起改，不能在后端悄悄换掉。
-     */
-    private Map<String, Object> success(Object data) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "success");
-        result.put("data", data);
-        return result;
+        return Result.success(true);
     }
 }

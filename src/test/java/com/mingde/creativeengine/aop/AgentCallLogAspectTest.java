@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.aop;
 
 import com.mingde.creativeengine.common.Result;
+import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.mq.AgentLogMessage;
 import com.mingde.creativeengine.mq.AgentLogPublisher;
 import com.mingde.creativeengine.security.UserContext;
@@ -96,7 +97,7 @@ class AgentCallLogAspectTest {
     void brokenSpelStillPublishesAndDoesNotBreakTheCall() {
         Result<Map<String, Object>> result = probe.brokenSpel("问题");
 
-        assertEquals(0, result.getCode(), "SpEL 写错不应影响业务返回值");
+        assertEquals(ResultCode.SUCCESS.getCode(), result.getCode(), "SpEL 写错不应影响业务返回值");
         assertEquals("", captured().inputText(), "取不到的字段留空，而不是把异常抛给调用方");
     }
 
