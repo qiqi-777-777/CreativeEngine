@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+# 同一分支的旧构建自动取消，避免连续推送时排队
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: 构建与测试
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # runner 自带 Docker，Testcontainers 的 MySQL / Redis 集成测试会真跑。
+      # application-secret.yml 是 gitignore 的，CI 上没有也不影响：
+      # 数据库由容器提供，模型调用在测试里都是 mock 的
+      - name: 测试并打包
+        run: mvn -B clean verify
+
+      - name: 上传测试报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          if-no-files-found: ignore
