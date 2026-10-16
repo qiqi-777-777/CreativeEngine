@@ -8,6 +8,7 @@ import com.mingde.creativeengine.entity.UserBpDraft;
 import com.mingde.creativeengine.entity.UserCareerRecord;
 import com.mingde.creativeengine.entity.UserNotification;
 import com.mingde.creativeengine.entity.UserPolicyFavorite;
+import com.mingde.creativeengine.lock.DistributedLock;
 import com.mingde.creativeengine.mapper.UserBpDraftMapper;
 import com.mingde.creativeengine.mapper.UserCareerRecordMapper;
 import com.mingde.creativeengine.mapper.UserNotificationMapper;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +40,12 @@ public class UserDataController {
 
     private static final Gson gson = new Gson();
 
+    /** 抢锁最长等待时间：用户连点两次的间隔量级。 */
+    private static final Duration LOCK_WAIT = Duration.ofSeconds(3);
+
+    /** 持锁上限：即使业务线程异常退出也能自动释放，避免死锁。 */
+    private static final Duration LOCK_LEASE = Duration.ofSeconds(10);
+
     @Autowired
     private UserBpDraftMapper bpDraftMapper;
 
@@ -49,6 +57,9 @@ public class UserDataController {
 
     @Autowired
     private UserNotificationMapper notificationMapper;
+
+    @Autowired
+    private DistributedLock distributedLock;
 
     @GetMapping("/stats")
     public Map<String, Object> stats() {
@@ -79,8 +90,16 @@ public class UserDataController {
     @PostMapping("/bp-drafts")
     public Map<String, Object> saveBpDraft(@RequestBody Map<String, Object> data) {
         Long userId = UserContext.getUserId();
-
         String draftKey = text(data.get("id"), "bp-" + System.currentTimeMillis());
+
+        // 「先查后写」是临界区：并发点两次会各查到空、各插一条，用分布式锁互斥
+        return success(distributedLock.execute(
+                "ce:lock:user-data:bp-draft:" + userId + ":" + draftKey,
+                LOCK_WAIT, LOCK_LEASE,
+                () -> doSaveBpDraft(userId, draftKey, data)));
+    }
+
+    private Map<String, Object> doSaveBpDraft(Long userId, String draftKey, Map<String, Object> data) {
         UserBpDraft draft = bpDraftMapper.selectOne(
                 bpDraftQuery(userId).eq("draft_key", draftKey).last("LIMIT 1")
         );
@@ -106,7 +125,7 @@ public class UserDataController {
             bpDraftMapper.updateById(draft);
         }
 
-        return success(toBpDraft(draft));
+        return toBpDraft(draft);
     }
 
     @DeleteMapping("/bp-drafts/{draftKey}")
@@ -130,8 +149,16 @@ public class UserDataController {
     @PostMapping("/career-records")
     public Map<String, Object> saveCareerRecord(@RequestBody Map<String, Object> data) {
         Long userId = UserContext.getUserId();
-
         String recordKey = text(data.get("id"), "career-" + System.currentTimeMillis());
+
+        // 同上：先查后写需要互斥，否则并发提交会写出多条记录
+        return success(distributedLock.execute(
+                "ce:lock:user-data:career-record:" + userId + ":" + recordKey,
+                LOCK_WAIT, LOCK_LEASE,
+                () -> doSaveCareerRecord(userId, recordKey, data)));
+    }
+
+    private Map<String, Object> doSaveCareerRecord(Long userId, String recordKey, Map<String, Object> data) {
         UserCareerRecord record = careerRecordMapper.selectOne(
                 careerRecordQuery(userId).eq("record_key", recordKey).last("LIMIT 1")
         );
@@ -154,7 +181,7 @@ public class UserDataController {
             careerRecordMapper.updateById(record);
         }
 
-        return success(toCareerRecord(record));
+        return toCareerRecord(record);
     }
 
     @DeleteMapping("/career-records/{recordKey}")
@@ -178,8 +205,16 @@ public class UserDataController {
     @PostMapping("/policy-favorites")
     public Map<String, Object> savePolicyFavorite(@RequestBody Map<String, Object> data) {
         Long userId = UserContext.getUserId();
-
         String policyName = text(data.get("policyName"), "政策详情");
+
+        // 同一用户对同一政策的收藏也是「先查后写」，同样需要互斥
+        return success(distributedLock.execute(
+                "ce:lock:user-data:policy-favorite:" + userId + ":" + policyName,
+                LOCK_WAIT, LOCK_LEASE,
+                () -> doSavePolicyFavorite(userId, policyName, data)));
+    }
+
+    private Map<String, Object> doSavePolicyFavorite(Long userId, String policyName, Map<String, Object> data) {
         UserPolicyFavorite favorite = policyFavoriteMapper.selectOne(
                 policyFavoriteQuery(userId).eq("policy_name", policyName).last("LIMIT 1")
         );
@@ -201,7 +236,7 @@ public class UserDataController {
             policyFavoriteMapper.updateById(favorite);
         }
 
-        return success(toPolicyFavorite(favorite));
+        return toPolicyFavorite(favorite);
     }
 
     @DeleteMapping("/policy-favorites")

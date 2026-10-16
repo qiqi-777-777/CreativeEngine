@@ -34,6 +34,7 @@
         <langchain4j.version>1.20.0</langchain4j.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <resilience4j.version>2.3.0</resilience4j.version>
+        <redisson.version>3.52.0</redisson.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -84,6 +85,14 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- Redisson：分布式锁。只引核心包，不用 spring-boot-starter（它会试图接管
+             RedisConnectionFactory，与 spring-boot-starter-data-redis 打架） -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>${redisson.version}</version>
         </dependency>
 
         <!-- LangChain4j：大模型应用开发框架（ChatModel 抽象 + AiServices 声明式 Agent） -->
