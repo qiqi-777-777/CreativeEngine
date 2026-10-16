@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>
+        <version>3.5.16</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.mingde</groupId>
@@ -27,11 +27,12 @@
         <url/>
     </scm>
     <properties>
-        <java.version>17</java.version>
-        <!-- LangChain4j 1.20.x 依赖 Jackson 2.22.x，Spring Boot 3.1.5 默认管理 2.15.x，
+        <java.version>21</java.version>
+        <!-- LangChain4j 1.20.x 依赖 Jackson 2.22.x，而 Spring Boot 3.5.x 管理的 Jackson 2.x 低于该要求，
              这里显式对齐，避免运行期出现 Jackson API 不兼容 -->
         <jackson-bom.version>2.22.1</jackson-bom.version>
         <langchain4j.version>1.20.0</langchain4j.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -73,11 +74,17 @@
             <version>${langchain4j.version}</version>
         </dependency>
 
-        <!-- MyBatis Plus -->
+        <!-- MyBatis Plus（Spring Boot 3 专用 starter；3.5.9 起 JSqlParser 变为可选依赖，
+             分页插件需要显式引入 mybatis-plus-jsqlparser） -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.5.5</version>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
         
         <!-- MySQL -->

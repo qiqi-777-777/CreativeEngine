@@ -6,7 +6,12 @@ spring:
     name: creative-engine-backend
   profiles:
     include: secret
-  
+
+  # 虚拟线程（Java 21）：请求由虚拟线程处理，模型调用/Redis/DB 这类 IO 等待场景下吞吐更好
+  threads:
+    virtual:
+      enabled: true
+
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

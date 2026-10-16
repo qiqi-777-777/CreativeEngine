@@ -24,12 +24,12 @@ public final class AgentAiServiceFactory {
     public static final int STARTUP_MEMORY_MAX_MESSAGES = 8;
 
     /**
-     * 单次问答内最多允许的连续工具调用次数。
+     * 单次问答内最多允许的模型—工具往返轮次。
      *
      * <p>不设上限的话，模型有可能在两个工具之间来回调用（查了正文又去检索、检索完又查正文），
      * 既浪费时间也浪费 token，这里给一个硬上限。</p>
      */
-    public static final int MAX_SEQUENTIAL_TOOL_INVOCATIONS = 5;
+    public static final int MAX_TOOL_CALLING_ROUND_TRIPS = 5;
 
     private AgentAiServiceFactory() {
     }
@@ -41,7 +41,7 @@ public final class AgentAiServiceFactory {
         return AiServices.builder(PolicyAiService.class)
                 .chatModel(chatModel)
                 .tools(policyTools)
-                .maxSequentialToolsInvocations(MAX_SEQUENTIAL_TOOL_INVOCATIONS)
+                .maxToolCallingRoundTrips(MAX_TOOL_CALLING_ROUND_TRIPS)
                 .hallucinatedToolNameStrategy(hallucinatedToolStrategy("searchPolicies", "getPolicyDetail"))
                 .afterToolExecution(telemetry.toolExecutionRecorder())
                 .build();
@@ -54,7 +54,7 @@ public final class AgentAiServiceFactory {
         return AiServices.builder(CareerAiService.class)
                 .chatModel(chatModel)
                 .tools(occupationTools)
-                .maxSequentialToolsInvocations(MAX_SEQUENTIAL_TOOL_INVOCATIONS)
+                .maxToolCallingRoundTrips(MAX_TOOL_CALLING_ROUND_TRIPS)
                 .hallucinatedToolNameStrategy(hallucinatedToolStrategy("getOccupationTags", "matchOccupations"))
                 .afterToolExecution(telemetry.toolExecutionRecorder())
                 .build();
