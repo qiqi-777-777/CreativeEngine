@@ -1,0 +1,25 @@
+# 构建产物
+target/
+
+# 版本控制与编辑器
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+*.iml
+
+# 与后端镜像无关的前端小程序、例子与文档
+miniprogram/
+node_modules/
+miniprogram_npm/
+example/
+页面修改文件/
+backend/
+scripts/
+*.md
+
+# 本地临时文件
+*.log
+.env
+.env.*

@@ -1,0 +1,80 @@
+# CreativeEngine 一键部署：MySQL + Redis + 后端应用
+#
+# 启动：docker compose up -d --build
+# 停止：docker compose down          （加 -v 会连数据卷一起删除）
+# 健康检查：http://localhost:8080/actuator/health
+#
+# 可用环境变量（也可在同目录放一个 .env 文件）：
+#   DB_PASSWORD       MySQL root 密码，默认 root123456
+#   DEEPSEEK_API_KEY  DeepSeek 密钥，不填则 AI 相关接口不可用
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ce-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123456}
+      MYSQL_DATABASE: creative_engine
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    # 宿主机映射到 13306，避免与本机已有的 3306 端口冲突
+    ports:
+      - "13306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 首次启动时自动导入建表与初始数据
+      - ./creative_engine.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: ce-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    # 宿主机映射到 16379，避免与本机已有的 Redis 冲突
+    ports:
+      - "16379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ce-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: creative_engine
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root123456}
+      # 打开 Redis 三处落地：登录 token、AI 会话记忆、热点数据缓存
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:
+  redis-data:

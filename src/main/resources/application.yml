@@ -12,11 +12,11 @@ spring:
     virtual:
       enabled: true
 
-  # 数据源配置
+  # 数据源配置（主机/端口/库名可用环境变量覆盖，便于容器编排接入 mysql 服务）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/creative_engine?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    username: root
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:creative_engine}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
   
   # Jackson配置
