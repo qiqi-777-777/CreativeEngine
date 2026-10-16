@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.entity.User;
+import com.mingde.creativeengine.security.UserContext;
 import com.mingde.creativeengine.service.UserService;
 import com.mingde.creativeengine.storage.TokenStore;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class LoginController {
             result.put("message", "登录成功");
             result.put("data", data);
             
-            log.info("用户登录成功: {}, token: {}", username, token);
+            log.info("用户登录成功: {}, token: {}", username, maskToken(token));
             
         } catch (Exception e) {
             log.error("登录失败", e);
@@ -183,23 +184,13 @@ public class LoginController {
      * 获取当前用户信息
      */
     @GetMapping("/userInfo")
-    public Map<String, Object> getUserInfo(@RequestHeader(value = "Authorization", required = false) String token) {
+    public Map<String, Object> getUserInfo() {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            if (token == null || token.isEmpty()) {
-                result.put("code", 401);
-                result.put("message", "未登录");
-                return result;
-            }
-            
-            Long userId = tokenStore.resolve(token);
-            if (userId == null) {
-                result.put("code", 401);
-                result.put("message", "登录已过期");
-                return result;
-            }
-            
+            // 登录态已由 AuthInterceptor 统一校验，这里直接取
+            Long userId = UserContext.getUserId();
+
             User user = userService.getUserById(userId);
             if (user == null) {
                 result.put("code", 404);
@@ -221,24 +212,12 @@ public class LoginController {
     }
 
     @PutMapping("/userInfo")
-    public Map<String, Object> updateUserInfo(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, String> params) {
+    public Map<String, Object> updateUserInfo(@RequestBody Map<String, String> params) {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            if (token == null || token.isEmpty()) {
-                result.put("code", 401);
-                result.put("message", "未登录");
-                return result;
-            }
-
-            Long userId = tokenStore.resolve(token);
-            if (userId == null) {
-                result.put("code", 401);
-                result.put("message", "登录已过期");
-                return result;
-            }
+            // 登录态已由 AuthInterceptor 统一校验，这里直接取
+            Long userId = UserContext.getUserId();
 
             String nickname = params.get("nickname");
             String phone = params.get("phone");
@@ -280,5 +259,15 @@ public class LoginController {
         }
 
         return result;
+    }
+
+    /**
+     * token 脱敏后再落日志，避免日志文件泄露可直接冒用的登录凭证。
+     */
+    private String maskToken(String token) {
+        if (token == null || token.length() <= 8) {
+            return "***";
+        }
+        return token.substring(0, 4) + "****" + token.substring(token.length() - 4);
     }
 }

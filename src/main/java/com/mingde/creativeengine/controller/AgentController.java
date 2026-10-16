@@ -4,18 +4,17 @@ import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.observability.AgentTelemetry;
 import com.mingde.creativeengine.observability.TraceContext;
+import com.mingde.creativeengine.security.UserContext;
 import com.mingde.creativeengine.service.agent.AgentLogService;
 import com.mingde.creativeengine.service.agent.BpAgentService;
 import com.mingde.creativeengine.service.agent.CareerAgentService;
 import com.mingde.creativeengine.service.agent.PolicyAgentService;
 import com.mingde.creativeengine.service.agent.RouterAgentService;
 import com.mingde.creativeengine.service.agent.StartupAgentService;
-import com.mingde.creativeengine.storage.TokenStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,13 +52,8 @@ public class AgentController {
     @Autowired
     private AgentTelemetry agentTelemetry;
 
-    @Autowired
-    private TokenStore tokenStore;
-
     @PostMapping("/policy/ask")
-    public Result<Map<String, Object>> askPolicy(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> request) {
+    public Result<Map<String, Object>> askPolicy(@RequestBody Map<String, Object> request) {
         Long policyId = getLong(request, "policyId");
         String question = getString(request, "question");
 
@@ -68,7 +62,7 @@ public class AgentController {
         }
 
         String answer = policyAgentService.askPolicy(policyId, question);
-        agentLogService.saveLog(currentUserId(token), "policy", question, answer, String.valueOf(policyId));
+        agentLogService.saveLog(UserContext.getUserId(), "policy", question, answer, String.valueOf(policyId));
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
@@ -76,9 +70,7 @@ public class AgentController {
     }
 
     @PostMapping("/career/suggest")
-    public Result<Map<String, Object>> suggestCareer(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> request) {
+    public Result<Map<String, Object>> suggestCareer(@RequestBody Map<String, Object> request) {
         List<String> majors = getStringList(request, "majors");
         List<String> skills = getStringList(request, "skills");
         List<String> personalities = getStringList(request, "personalities");
@@ -88,7 +80,7 @@ public class AgentController {
         }
 
         String suggestion = careerAgentService.suggestCareer(majors, skills, personalities);
-        agentLogService.saveLog(currentUserId(token), "career", request.toString(), suggestion, "");
+        agentLogService.saveLog(UserContext.getUserId(), "career", request.toString(), suggestion, "");
 
         Map<String, Object> data = new HashMap<>();
         data.put("summary", suggestion);
@@ -97,15 +89,13 @@ public class AgentController {
     }
 
     @PostMapping("/bp/generate")
-    public Result<Map<String, Object>> generateBp(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> request) {
+    public Result<Map<String, Object>> generateBp(@RequestBody Map<String, Object> request) {
         if (request == null || request.isEmpty()) {
             return Result.error(ResultCode.PARAM_MISSING.getCode(), "project information is required");
         }
 
         String content = bpAgentService.generateBp(request);
-        agentLogService.saveLog(currentUserId(token), "bp", request.toString(), content, getString(request, "projectName"));
+        agentLogService.saveLog(UserContext.getUserId(), "bp", request.toString(), content, getString(request, "projectName"));
 
         Map<String, Object> data = new HashMap<>();
         data.put("content", content);
@@ -113,9 +103,7 @@ public class AgentController {
     }
 
     @PostMapping("/startup/chat")
-    public Result<Map<String, Object>> chatStartup(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> request) {
+    public Result<Map<String, Object>> chatStartup(@RequestBody Map<String, Object> request) {
         String question = getQuestion(request);
         if (isBlank(question)) {
             return Result.error(ResultCode.PARAM_MISSING.getCode(), "question is required");
@@ -127,7 +115,7 @@ public class AgentController {
         String answer = isBlank(sessionId)
                 ? startupAgentService.chatWithHistory(question, getHistory(request))
                 : startupAgentService.chatWithSession(sessionId, question, getHistory(request));
-        agentLogService.saveLog(currentUserId(token), "startup", question, answer, sessionId);
+        agentLogService.saveLog(UserContext.getUserId(), "startup", question, answer, sessionId);
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
@@ -136,9 +124,7 @@ public class AgentController {
     }
 
     @PostMapping("/router/chat")
-    public Result<Map<String, Object>> routeChat(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> request) {
+    public Result<Map<String, Object>> routeChat(@RequestBody Map<String, Object> request) {
         String question = getQuestion(request);
         if (isBlank(question)) {
             return Result.error(ResultCode.PARAM_MISSING.getCode(), "question is required");
@@ -147,19 +133,13 @@ public class AgentController {
         Map<String, Object> data = routerAgentService.route(question, request);
         String route = getString(data, "route");
         String answer = getString(data, "answer");
-        agentLogService.saveLog(currentUserId(token), route.isEmpty() ? "router" : route, question, answer, "");
+        agentLogService.saveLog(UserContext.getUserId(), route.isEmpty() ? "router" : route, question, answer, "");
         return Result.success(withTraceId(data));
     }
 
     @GetMapping("/logs")
-    public Result<List<Map<String, Object>>> listLogs(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestParam(defaultValue = "30") int limit) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return Result.error(ResultCode.USER_NOT_LOGIN.getCode(), "user is not logged in");
-        }
-        return Result.success(agentLogService.listRecentLogs(userId, limit));
+    public Result<List<Map<String, Object>>> listLogs(@RequestParam(defaultValue = "30") int limit) {
+        return Result.success(agentLogService.listRecentLogs(UserContext.getUserId(), limit));
     }
 
     /**
@@ -187,10 +167,6 @@ public class AgentController {
             question = getString(request, "message");
         }
         return question;
-    }
-
-    private Long currentUserId(String token) {
-        return tokenStore.resolve(token);
     }
 
     private Long getLong(Map<String, Object> request, String key) {

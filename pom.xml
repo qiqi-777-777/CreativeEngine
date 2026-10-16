@@ -45,6 +45,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- 密码加密：BCrypt 自带随机盐。只引 crypto 模块，不引入完整的 Spring Security 自动装配 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <!-- 运行指标暴露：模型/工具调用指标通过 /actuator/prometheus 供抓取 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

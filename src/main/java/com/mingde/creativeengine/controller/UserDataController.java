@@ -12,7 +12,7 @@ import com.mingde.creativeengine.mapper.UserBpDraftMapper;
 import com.mingde.creativeengine.mapper.UserCareerRecordMapper;
 import com.mingde.creativeengine.mapper.UserNotificationMapper;
 import com.mingde.creativeengine.mapper.UserPolicyFavoriteMapper;
-import com.mingde.creativeengine.storage.TokenStore;
+import com.mingde.creativeengine.security.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,15 +50,10 @@ public class UserDataController {
     @Autowired
     private UserNotificationMapper notificationMapper;
 
-    @Autowired
-    private TokenStore tokenStore;
-
     @GetMapping("/stats")
-    public Map<String, Object> stats(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> stats() {
+        // 登录态已由 AuthInterceptor 统一校验，这里直接取
+        Long userId = UserContext.getUserId();
 
         Map<String, Object> data = new HashMap<>();
         data.put("policyFavorites", policyFavoriteMapper.selectCount(policyFavoriteQuery(userId)));
@@ -73,11 +67,8 @@ public class UserDataController {
     }
 
     @GetMapping("/bp-drafts")
-    public Map<String, Object> listBpDrafts(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> listBpDrafts() {
+        Long userId = UserContext.getUserId();
 
         List<Map<String, Object>> rows = bpDraftMapper.selectList(
                 bpDraftQuery(userId).orderByDesc("update_time").orderByDesc("id")
@@ -86,13 +77,8 @@ public class UserDataController {
     }
 
     @PostMapping("/bp-drafts")
-    public Map<String, Object> saveBpDraft(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> data) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> saveBpDraft(@RequestBody Map<String, Object> data) {
+        Long userId = UserContext.getUserId();
 
         String draftKey = text(data.get("id"), "bp-" + System.currentTimeMillis());
         UserBpDraft draft = bpDraftMapper.selectOne(
@@ -124,24 +110,16 @@ public class UserDataController {
     }
 
     @DeleteMapping("/bp-drafts/{draftKey}")
-    public Map<String, Object> deleteBpDraft(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @PathVariable String draftKey) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> deleteBpDraft(@PathVariable String draftKey) {
+        Long userId = UserContext.getUserId();
 
         bpDraftMapper.delete(bpDraftQuery(userId).eq("draft_key", draftKey));
         return success(true);
     }
 
     @GetMapping("/career-records")
-    public Map<String, Object> listCareerRecords(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> listCareerRecords() {
+        Long userId = UserContext.getUserId();
 
         List<Map<String, Object>> rows = careerRecordMapper.selectList(
                 careerRecordQuery(userId).orderByDesc("create_time").orderByDesc("id")
@@ -150,13 +128,8 @@ public class UserDataController {
     }
 
     @PostMapping("/career-records")
-    public Map<String, Object> saveCareerRecord(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> data) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> saveCareerRecord(@RequestBody Map<String, Object> data) {
+        Long userId = UserContext.getUserId();
 
         String recordKey = text(data.get("id"), "career-" + System.currentTimeMillis());
         UserCareerRecord record = careerRecordMapper.selectOne(
@@ -185,24 +158,16 @@ public class UserDataController {
     }
 
     @DeleteMapping("/career-records/{recordKey}")
-    public Map<String, Object> deleteCareerRecord(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @PathVariable String recordKey) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> deleteCareerRecord(@PathVariable String recordKey) {
+        Long userId = UserContext.getUserId();
 
         careerRecordMapper.delete(careerRecordQuery(userId).eq("record_key", recordKey));
         return success(true);
     }
 
     @GetMapping("/policy-favorites")
-    public Map<String, Object> listPolicyFavorites(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> listPolicyFavorites() {
+        Long userId = UserContext.getUserId();
 
         List<Map<String, Object>> rows = policyFavoriteMapper.selectList(
                 policyFavoriteQuery(userId).orderByDesc("create_time").orderByDesc("id")
@@ -211,13 +176,8 @@ public class UserDataController {
     }
 
     @PostMapping("/policy-favorites")
-    public Map<String, Object> savePolicyFavorite(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> data) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> savePolicyFavorite(@RequestBody Map<String, Object> data) {
+        Long userId = UserContext.getUserId();
 
         String policyName = text(data.get("policyName"), "政策详情");
         UserPolicyFavorite favorite = policyFavoriteMapper.selectOne(
@@ -245,13 +205,8 @@ public class UserDataController {
     }
 
     @DeleteMapping("/policy-favorites")
-    public Map<String, Object> deletePolicyFavorite(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestParam String key) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> deletePolicyFavorite(@RequestParam String key) {
+        Long userId = UserContext.getUserId();
 
         QueryWrapper<UserPolicyFavorite> wrapper = policyFavoriteQuery(userId);
         wrapper.and((query) -> {
@@ -266,11 +221,8 @@ public class UserDataController {
     }
 
     @GetMapping("/notifications")
-    public Map<String, Object> listNotifications(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> listNotifications() {
+        Long userId = UserContext.getUserId();
 
         List<Map<String, Object>> rows = notificationMapper.selectList(
                 notificationQuery(userId).orderByDesc("create_time").orderByDesc("id")
@@ -279,13 +231,8 @@ public class UserDataController {
     }
 
     @PostMapping("/notifications")
-    public Map<String, Object> saveNotification(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestBody Map<String, Object> data) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> saveNotification(@RequestBody Map<String, Object> data) {
+        Long userId = UserContext.getUserId();
 
         UserNotification notification = new UserNotification();
         notification.setUserId(userId);
@@ -299,13 +246,8 @@ public class UserDataController {
     }
 
     @PutMapping("/notifications/{id}/read")
-    public Map<String, Object> markNotificationRead(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @PathVariable Long id) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> markNotificationRead(@PathVariable Long id) {
+        Long userId = UserContext.getUserId();
 
         notificationMapper.update(null, new UpdateWrapper<UserNotification>()
                 .eq("user_id", userId)
@@ -315,20 +257,13 @@ public class UserDataController {
     }
 
     @PutMapping("/notifications/read-all")
-    public Map<String, Object> markAllNotificationsRead(@RequestHeader(value = "Authorization", required = false) String token) {
-        Long userId = currentUserId(token);
-        if (userId == null) {
-            return unauthorized();
-        }
+    public Map<String, Object> markAllNotificationsRead() {
+        Long userId = UserContext.getUserId();
 
         notificationMapper.update(null, new UpdateWrapper<UserNotification>()
                 .eq("user_id", userId)
                 .set("is_read", 1));
         return success(true);
-    }
-
-    private Long currentUserId(String token) {
-        return tokenStore.resolve(token);
     }
 
     private QueryWrapper<UserBpDraft> bpDraftQuery(Long userId) {
@@ -436,13 +371,6 @@ public class UserDataController {
         result.put("code", 200);
         result.put("message", "success");
         result.put("data", data);
-        return result;
-    }
-
-    private Map<String, Object> unauthorized() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 401);
-        result.put("message", "未登录或登录已过期");
         return result;
     }
 }

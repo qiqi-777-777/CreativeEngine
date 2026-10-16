@@ -7,8 +7,10 @@ import com.mingde.creativeengine.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -22,6 +24,9 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     @Override
     public User login(String username, String password) {
@@ -41,10 +46,14 @@ public class UserServiceImpl implements UserService {
         }
         
         // 验证密码
-        String encryptedPassword = encryptPassword(password);
-        if (!encryptedPassword.equals(user.getPassword())) {
+        if (!matchesPassword(user, password)) {
             log.warn("密码错误: {}", username);
             return null;
+        }
+
+        // 存量用户库里还是 MD5（无盐），校验通过后顺手升级为 BCrypt，用户无感
+        if (isLegacyMd5(user.getPassword())) {
+            upgradeToBcrypt(user.getId(), password);
         }
         
         // 清除密码字段
@@ -69,7 +78,7 @@ public class UserServiceImpl implements UserService {
         // 创建新用户
         User user = new User();
         user.setUsername(username);
-        user.setPassword(encryptPassword(password));
+        user.setPassword(passwordEncoder.encode(password));
         user.setNickname(nickname != null && !nickname.isEmpty() ? nickname : username);
         user.setStatus(1);
         
@@ -135,14 +144,60 @@ public class UserServiceImpl implements UserService {
     }
     
     /**
-     * 密码加密（使用MD5，生产环境建议使用BCrypt）
+     * 校验密码，兼容两种存储格式：
+     * <ul>
+     *   <li>新密码：BCrypt（60 位、带随机盐、慢哈希），走 {@link PasswordEncoder#matches}；</li>
+     *   <li>存量密码：32 位十六进制 MD5，仅用于老账号过渡。</li>
+     * </ul>
      */
-    private String encryptPassword(String password) {
+    private boolean matchesPassword(User user, String rawPassword) {
+        String stored = user.getPassword();
+        if (isLegacyMd5(stored)) {
+            return stored.equalsIgnoreCase(md5Hex(rawPassword));
+        }
+        return passwordEncoder.matches(rawPassword, stored);
+    }
+
+    /**
+     * 判断是否为改造前遗留的 MD5 哈希：32 位且全部是十六进制字符。
+     */
+    private boolean isLegacyMd5(String hash) {
+        if (hash == null || hash.length() != 32) {
+            return false;
+        }
+        for (int i = 0; i < hash.length(); i++) {
+            char c = hash.charAt(i);
+            boolean isHex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+            if (!isHex) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 存量 MD5 密码升级为 BCrypt。
+     *
+     * <p>只能在"密码已校验通过"的那一刻调用：MD5 无法反推出明文，也就无法离线批量重算，
+     * 所以采用登录时渐进升级，用户全程无感。</p>
+     */
+    private void upgradeToBcrypt(Long userId, String rawPassword) {
+        User update = new User();
+        update.setId(userId);
+        update.setPassword(passwordEncoder.encode(rawPassword));
+        userMapper.updateById(update);
+        log.info("存量 MD5 密码已升级为 BCrypt，userId={}", userId);
+    }
+
+    /**
+     * MD5 摘要，仅用于校验存量密码，新密码一律走 BCrypt。
+     */
+    private String md5Hex(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] hash = md.digest(password.getBytes());
+            byte[] hash = md.digest(password.getBytes(StandardCharsets.UTF_8));
             StringBuilder hexString = new StringBuilder();
-            
+
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
                 if (hex.length() == 1) {
@@ -150,10 +205,10 @@ public class UserServiceImpl implements UserService {
                 }
                 hexString.append(hex);
             }
-            
+
             return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
-            log.error("密码加密失败", e);
+            log.error("MD5 计算失败", e);
             return password;
         }
     }
