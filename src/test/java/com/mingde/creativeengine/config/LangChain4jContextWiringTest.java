@@ -15,6 +15,8 @@ import com.mingde.creativeengine.service.agent.tool.PolicyTools;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
@@ -50,11 +52,14 @@ class LangChain4jContextWiringTest {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
         context.setEnvironment(environment);
         // 工具 Bean 是 AiService 的依赖，这里连同它们的数据服务一起装配
-        context.register(LangChain4jConfig.class, PolicyTools.class, OccupationTools.class);
+        context.register(LangChain4jConfig.class, ResilienceConfig.class, PolicyTools.class, OccupationTools.class);
         context.registerBean(PolicyDataService.class, LangChain4jContextWiringTest::stubPolicyDataService);
         context.registerBean(OccupationService.class, LangChain4jContextWiringTest::stubOccupationService);
         // 指标组件依赖 MeterRegistry，生产环境由 actuator 提供，这里注册一个内存实现
         context.registerBean(MeterRegistry.class, SimpleMeterRegistry::new);
+        // 熔断/限流实例生产环境由 resilience4j-spring-boot3 依据 application.yml 装配，这里用默认配置替代
+        context.registerBean(CircuitBreakerRegistry.class, CircuitBreakerRegistry::ofDefaults);
+        context.registerBean(RateLimiterRegistry.class, RateLimiterRegistry::ofDefaults);
 
         try {
             context.refresh();

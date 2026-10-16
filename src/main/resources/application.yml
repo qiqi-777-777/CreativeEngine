@@ -79,15 +79,44 @@ logging:
   pattern:
     console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:--}] [%15.15t] %-40.40logger{39} : %m%n'
 
+# 大模型调用保护（Resilience4j）
+# 限流：限制单位时间内真正打到 DeepSeek 的调用数，防止被刷爆配额；
+# 熔断：DeepSeek 持续报错时快速失败，不再让请求一直挂在 60s 超时上拖住线程。
+# 重试不在这里做——OpenAI 客户端已按 deepseek.max-retries 重试，叠两层会放大流量。
+resilience4j:
+  circuitbreaker:
+    instances:
+      deepseek:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+  ratelimiter:
+    instances:
+      deepseek:
+        limit-for-period: 20
+        limit-refresh-period: 1s
+        # 0 表示拿不到许可立即失败，不排队等待，避免请求堆积占住 Tomcat 线程
+        timeout-duration: 0
+
 # 运行指标：模型调用耗时/token、工具调用次数通过 Prometheus 暴露
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,circuitbreakers,ratelimiters
   endpoint:
     health:
       show-details: always
+  health:
+    # Resilience4j 的健康检查默认关闭，这里显式打开：
+    # 熔断器打开时 /actuator/health 会跟着降级，可以直接接 K8s 探针或监控告警
+    circuitbreakers:
+      enabled: true
   metrics:
     tags:
       application: ${spring.application.name}

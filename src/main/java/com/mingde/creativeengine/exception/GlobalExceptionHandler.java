@@ -2,6 +2,10 @@ package com.mingde.creativeengine.exception;
 
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
+
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindException;
@@ -35,6 +39,18 @@ public class GlobalExceptionHandler {
     public Result<Void> handleValidException(Exception e) {
         log.error("参数校验异常：{}", e.getMessage());
         return Result.error(ResultCode.PARAM_ERROR);
+    }
+
+    /**
+     * 大模型调用被限流（RequestNotPermitted）或熔断（CallNotPermitted）。
+     *
+     * <p>这不是系统故障，而是保护机制按预期生效，所以给一个可读提示 + 独立错误码，
+     * 前端可以据此提示"稍后重试"，也便于和真正的 5000 系统异常区分开。</p>
+     */
+    @ExceptionHandler({CallNotPermittedException.class, RequestNotPermitted.class})
+    public Result<Void> handleModelCallRejected(Exception e) {
+        log.warn("大模型调用被限流或熔断：{}", e.getMessage());
+        return Result.error(ResultCode.AI_SERVICE_BUSY);
     }
 
     /**

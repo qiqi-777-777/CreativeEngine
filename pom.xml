@@ -33,6 +33,7 @@
         <jackson-bom.version>2.22.1</jackson-bom.version>
         <langchain4j.version>1.20.0</langchain4j.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <resilience4j.version>2.3.0</resilience4j.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -59,6 +60,14 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- 大模型调用保护：限流 + 熔断。Spring Boot 3 集成版，附带 Actuator 端点与 Micrometer 指标，
+             实例参数写在 application.yml 的 resilience4j.*.instances.deepseek 下 -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>${resilience4j.version}</version>
         </dependency>
 
         <!-- Redis：会话记忆持久化、登录 token 共享、热点数据缓存（默认关闭，见 app.redis.enabled） -->

@@ -36,7 +36,9 @@ public enum ResultCode {
     // 系统相关 5xxx
     SYSTEM_ERROR(5000, "系统错误"),
     DATABASE_ERROR(5001, "数据库错误"),
-    NETWORK_ERROR(5002, "网络错误");
+    NETWORK_ERROR(5002, "网络错误"),
+    /** 大模型调用被限流或熔断，属于保护机制生效，可提示用户稍后重试 */
+    AI_SERVICE_BUSY(5003, "AI 服务繁忙，请稍后重试");
 
     private final Integer code;
     private final String message;

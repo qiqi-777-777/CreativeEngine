@@ -1,6 +1,7 @@
 package com.mingde.creativeengine.config;
 
 import com.mingde.creativeengine.observability.AgentTelemetry;
+import com.mingde.creativeengine.resilience.ResilientChatModel;
 import com.mingde.creativeengine.service.agent.aiservice.AgentAiServiceFactory;
 import com.mingde.creativeengine.service.agent.aiservice.BpAiService;
 import com.mingde.creativeengine.service.agent.aiservice.CareerAiService;
@@ -17,6 +18,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -74,8 +77,10 @@ public class LangChain4jConfig {
      */
     @Primary
     @Bean
-    public ChatModel deepSeekChatModel(AgentTelemetry agentTelemetry) {
-        return buildChatModel(null, agentTelemetry);
+    public ChatModel deepSeekChatModel(AgentTelemetry agentTelemetry,
+                                       CircuitBreaker modelCircuitBreaker,
+                                       RateLimiter modelRateLimiter) {
+        return buildChatModel(null, agentTelemetry, modelCircuitBreaker, modelRateLimiter);
     }
 
     /**
@@ -83,8 +88,10 @@ public class LangChain4jConfig {
      * 因此需要结构化结果时单独使用这个实例，避免影响自然语言回复的 Agent。
      */
     @Bean
-    public ChatModel deepSeekJsonChatModel(AgentTelemetry agentTelemetry) {
-        return buildChatModel(ResponseFormat.JSON, agentTelemetry);
+    public ChatModel deepSeekJsonChatModel(AgentTelemetry agentTelemetry,
+                                           CircuitBreaker modelCircuitBreaker,
+                                           RateLimiter modelRateLimiter) {
+        return buildChatModel(ResponseFormat.JSON, agentTelemetry, modelCircuitBreaker, modelRateLimiter);
     }
 
     /**
@@ -140,7 +147,8 @@ public class LangChain4jConfig {
         return AgentAiServiceFactory.startupAiService(chatModel, chatMemoryStore);
     }
 
-    private ChatModel buildChatModel(ResponseFormat responseFormat, AgentTelemetry agentTelemetry) {
+    private ChatModel buildChatModel(ResponseFormat responseFormat, AgentTelemetry agentTelemetry,
+                                     CircuitBreaker circuitBreaker, RateLimiter rateLimiter) {
         OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
                 .apiKey(apiKey)
                 .baseUrl(resolveBaseUrl())
@@ -158,7 +166,8 @@ public class LangChain4jConfig {
         if (agentTelemetry != null) {
             builder.listeners(agentTelemetry.chatModelListener());
         }
-        return builder.build();
+        // 最外层再套限流与熔断：DeepSeek 抖动或配额被打满时，保护本服务的线程与响应时间
+        return new ResilientChatModel(builder.build(), circuitBreaker, rateLimiter);
     }
 
     /**
