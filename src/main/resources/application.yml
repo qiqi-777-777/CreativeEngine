@@ -5,6 +5,8 @@ spring:
   application:
     name: creative-engine-backend
   profiles:
+    # 本地默认走 dev（开 SQL 与业务日志）；生产由部署环境显式指定 prod
+    active: ${SPRING_PROFILES_ACTIVE:dev}
     include: secret
 
   # 虚拟线程（Java 21）：请求由虚拟线程处理，模型调用/Redis/DB 这类 IO 等待场景下吞吐更好
@@ -105,7 +107,8 @@ deepseek:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 不写死 StdOutImpl：交给 MyBatis 自动探测 slf4j，SQL 输出交给日志级别控制。
+    # StdOutImpl 会绕过日志框架直接写 stdout，既没有 traceId 也不受级别约束，生产上等于全量刷屏
   global-config:
     db-config:
       id-type: auto
@@ -114,7 +117,8 @@ mybatis-plus:
 # 日志配置：控制台模板带上 traceId，便于把一次问答里的多次模型/工具调用串起来
 logging:
   level:
-    com.mingde.creativeengine: debug
+    # 默认按生产口径收敛；本地开发的 debug 在 application-dev.yml 里放开
+    com.mingde.creativeengine: info
     org.springframework.web: info
     # 工具与模型调用由 AgentTelemetry 统一打印（INFO），这里不再重复开 debug
     dev.langchain4j: warn
@@ -153,7 +157,8 @@ management:
         include: health,info,metrics,prometheus,circuitbreakers,ratelimiters
   endpoint:
     health:
-      show-details: always
+      # 默认不暴露各组件细节；本地开发在 application-dev.yml 里打开
+      show-details: never
   health:
     # Resilience4j 的健康检查默认关闭，这里显式打开：
     # 熔断器打开时 /actuator/health 会跟着降级，可以直接接 K8s 探针或监控告警

@@ -1,0 +1,14 @@
+# 本地开发环境
+#
+# 与生产的唯一差别是「可见性」：SQL、业务日志、健康检查细节都打开，方便对着日志排查。
+# 生产配置见 application-prod.yml，两者都不重复公共配置。
+logging:
+  level:
+    # debug 级别会把 MyBatis 的 SQL 打出来（走 slf4j，因此带上 traceId 与时间戳）
+    com.mingde.creativeengine: debug
+
+management:
+  endpoint:
+    health:
+      # 本地需要看清 db / redis / 熔断器各自的状态
+      show-details: always

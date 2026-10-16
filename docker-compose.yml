@@ -84,6 +84,8 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
+      # 生产 profile：日志降噪、健康检查不暴露内部细节
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: creative_engine

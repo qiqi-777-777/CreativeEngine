@@ -1,0 +1,14 @@
+# 生产环境
+#
+# 由部署环境通过 SPRING_PROFILES_ACTIVE=prod 激活（docker-compose 已设置）。
+# 这里只做「收口」：日志降噪、健康检查不暴露内部组件，其余配置沿用公共文件与环境变量。
+logging:
+  level:
+    # info 级别下 MyBatis 的 SQL 不再输出
+    com.mingde.creativeengine: info
+
+management:
+  endpoint:
+    health:
+      # 对外只给 UP/DOWN，不暴露数据库、Redis 版本等内部细节
+      show-details: never
