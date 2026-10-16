@@ -7,6 +7,13 @@
 # 可用环境变量（也可在同目录放一个 .env 文件）：
 #   DB_PASSWORD       MySQL root 密码，默认 root123456
 #   DEEPSEEK_API_KEY  DeepSeek 密钥，不填则 AI 相关接口不可用
+#
+# 构建时若下载依赖被截断（国内直连仓库不稳定，单文件几十 MB 的 onnxruntime、
+# 中文 Embedding 模型最容易断），给构建容器带上宿主代理再构建：
+#   Windows:  $env:HTTPS_PROXY='http://host.docker.internal:7897'; docker compose build
+#   macOS/Linux: HTTPS_PROXY=http://host.docker.internal:7897 docker compose build
+# 注意 Docker Desktop 「设置里的代理」只作用于拉镜像，容器内部的下载要靠这个环境变量
+# （BuildKit 会自动把宿主的 HTTP_PROXY / HTTPS_PROXY 传给构建容器，不需要改 Dockerfile）
 services:
   mysql:
     image: mysql:8.0
