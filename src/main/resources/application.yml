@@ -25,6 +25,13 @@ spring:
     time-zone: GMT+8
     default-property-inclusion: non_null
 
+  # 数据库迁移：V1 是初始表结构。存量库（已有表但没有 flyway_schema_history）
+  # 通过 baseline-on-migrate 标记基线后跳过 V1，不会重复建表或清空数据
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
   # Redis 连接（app.redis.enabled=false 时不建立连接，仅保留配置）
   data:
     redis:
