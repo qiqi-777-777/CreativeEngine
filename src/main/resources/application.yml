@@ -34,6 +34,17 @@ spring:
       database: 0
       timeout: 2s
 
+  # RabbitMQ 连接（app.mq.enabled=false 时不建立任何连接）
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        # 消费异常不无限重投：日志属于旁路数据，落库失败记日志即可
+        default-requeue-rejected: false
+
 # Redis 应用开关与过期时间：关闭时全部退化为单机内存实现，便于本地零依赖启动
 app:
   redis:
@@ -50,6 +61,11 @@ app:
   cache:
     local-ttl: 60s
     local-max-size: 1000
+
+  # MQ 开关：关闭时 Agent 日志同步写库，本地零依赖即可运行；
+  # 打开后投递到 RabbitMQ 由消费者异步落库，把写日志的耗时移出用户请求链路
+  mq:
+    enabled: ${MQ_ENABLED:false}
 
 # DeepSeek AI配置（通过 LangChain4j 的 OpenAI 兼容客户端接入）
 deepseek:
@@ -123,6 +139,9 @@ management:
     # 熔断器打开时 /actuator/health 会跟着降级，可以直接接 K8s 探针或监控告警
     circuitbreakers:
       enabled: true
+    # 未开启 MQ 时不做 RabbitMQ 健康检查，否则没装 broker 的环境会让整体状态直接 DOWN
+    rabbit:
+      enabled: ${app.mq.enabled:false}
   metrics:
     tags:
       application: ${spring.application.name}

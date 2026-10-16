@@ -95,6 +95,12 @@
             <version>${redisson.version}</version>
         </dependency>
 
+        <!-- RabbitMQ：Agent 日志异步落库（app.mq.enabled 控制，默认关闭走同步写库） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- LangChain4j：大模型应用开发框架（ChatModel 抽象 + AiServices 声明式 Agent） -->
         <dependency>
             <groupId>dev.langchain4j</groupId>

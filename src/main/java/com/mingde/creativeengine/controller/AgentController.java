@@ -2,6 +2,8 @@ package com.mingde.creativeengine.controller;
 
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
+import com.mingde.creativeengine.mq.AgentLogMessage;
+import com.mingde.creativeengine.mq.AgentLogPublisher;
 import com.mingde.creativeengine.observability.AgentTelemetry;
 import com.mingde.creativeengine.observability.TraceContext;
 import com.mingde.creativeengine.security.UserContext;
@@ -49,6 +51,10 @@ public class AgentController {
     @Autowired
     private AgentLogService agentLogService;
 
+    // 写日志走投递入口（默认同步写库，开启 MQ 后异步落库），读仍走 agentLogService
+    @Autowired
+    private AgentLogPublisher agentLogPublisher;
+
     @Autowired
     private AgentTelemetry agentTelemetry;
 
@@ -62,7 +68,8 @@ public class AgentController {
         }
 
         String answer = policyAgentService.askPolicy(policyId, question);
-        agentLogService.saveLog(UserContext.getUserId(), "policy", question, answer, String.valueOf(policyId));
+        agentLogPublisher.publish(new AgentLogMessage(
+                UserContext.getUserId(), "policy", question, answer, String.valueOf(policyId)));
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
@@ -80,7 +87,8 @@ public class AgentController {
         }
 
         String suggestion = careerAgentService.suggestCareer(majors, skills, personalities);
-        agentLogService.saveLog(UserContext.getUserId(), "career", request.toString(), suggestion, "");
+        agentLogPublisher.publish(new AgentLogMessage(
+                UserContext.getUserId(), "career", request.toString(), suggestion, ""));
 
         Map<String, Object> data = new HashMap<>();
         data.put("summary", suggestion);
@@ -95,7 +103,8 @@ public class AgentController {
         }
 
         String content = bpAgentService.generateBp(request);
-        agentLogService.saveLog(UserContext.getUserId(), "bp", request.toString(), content, getString(request, "projectName"));
+        agentLogPublisher.publish(new AgentLogMessage(
+                UserContext.getUserId(), "bp", request.toString(), content, getString(request, "projectName")));
 
         Map<String, Object> data = new HashMap<>();
         data.put("content", content);
@@ -115,7 +124,8 @@ public class AgentController {
         String answer = isBlank(sessionId)
                 ? startupAgentService.chatWithHistory(question, getHistory(request))
                 : startupAgentService.chatWithSession(sessionId, question, getHistory(request));
-        agentLogService.saveLog(UserContext.getUserId(), "startup", question, answer, sessionId);
+        agentLogPublisher.publish(new AgentLogMessage(
+                UserContext.getUserId(), "startup", question, answer, sessionId));
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
@@ -133,7 +143,8 @@ public class AgentController {
         Map<String, Object> data = routerAgentService.route(question, request);
         String route = getString(data, "route");
         String answer = getString(data, "answer");
-        agentLogService.saveLog(UserContext.getUserId(), route.isEmpty() ? "router" : route, question, answer, "");
+        agentLogPublisher.publish(new AgentLogMessage(
+                UserContext.getUserId(), route.isEmpty() ? "router" : route, question, answer, ""));
         return Result.success(withTraceId(data));
     }
 

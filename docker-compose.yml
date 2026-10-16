@@ -49,6 +49,27 @@ services:
       timeout: 3s
       retries: 10
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ce-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      TZ: Asia/Shanghai
+    # 宿主机映射到 5673 与 15672（管控台），避免与本机已有的 5672 冲突
+    ports:
+      - "5673:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
   app:
     build:
       context: .
@@ -60,6 +81,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -70,6 +93,10 @@ services:
       REDIS_ENABLED: "true"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      # 打开 MQ：Agent 日志改为投递到 RabbitMQ 异步落库
+      MQ_ENABLED: "true"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       TZ: Asia/Shanghai
     ports:
@@ -78,3 +105,4 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  rabbitmq-data:
