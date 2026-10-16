@@ -1,10 +1,9 @@
 package com.mingde.creativeengine.controller;
 
+import com.mingde.creativeengine.aop.AgentCallLog;
 import com.mingde.creativeengine.common.Result;
 import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.dto.PolicyAskRequest;
-import com.mingde.creativeengine.mq.AgentLogMessage;
-import com.mingde.creativeengine.mq.AgentLogPublisher;
 import com.mingde.creativeengine.observability.AgentTelemetry;
 import com.mingde.creativeengine.observability.TraceContext;
 import com.mingde.creativeengine.security.UserContext;
@@ -55,13 +54,10 @@ public class AgentController {
     @Autowired
     private AgentLogService agentLogService;
 
-    // 写日志走投递入口（默认同步写库，开启 MQ 后异步落库），读仍走 agentLogService
-    @Autowired
-    private AgentLogPublisher agentLogPublisher;
-
     @Autowired
     private AgentTelemetry agentTelemetry;
 
+    @AgentCallLog(agentType = "policy", inputSpel = "#request.question()", relatedSpel = "#request.policyId()")
     @PostMapping("/policy/ask")
     public Result<Map<String, Object>> askPolicy(@Valid @RequestBody PolicyAskRequest request) {
         // 必填校验交给 @Valid + PolicyAskRequest
@@ -69,14 +65,13 @@ public class AgentController {
         String question = request.question();
 
         String answer = policyAgentService.askPolicy(policyId, question);
-        agentLogPublisher.publish(new AgentLogMessage(
-                UserContext.getUserId(), "policy", question, answer, String.valueOf(policyId)));
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
         return Result.success(withTraceId(data));
     }
 
+    @AgentCallLog(agentType = "career", inputSpel = "#request.toString()", answerKey = "suggestion")
     @PostMapping("/career/suggest")
     public Result<Map<String, Object>> suggestCareer(@RequestBody Map<String, Object> request) {
         List<String> majors = getStringList(request, "majors");
@@ -88,8 +83,6 @@ public class AgentController {
         }
 
         String suggestion = careerAgentService.suggestCareer(majors, skills, personalities);
-        agentLogPublisher.publish(new AgentLogMessage(
-                UserContext.getUserId(), "career", request.toString(), suggestion, ""));
 
         Map<String, Object> data = new HashMap<>();
         data.put("summary", suggestion);
@@ -97,6 +90,8 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @AgentCallLog(agentType = "bp", inputSpel = "#request.toString()",
+            relatedSpel = "#request.get('projectName')", answerKey = "content")
     @PostMapping("/bp/generate")
     public Result<Map<String, Object>> generateBp(@RequestBody Map<String, Object> request) {
         if (request == null || request.isEmpty()) {
@@ -104,14 +99,15 @@ public class AgentController {
         }
 
         String content = bpAgentService.generateBp(request);
-        agentLogPublisher.publish(new AgentLogMessage(
-                UserContext.getUserId(), "bp", request.toString(), content, getString(request, "projectName")));
 
         Map<String, Object> data = new HashMap<>();
         data.put("content", content);
         return Result.success(withTraceId(data));
     }
 
+    @AgentCallLog(agentType = "startup",
+            inputSpel = "#request.get('question') ?: #request.get('message')",
+            relatedSpel = "#request.get('sessionId')")
     @PostMapping("/startup/chat")
     public Result<Map<String, Object>> chatStartup(@RequestBody Map<String, Object> request) {
         String question = getQuestion(request);
@@ -125,8 +121,6 @@ public class AgentController {
         String answer = isBlank(sessionId)
                 ? startupAgentService.chatWithHistory(question, getHistory(request))
                 : startupAgentService.chatWithSession(sessionId, question, getHistory(request));
-        agentLogPublisher.publish(new AgentLogMessage(
-                UserContext.getUserId(), "startup", question, answer, sessionId));
 
         Map<String, Object> data = new HashMap<>();
         data.put("answer", answer);
@@ -134,6 +128,8 @@ public class AgentController {
         return Result.success(withTraceId(data));
     }
 
+    @AgentCallLog(agentType = "router", agentTypeKey = "route",
+            inputSpel = "#request.get('question') ?: #request.get('message')")
     @PostMapping("/router/chat")
     public Result<Map<String, Object>> routeChat(@RequestBody Map<String, Object> request) {
         String question = getQuestion(request);
@@ -142,10 +138,6 @@ public class AgentController {
         }
 
         Map<String, Object> data = routerAgentService.route(question, request);
-        String route = getString(data, "route");
-        String answer = getString(data, "answer");
-        agentLogPublisher.publish(new AgentLogMessage(
-                UserContext.getUserId(), route.isEmpty() ? "router" : route, question, answer, ""));
         return Result.success(withTraceId(data));
     }
 

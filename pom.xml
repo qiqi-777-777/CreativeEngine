@@ -51,6 +51,12 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Spring AOP：@AgentCallLog 这类自定义切面依赖 aspectjweaver -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!-- 密码加密：BCrypt 自带随机盐。只引 crypto 模块，不引入完整的 Spring Security 自动装配 -->
         <dependency>
             <groupId>org.springframework.security</groupId>
