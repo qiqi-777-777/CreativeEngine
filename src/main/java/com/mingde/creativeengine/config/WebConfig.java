@@ -1,15 +1,14 @@
 package com.mingde.creativeengine.config;
 
+import com.mingde.creativeengine.security.AdminInterceptor;
 import com.mingde.creativeengine.security.AuthInterceptor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Web配置
@@ -37,28 +36,36 @@ public class WebConfig implements WebMvcConfigurer {
             "/api/test"
     };
 
-    private final AuthInterceptor authInterceptor;
-
-    public WebConfig(AuthInterceptor authInterceptor) {
-        this.authInterceptor = authInterceptor;
-    }
-
     /**
-     * 密码加密器：BCrypt 每次加密都会带上随机盐，同一明文两次结果不同，彩虹表与相同口令比对的攻击都失效。
+     * 管理接口路径：命中即要求 ADMIN 角色。
+     *
+     * <p>用路径规则而不是「在方法上打注解」，是因为注解漏标一个方法就等于放行（默认允许）；
+     * 路径规则是命中即校验（默认拒绝），新增接口只要落在这些前缀下就自动受保护。
+     * 代价是新增别的管理路径要同步加到这里，{@code AdminPathCoverageTest}
+     * 会扫描全部 Controller 来保证没有漏网的管理接口。</p>
      */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public static final List<String> ADMIN_PATHS = List.of("/api/banner/admin/**");
+
+    private final AuthInterceptor authInterceptor;
+    private final AdminInterceptor adminInterceptor;
+
+    public WebConfig(AuthInterceptor authInterceptor, AdminInterceptor adminInterceptor) {
+        this.authInterceptor = authInterceptor;
+        this.adminInterceptor = adminInterceptor;
     }
 
     /**
-     * 注册统一登录校验拦截器。
+     * 注册拦截器。顺序不能反：AdminInterceptor 依赖 AuthInterceptor 写进 UserContext 的 userId。
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns(PUBLIC_PATHS);
+                .excludePathPatterns(PUBLIC_PATHS)
+                .order(1);
+        registry.addInterceptor(adminInterceptor)
+                .addPathPatterns(ADMIN_PATHS)
+                .order(2);
     }
 
     /**

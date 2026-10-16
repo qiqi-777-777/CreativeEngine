@@ -11,11 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * 统一登录校验拦截器。
@@ -68,9 +65,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     private void writeUnauthorized(HttpServletResponse response) throws Exception {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(objectMapper.writeValueAsString(Result.error(ResultCode.TOKEN_INVALID)));
+        ApiErrorResponse.write(response, objectMapper,
+                HttpStatus.UNAUTHORIZED.value(), Result.error(ResultCode.TOKEN_INVALID));
     }
 }

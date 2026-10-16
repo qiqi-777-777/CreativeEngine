@@ -54,6 +54,11 @@ public class User {
      * 状态(0:禁用 1:启用)
      */
     private Integer status;
+
+    /**
+     * 角色：USER-普通用户 ADMIN-管理员（取值见 UserRole）
+     */
+    private String role;
     
     /**
      * 创建时间
