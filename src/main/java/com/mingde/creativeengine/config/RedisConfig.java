@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mingde.creativeengine.cache.TwoLevelCacheManager;
+import com.mingde.creativeengine.security.CaffeineLoginAttemptGuard;
+import com.mingde.creativeengine.security.LoginAttemptGuard;
+import com.mingde.creativeengine.security.RedisLoginAttemptGuard;
 import com.mingde.creativeengine.storage.InMemoryTokenStore;
 import com.mingde.creativeengine.storage.RedisTokenStore;
 import com.mingde.creativeengine.storage.TokenStore;
@@ -54,6 +57,23 @@ public class RedisConfig {
             return new RedisTokenStore(redisTemplate, ttl);
         }
         return new InMemoryTokenStore(ttl);
+    }
+
+    /**
+     * 登录失败计数：开启 Redis 时多实例共用一份，否则退回进程内实现。
+     * 缓存与登录防护都是「Redis 关了也要能跑」的典型场景，统一由 app.redis.enabled 控制。
+     */
+    @Bean
+    public LoginAttemptGuard loginAttemptGuard(ObjectProvider<StringRedisTemplate> redisTemplates,
+                                               @Value("${app.redis.enabled:false}") boolean redisEnabled,
+                                               @Value("${app.login-protection.window:10m}") String window,
+                                               @Value("${app.login-protection.max-attempts:5}") int maxAttempts) {
+        Duration lockWindow = parseTtl(window, Duration.ofMinutes(10));
+        StringRedisTemplate redisTemplate = redisTemplates.getIfAvailable();
+        if (redisEnabled && redisTemplate != null) {
+            return new RedisLoginAttemptGuard(redisTemplate, lockWindow, maxAttempts);
+        }
+        return new CaffeineLoginAttemptGuard(lockWindow, maxAttempts);
     }
 
     /**

@@ -76,6 +76,13 @@ app:
   mq:
     enabled: ${MQ_ENABLED:false}
 
+  # 登录防护：窗口内连续失败达到阈值即锁定（登录成功后清零），挡住暴力破解
+  login-protection:
+    # 计数窗口，从最后一次失败起算
+    window: 10m
+    # 连续失败多少次后锁定
+    max-attempts: 5
+
   # RAG 开关：关闭（默认）时政策检索只走关键词，不加载模型；
   # 打开后加载本地中文 Embedding 模型（BGE small zh，模型随 jar 打包），
   # 检索变为「语义 + 关键词」混合召回，用 RRF 融合两路排名

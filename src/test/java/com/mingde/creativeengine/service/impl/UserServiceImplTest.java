@@ -1,7 +1,10 @@
 package com.mingde.creativeengine.service.impl;
 
 import com.mingde.creativeengine.entity.User;
+import com.mingde.creativeengine.exception.BusinessException;
 import com.mingde.creativeengine.mapper.UserMapper;
+import com.mingde.creativeengine.security.CaffeineLoginAttemptGuard;
+import com.mingde.creativeengine.security.LoginAttemptGuard;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,15 +12,18 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,12 +32,59 @@ import static org.mockito.Mockito.when;
  */
 class UserServiceImplTest {
 
+    private static final int MAX_ATTEMPTS = 3;
+
     private final UserMapper userMapper = mock(UserMapper.class);
     private final UserServiceImpl service = new UserServiceImpl();
+    private final LoginAttemptGuard loginAttemptGuard =
+            new CaffeineLoginAttemptGuard(Duration.ofMinutes(10), MAX_ATTEMPTS);
 
     UserServiceImplTest() {
         ReflectionTestUtils.setField(service, "userMapper", userMapper);
         ReflectionTestUtils.setField(service, "passwordEncoder", new BCryptPasswordEncoder());
+        ReflectionTestUtils.setField(service, "loginAttemptGuard", loginAttemptGuard);
+    }
+
+    @Test
+    void blocksAccountAfterRepeatedFailures() {
+        // 用 thenAnswer 而不是 thenReturn：login 成功后会清空返回对象的密码字段，
+        // 若共用同一个实例，后续调用拿到的 password 就是 null，测试会失真
+        when(userMapper.selectOne(any())).thenAnswer(invocation -> bcryptUser(1L, "alice", "secret123"));
+
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            assertNull(service.login("alice", "wrong-password"));
+        }
+
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.login("alice", "secret123"));
+        assertTrue(exception.getMessage().contains("稍后再试"), "锁定期间即使密码正确也要拒绝：" + exception.getMessage());
+        verify(userMapper, times(MAX_ATTEMPTS)).selectOne(any());
+    }
+
+    @Test
+    void unknownAccountAlsoCountsAsFailure() {
+        when(userMapper.selectOne(any())).thenReturn(null);
+
+        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+            assertNull(service.login("ghost", "whatever"));
+        }
+
+        assertThrows(BusinessException.class, () -> service.login("ghost", "whatever"),
+                "不存在的账号同样计数，否则可以靠是否被限流反推账号是否存在");
+    }
+
+    @Test
+    void successfulLoginResetsFailureCounter() {
+        when(userMapper.selectOne(any())).thenAnswer(invocation -> bcryptUser(1L, "alice", "secret123"));
+
+        assertNull(service.login("alice", "wrong-password"));
+        assertNull(service.login("alice", "wrong-password"));
+        assertNotNull(service.login("alice", "secret123"));
+
+        // 清零后重新计数：还能再失败两次
+        assertNull(service.login("alice", "wrong-password"));
+        assertNull(service.login("alice", "wrong-password"));
+        assertNotNull(service.login("alice", "secret123"), "登录成功清零后不应被自己锁死");
     }
 
     @Test
@@ -101,6 +154,11 @@ class UserServiceImplTest {
         user.setPassword(password);
         user.setStatus(1);
         return user;
+    }
+
+    /** 造一个密码已是 BCrypt 的用户，走正常校验路径。 */
+    private User bcryptUser(Long id, String username, String rawPassword) {
+        return user(id, username, new BCryptPasswordEncoder().encode(rawPassword));
     }
 
     /** 复现改造前的 MD5 哈希，用于构造存量数据。 */

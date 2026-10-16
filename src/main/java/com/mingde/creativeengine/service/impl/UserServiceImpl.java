@@ -1,8 +1,11 @@
 package com.mingde.creativeengine.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.mingde.creativeengine.common.ResultCode;
 import com.mingde.creativeengine.entity.User;
+import com.mingde.creativeengine.exception.BusinessException;
 import com.mingde.creativeengine.mapper.UserMapper;
+import com.mingde.creativeengine.security.LoginAttemptGuard;
 import com.mingde.creativeengine.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,29 +30,44 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private LoginAttemptGuard loginAttemptGuard;
     
     @Override
     public User login(String username, String password) {
+        // 已被锁定就不再查库：暴力尝试继续消耗资源，而且失败原因也不必细究
+        if (loginAttemptGuard.isBlocked(username)) {
+            log.warn("登录失败次数过多，账号临时锁定: {}", username);
+            throw new BusinessException(ResultCode.PERMISSION_DENIED.getCode(), "登录失败次数过多，请稍后再试");
+        }
+
         // 查询用户
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
         User user = userMapper.selectOne(queryWrapper);
         
         if (user == null) {
+            // 账号不存在也计数：否则可以靠"是否被限流"反推某个账号是否存在
+            recordLoginFailure(username);
             log.warn("用户不存在: {}", username);
             return null;
         }
         
         if (user.getStatus() == 0) {
+            // 禁用不是凭证错误，不计数
             log.warn("用户已被禁用: {}", username);
             return null;
         }
         
         // 验证密码
         if (!matchesPassword(user, password)) {
+            recordLoginFailure(username);
             log.warn("密码错误: {}", username);
             return null;
         }
+
+        loginAttemptGuard.reset(username);
 
         // 存量用户库里还是 MD5（无盐），校验通过后顺手升级为 BCrypt，用户无感
         if (isLegacyMd5(user.getPassword())) {
@@ -61,6 +79,14 @@ public class UserServiceImpl implements UserService {
         
         log.info("用户登录成功: {}", username);
         return user;
+    }
+
+    private void recordLoginFailure(String username) {
+        loginAttemptGuard.recordFailure(username);
+        if (loginAttemptGuard.isBlocked(username)) {
+            log.warn("账号 {} 连续登录失败达 {} 次，已锁定 {}",
+                    username, loginAttemptGuard.maxAttempts(), loginAttemptGuard.window());
+        }
     }
     
     @Override
