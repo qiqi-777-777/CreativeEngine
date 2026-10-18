@@ -30,9 +30,9 @@ App({
     token: '',
     userInfo: null,
     systemInfo: null,
-    // 后端API地址（请根据实际情况修改）'http://localhost:8080/api'本地地址
-    //apiBase: 'https://6d8d54fb.r1.cpolar.top/api'
-    apiBase: 'http://localhost:8080/api'
+    // 后端API地址（请根据实际情况修改）
+    // apiBase: 'http://localhost:8080/api'  // 本地调试地址
+    apiBase: 'https://13691f78.r2.cpolar.cn/api' // cpolar 内网穿透地址
   }
 })
 

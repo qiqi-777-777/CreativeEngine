@@ -77,8 +77,11 @@ uploads/
 application-secret.yml
 **/application-secret.yml
 
-# 工具二进制文件
-tools/
+# 工具二进制文件（仅根目录 tools/，web/tools 为转换脚本需保留）
+/tools/
+
+# Web 构建产物
+web/dist/
 
 # Spring Boot DevTools 热重载触发文件
 **/trigger.txt
